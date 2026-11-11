@@ -121,14 +121,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                 <SkipLink>Skip to content</SkipLink>
                 <div className="flex min-h-svh flex-col">
                   {!isMap && <SiteHeader />}
-                  <main
-                    id="main"
-                    className={
-                      isHome || isTraveller || isMap
-                        ? "flex-1"
-                        : "flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0"
-                    }
-                  >
+                  <main id="main" className="flex-1">
                     {children}
                   </main>
                   {!isHome && !isTraveller && !isMap && !isHelp && (

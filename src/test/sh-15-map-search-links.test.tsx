@@ -13,6 +13,7 @@ const routePaths = [
   "/about",
   "/check",
   "/contact",
+  "/reports",
   "/help",
   "/help/freshness",
   "/map",
@@ -88,12 +89,17 @@ describe("SH-15 map provider fallback", () => {
         fireEvent.click(selectors[0]);
         expect(selectors[0]).toHaveAttribute("aria-pressed", "true");
 
-        const reportLink = await screen.findByRole("link", { name: "Reports" });
-        expect(reportLink).toHaveAttribute("href", "/report");
-        expect(routePaths).toContain(
-          new URL(reportLink.getAttribute("href")!, "http://localhost")
-            .pathname,
-        );
+        const reportLinks = await screen.findAllByRole("link", {
+          name: "Report Hazard",
+        });
+        expect(reportLinks.length).toBeGreaterThan(0);
+        for (const reportLink of reportLinks) {
+          expect(reportLink).toHaveAttribute("href", "/report");
+          expect(routePaths).toContain(
+            new URL(reportLink.getAttribute("href")!, "http://localhost")
+              .pathname,
+          );
+        }
       } finally {
         unmount();
       }
@@ -296,7 +302,7 @@ describe("SH-15 traveller search states", () => {
 });
 
 describe("SH-15 route and navigation links", () => {
-  it("visits every route and checks every CTA, navigation, footer, menu, and bottom-nav link", async () => {
+  it("visits every route and checks every CTA, shared navigation, footer, and menu link", async () => {
     const deadLinks: string[] = [];
     const invalidReportLinks: string[] = [];
     const placeholders: string[] = [];

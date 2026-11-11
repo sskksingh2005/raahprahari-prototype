@@ -39,15 +39,15 @@ function AdvisoriesPage() {
   return (
     <div className="advisories-list-page pb-8">
       <header className="advisories-list-banner">
-        <div className="rp-container py-8 md:py-12">
-          <p className="mb-2 inline-flex items-center gap-2 text-sm font-semibold tracking-widest text-blue-on-dark uppercase">
+        <div className="rp-container py-5">
+          <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold tracking-widest text-link uppercase">
             <span aria-hidden className="h-0.5 w-7 bg-brand-orange" />
             {t("hero.eyebrow")}
           </p>
-          <h1 className="max-w-4xl font-display text-3xl leading-tight font-bold text-text-on-charcoal sm:text-4xl md:text-5xl">
+          <h1 className="max-w-4xl font-display text-2xl leading-tight font-bold text-foreground sm:text-3xl">
             {t("adv.title")}
           </h1>
-          <p className="mt-3 max-w-3xl text-sm text-muted-foreground sm:text-base">
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
             {t("adv.body")}
           </p>
           <DemoBadge className="mt-4" />

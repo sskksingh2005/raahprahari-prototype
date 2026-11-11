@@ -1,95 +1,11 @@
-.home-header {
-  height: 4.5rem;
-  border-color: rgb(230 228 220 / 18%);
-  background:
-    linear-gradient(90deg, rgb(3 17 26 / 84%), rgb(4 19 29 / 72%)),
-    url("/img/banner-strip.png") center 50% / cover;
-  color: #e6e4dc;
-  backdrop-filter: blur(8px);
-}
-
-.home-header > div {
-  height: 100%;
-}
-
-.home-header .home-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.home-header .home-brand > span:last-child {
-  display: block;
-  margin-top: -0.15rem;
-  color: rgb(230 228 220 / 84%);
-  font-size: 0.72rem;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.home-header .home-brand > span:first-child > svg {
-  width: 2.75rem;
-  height: 2.75rem;
-}
-
-.home-header .home-brand > span:first-child > span {
-  color: #e6e4dc;
-  font-family: var(--font-body);
-  font-size: 1.35rem;
-  font-weight: 700;
-}
-
-.home-header .home-brand > span:first-child > span > span {
-  color: #e6e4dc;
-}
-
-.home-header nav a {
-  color: rgb(230 228 220 / 88%);
-}
-
-.home-header nav a[aria-current="page"] {
-  color: #ffb36b;
-}
-
-.home-header nav a:hover {
-  color: #fff;
-}
-
-.home-header .home-login-button {
-  border-color: rgb(52 124 203 / 85%);
-  background: rgb(3 17 26 / 22%);
-  color: #b7dcff;
-}
-
-.home-header .home-login-button:hover {
-  background: rgb(39 103 171 / 34%);
-  color: #fff;
-}
-
-.home-language-control select {
-  min-height: 2.75rem;
-  border: 0;
-  border-radius: 0.5rem;
-  background: transparent;
-  padding: 0 1.75rem 0 0.65rem;
-  color: #e6e4dc;
-  font: inherit;
-  font-size: 0.875rem;
-}
-
-.home-language-control option {
-  background: #10232e;
-  color: #e6e4dc;
-}
-
 .home-page {
-  color: #e6e4dc;
+  color: var(--foreground);
 }
 
 .home-hero {
   position: relative;
   isolation: isolate;
-  min-height: calc(100svh - 4.5rem);
+  min-height: calc(100svh - 4rem);
   overflow: hidden;
   background: #07151f;
 }
@@ -128,7 +44,7 @@
   z-index: 1;
   display: grid;
   width: min(100%, 90rem);
-  min-height: calc(100svh - 4.5rem);
+  min-height: calc(100svh - 4rem);
   margin-inline: auto;
   padding: 3rem 3.25rem 10rem;
   grid-template-columns: minmax(18rem, 1.05fr) minmax(16rem, 1fr) minmax(
@@ -511,31 +427,6 @@
 }
 
 @media (max-width: 768px) {
-  .home-header .rp-container {
-    padding-inline: 1rem;
-  }
-
-  .home-header .home-brand {
-    gap: 0.5rem;
-  }
-
-  .home-header .home-brand > span:first-child > svg {
-    width: 2.4rem;
-    height: 2.4rem;
-  }
-
-  .home-header .home-brand > span:first-child > span {
-    font-size: 1.05rem;
-  }
-
-  .home-header .home-brand > span:last-child {
-    font-size: 0.62rem;
-  }
-
-  .home-header .rp-container > div:last-child > div:first-child {
-    display: none;
-  }
-
   .home-hero,
   .home-content {
     min-height: auto;
@@ -712,10 +603,6 @@
 }
 
 @media (max-width: 390px) {
-  .home-header .home-brand > span:last-child {
-    display: none;
-  }
-
   .home-content {
     padding-inline: 1rem;
   }
