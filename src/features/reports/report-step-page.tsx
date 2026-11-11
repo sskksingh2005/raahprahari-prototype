@@ -48,6 +48,7 @@ import {
 import {
   createEmptyReportDraft,
   readReportDraft,
+  toLocalDateTime,
   validateObservation,
   validatePhoto,
   writeReportDraft,
@@ -206,6 +207,14 @@ export function ReportStepPage({
   useEffect(() => {
     let active = true;
     const loadSavedDraft = async () => {
+      // Default the observation time to now right after mount (not during
+      // render, to keep server and client markup identical), so the form is
+      // usable before the saved draft finishes loading.
+      setDraft((current) =>
+        current.observedAt
+          ? current
+          : { ...current, observedAt: toLocalDateTime(new Date()) },
+      );
       try {
         const scope = getActiveAccountScope();
         const saved = await loadActiveDraft(scope);
@@ -223,8 +232,7 @@ export function ReportStepPage({
             setLocationSearch(legacyDraft.location?.query ?? "");
             setNotice(t("saveStatus.draftRestored"));
           } else {
-            const empty = createEmptyReportDraft();
-            setDraft(empty);
+            // Nothing saved: keep anything entered while this was loading.
             setDraftId(null);
           }
         }
@@ -1510,7 +1518,7 @@ export function ReportStepPage({
                       )}
                   </ReviewSection>
                   <ReviewSection
-                    title="Observation time"
+                    title={t("segment.observationTime")}
                     edit={() => go("/report")}
                   >
                     <p>

@@ -1,17 +1,12 @@
 .advisories-list-page {
-  --background: #04131b;
-  --foreground: #e6e4dc;
-  --card: #0a202b;
-  --card-foreground: #e6e4dc;
-  --surface: var(--background);
-  --surface-raised: var(--card);
-  --muted-foreground: #a7bac5;
-  --border: #194459;
-  --link: #92c5ff;
   min-height: calc(100svh - 4rem);
   min-width: 0;
   overflow-x: clip;
   color: var(--foreground);
+  background: var(--background);
+}
+
+.dark .advisories-list-page {
   background:
     radial-gradient(ellipse at 82% 55%, rgb(10 47 62 / 28%), transparent 42%),
     var(--background);
@@ -41,10 +36,10 @@
 }
 
 .advisories-filter-pill[aria-pressed="true"] {
-  border-color: #92c5ff;
-  color: #d7ecff;
-  background: #173d53;
-  box-shadow: inset 0 0 0 1px rgb(146 197 255 / 28%);
+  border-color: var(--link);
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--link) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--link) 30%, transparent);
 }
 
 @media (min-width: 768px) {

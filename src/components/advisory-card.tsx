@@ -16,7 +16,7 @@ import {
 import { usePrefs } from "@/i18n/preferences";
 import { getAdvisorySourceTimestamp } from "@/lib/advisory";
 import type { CommunityReport, Segment } from "@/lib/types";
-import { advisoryFor, getAdvisoryCacheTimestamp } from "@/lib/data";
+import { useAppStore } from "@/lib/app-store";
 import { cn } from "@/lib/utils";
 
 export function AdvisoryCard({
@@ -32,13 +32,13 @@ export function AdvisoryCard({
   communityReport?: CommunityReport;
   showRestrictionDetail?: boolean;
 }) {
-  const { t, place, ago } = usePrefs();
-  const advisory = advisoryFor(segment.id);
+  const { t, place, ago, stamp } = usePrefs();
+  const { advisories, advisoryCacheTimestamp: cacheTimestamp } = useAppStore();
+  const advisory = advisories.get(segment.id);
   if (!advisory) {
     throw new Error(`Missing advisory for segment "${segment.id}"`);
   }
   const report = advisory.evidence[0];
-  const cacheTimestamp = getAdvisoryCacheTimestamp();
   const activeClosure = advisory.restriction?.type === "road_closed";
   const sources = [
     ...(advisory.evidence.length > 0 ? [t("source.community")] : []),
@@ -55,7 +55,7 @@ export function AdvisoryCard({
     return (
       <article
         className={cn(
-          "rounded-lg border border-border bg-card transition-colors hover:border-blue-on-dark/60",
+          "rp-card rp-enter rounded-lg border border-border bg-card",
           className,
         )}
       >
@@ -90,21 +90,14 @@ export function AdvisoryCard({
   }
 
   if (variant === "home-featured") {
+    // Everything on this card is derived from the store's advisory for the segment.
     const sourceTimestamp = getAdvisorySourceTimestamp(advisory);
-    if (sourceTimestamp === undefined) {
-      throw new Error(
-        `Missing source timestamp for sample segment "${segment.id}"`,
-      );
-    }
-
-    const lastUpdated = new Intl.DateTimeFormat("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    }).format(sourceTimestamp);
+    const lastUpdated =
+      sourceTimestamp === undefined
+        ? t("level.unknown")
+        : `${ago(sourceTimestamp)} · ${stamp(sourceTimestamp)}`;
+    const leadHazard =
+      advisory.evidence.find((r) => r.kind === "hazard") ?? report;
 
     return (
       <article className={cn("home-advisory", className)}>
@@ -123,21 +116,27 @@ export function AdvisoryCard({
               size="lg"
               className="home-avoid-badge"
             />
-            <RoadCode className="home-advisory-road">B-12 · Km 42–48</RoadCode>
+            <RoadCode className="home-advisory-road">
+              {segment.code} · km {segment.kmStart}–{segment.kmEnd}
+            </RoadCode>
           </div>
           <p className="home-advisory-description">
-            Reported debris on the road
+            {place(segment.from)} – {place(segment.to)}:{" "}
+            {leadHazard?.description ?? t("copy.noRecent")}
           </p>
           <dl className="home-advisory-details">
             <div>
               <ShieldCheck aria-hidden />
               <dt>Official restriction:</dt>
-              <dd>No current official information</dd>
+              <dd>
+                {advisory.restriction?.title ??
+                  "No current official information"}
+              </dd>
             </div>
             <div>
               <UsersRound aria-hidden />
               <dt>Evidence:</dt>
-              <dd>Community corroborated</dd>
+              <dd>{t(`basis.${advisory.basis}`)}</dd>
             </div>
             <div>
               <Clock3 aria-hidden />
@@ -156,7 +155,7 @@ export function AdvisoryCard({
   return (
     <article
       className={cn(
-        "rounded-xl border border-border bg-card transition-colors hover:border-blue-on-dark/60",
+        "rp-card rp-enter rounded-xl border border-border bg-card",
         className,
       )}
     >
@@ -198,7 +197,7 @@ export function AdvisoryCard({
           <span className="text-xs text-muted-foreground">
             {sources.length ? sources.join(" · ") : t("source.unknown")}
           </span>
-          <ArrowRight aria-hidden className="ml-auto size-4 text-link" />
+          <ArrowRight aria-hidden className="rp-arrow ml-auto size-4 text-link" />
         </div>
       </Link>
     </article>

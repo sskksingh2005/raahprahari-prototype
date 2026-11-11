@@ -30,6 +30,41 @@ code {
   --z-toast: 60;
   --elevation-raised: 0 1px 2px rgb(17 23 25 / 8%);
 
+  /* Motion tokens. Shared components read these; pages never copy them.
+     One-shot animations stay at or below --motion-max (500ms). The only
+     longer ones are --motion-hero (home hero zoom, once) and the looping
+     skeleton shimmer / spinners. */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 350ms;
+  --motion-max: 480ms;
+  --motion-hero: 14s;
+  --motion-shimmer: 1.4s;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --scale-hover: 1.08;
+  --scale-press: 0.97;
+  --scale-press-card: 0.985;
+  --scale-press-gentle: 0.94;
+  --scale-hero-zoom: 1.03;
+  --lift-hover: -1px;
+  --lift-card: -2px;
+  --rise-distance: 8px;
+  --stagger-step: 40ms;
+  --shadow-1: 0 1px 2px rgb(17 23 25 / 10%);
+  --shadow-2: 0 4px 10px -2px rgb(17 23 25 / 18%);
+  --shadow-3: 0 10px 22px -6px rgb(17 23 25 / 26%);
+  --shadow-header: 0 6px 16px -8px rgb(17 23 25 / 30%);
+  --glow-focus: 0 0 0 3px color-mix(in oklab, var(--ring) 40%, transparent);
+  --primary-hover: #2b6cb0;
+  --secondary-hover: #fffdf7;
+  --report: #eb5b38;
+  --report-foreground: #111719;
+  --report-hover: #f26a49;
+  --counter-warn: #8a3a00;
+
   /* Light theme */
   --background: #e6e4dc;
   --foreground: #111719;
@@ -146,6 +181,13 @@ code {
   --chart-4: var(--status-closed);
   --chart-5: var(--status-unknown);
   --elevation-raised: 0 1px 2px rgb(0 0 0 / 28%);
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 35%);
+  --shadow-2: 0 4px 12px -2px rgb(0 0 0 / 45%);
+  --shadow-3: 0 12px 26px -6px rgb(0 0 0 / 55%);
+  --shadow-header: 0 8px 18px -8px rgb(0 0 0 / 60%);
+  --primary-hover: #2f76c0;
+  --secondary-hover: #1b3a4a;
+  --counter-warn: #ffd166;
   --sidebar: #0a1a24;
   --sidebar-foreground: #e6e4dc;
   --sidebar-primary: #347ccb;
@@ -204,6 +246,12 @@ code {
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-report: var(--report);
+  --color-report-foreground: var(--report-foreground);
+  --color-report-hover: var(--report-hover);
+  --color-counter-warn: var(--counter-warn);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -277,16 +325,6 @@ code {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation: none !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
 .rp-container {
   margin-inline: auto;
   width: 100%;
@@ -312,12 +350,559 @@ code {
   background-size: 48px 48px;
 }
 
+/* =====================================================================
+   Motion system. Tokens are defined in :root above.
+   Rules: animate transform (translate/scale/rotate) and opacity; hover
+   effects only on hover-capable pointers; focus rings are never removed;
+   everything is switched off in the reduced-motion block at the end.
+   ===================================================================== */
+
+@layer base {
+  html {
+    scroll-padding-top: 5rem;
+  }
+  .rp-segmented {
+    position: relative;
+    isolation: isolate;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@keyframes rp-rise {
+  from {
+    opacity: 0;
+    translate: 0 var(--rise-distance);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes rp-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes rp-slide-down {
+  from {
+    opacity: 0;
+    translate: 0 -6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes rp-pop {
+  0% {
+    opacity: 0;
+    scale: 0.6;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.15;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+@keyframes rp-pulse-once {
+  0% {
+    scale: 1;
+  }
+  40% {
+    scale: 1.2;
+  }
+  100% {
+    scale: 1;
+  }
+}
+@keyframes rp-fade-pulse-once {
+  0% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes rp-attn {
+  0% {
+    opacity: 0.8;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.14;
+  }
+}
+@keyframes rp-shimmer {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 100% 0;
+  }
+}
+@keyframes rp-icon-in {
+  from {
+    opacity: 0;
+    rotate: -90deg;
+    scale: 0.7;
+  }
+  to {
+    opacity: 1;
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+@keyframes rp-leave {
+  from {
+    opacity: 1;
+    translate: 0 0;
+  }
+  to {
+    opacity: 0;
+    translate: 16px 0;
+  }
+}
+@keyframes rp-hero-zoom {
+  from {
+    scale: 1;
+  }
+  to {
+    scale: var(--scale-hero-zoom);
+  }
+}
+@keyframes rp-ripple {
+  from {
+    opacity: 0.45;
+    scale: 0.3;
+  }
+  to {
+    opacity: 0;
+    scale: 1.6;
+  }
+}
+
+/* Buttons, pills, tabs, icon buttons, links styled as buttons. */
+.rp-interactive {
+  transition-property: color, background-color, border-color, box-shadow, translate, scale, opacity;
+  transition-duration: var(--motion-base);
+  transition-timing-function: var(--ease-out);
+}
+.rp-interactive:not(:disabled):not([aria-disabled='true']):active {
+  scale: var(--scale-press);
+  transition-duration: var(--motion-fast);
+}
+.rp-interactive:disabled,
+.rp-interactive[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+@media (hover: hover) and (pointer: fine) {
+  .rp-interactive:not(:disabled):not([aria-disabled='true']):not([data-loading='true']):not([data-variant='link']):not(:focus-visible):hover {
+    translate: 0 var(--lift-hover);
+    box-shadow: var(--shadow-2);
+  }
+  .rp-interactive[data-size^='icon']:not(:disabled):hover > svg {
+    scale: var(--scale-hover);
+  }
+}
+.rp-interactive > svg {
+  transition: scale var(--motion-base) var(--ease-out);
+}
+
+/* Press-only feedback (nav items, toggles, chips). No hover lift. */
+.rp-press {
+  transition: scale var(--motion-fast) var(--ease-out), color var(--motion-base) var(--ease-out),
+    background-color var(--motion-base) var(--ease-out), border-color var(--motion-base) var(--ease-out);
+}
+.rp-press:not(:disabled):active {
+  scale: var(--scale-press);
+}
+.rp-press-gentle:not(:disabled):active {
+  scale: var(--scale-press-gentle);
+  transition-duration: var(--motion-base);
+}
+
+/* Material-style ripple, driven by :active so it needs no script. */
+.rp-ripple {
+  position: relative;
+  overflow: hidden;
+}
+.rp-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgb(255 255 255 / 70%) 0%, transparent 70%);
+  opacity: 0;
+  scale: 0.3;
+  pointer-events: none;
+}
+.rp-ripple:active::after,
+a:active > .rp-ripple::after {
+  animation: rp-ripple var(--motion-slow) var(--ease-out) both;
+}
+
+/* Nav links: underline slides in on hover, stays on the current page. */
+.rp-underline {
+  position: relative;
+}
+.rp-underline::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0.625rem;
+  bottom: 0;
+  height: 2px;
+  background: var(--brand-orange);
+  transform-origin: left;
+  scale: 0 1;
+  transition: scale var(--motion-base) var(--ease-out);
+}
+.rp-underline[aria-current='page']::after,
+.rp-underline:focus-visible::after {
+  scale: 1 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .rp-underline:hover::after {
+    scale: 1 1;
+  }
+}
+
+/* Header gains a shadow once the page has scrolled. */
+.rp-header {
+  transition: box-shadow var(--motion-base) var(--ease-out);
+}
+.rp-header[data-scrolled='true'] {
+  box-shadow: var(--shadow-header);
+}
+
+/* Clickable cards. */
+.rp-card {
+  transition-property: border-color, box-shadow, translate, scale;
+  transition-duration: var(--motion-base);
+  transition-timing-function: var(--ease-out);
+}
+.rp-card:active {
+  scale: var(--scale-press-card);
+  transition-duration: var(--motion-fast);
+}
+.rp-card:focus-within:not(.is-selected) {
+  border-color: color-mix(in oklab, var(--link) 60%, var(--border));
+}
+@media (hover: hover) and (pointer: fine) {
+  .rp-card:hover {
+    translate: 0 var(--lift-card);
+  }
+  .rp-card:hover:not(.is-selected) {
+    border-color: color-mix(in oklab, var(--link) 60%, var(--border));
+    box-shadow: var(--shadow-3);
+  }
+}
+.rp-arrow {
+  transition: translate var(--motion-base) var(--ease-out);
+}
+.rp-card:hover .rp-arrow,
+.rp-card:focus-within .rp-arrow {
+  translate: 4px 0;
+}
+
+/* Entrance helpers. .rp-enter staggers by sibling index: at most 8 items,
+   --stagger-step (40ms) apart. Later siblings appear without animation. */
+.rp-enter,
+.rp-fade-rise {
+  animation: rp-rise var(--motion-slow) var(--ease-out) backwards;
+}
+.rp-fade-in {
+  animation: rp-fade var(--motion-base) var(--ease-out) backwards;
+}
+.rp-slide-down {
+  animation: rp-slide-down var(--motion-base) var(--ease-out) backwards;
+}
+.rp-pop {
+  animation: rp-pop var(--motion-slow) var(--ease-spring) backwards;
+}
+.rp-enter:nth-child(2) { animation-delay: calc(var(--stagger-step) * 1); }
+.rp-enter:nth-child(3) { animation-delay: calc(var(--stagger-step) * 2); }
+.rp-enter:nth-child(4) { animation-delay: calc(var(--stagger-step) * 3); }
+.rp-enter:nth-child(5) { animation-delay: calc(var(--stagger-step) * 4); }
+.rp-enter:nth-child(6) { animation-delay: calc(var(--stagger-step) * 5); }
+.rp-enter:nth-child(7) { animation-delay: calc(var(--stagger-step) * 6); }
+.rp-enter:nth-child(8) { animation-delay: calc(var(--stagger-step) * 7); }
+.rp-enter:nth-child(n + 9) { animation: none; }
+
+.rp-page-enter {
+  animation: rp-rise var(--motion-base) var(--ease-out) backwards;
+}
+
+/* Sections reveal once when scrolled into view (see RevealObserver). */
+[data-reveal-state='hidden'] {
+  opacity: 0;
+  translate: 0 12px;
+}
+[data-reveal-state='visible'] {
+  opacity: 1;
+  translate: 0 0;
+  transition: opacity var(--motion-slow) var(--ease-out), translate var(--motion-slow) var(--ease-out);
+}
+
+/* Home hero: text staggers in, background zooms at most 3% once. */
+.rp-hero-stagger > * {
+  animation: rp-rise var(--motion-slow) var(--ease-out) backwards;
+}
+.rp-hero-stagger > :nth-child(2) { animation-delay: calc(var(--stagger-step) * 2); }
+.rp-hero-stagger > :nth-child(3) { animation-delay: calc(var(--stagger-step) * 4); }
+.rp-hero-stagger > :nth-child(n + 4) { animation-delay: calc(var(--stagger-step) * 6); }
+.rp-hero-zoom {
+  transform-origin: 58% 50%;
+  animation: rp-hero-zoom var(--motion-hero) var(--ease-out) forwards;
+}
+
+/* Badges. */
+.rp-attn {
+  position: relative;
+}
+.rp-attn::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid var(--rp-attn-color, currentColor);
+  opacity: 0;
+  pointer-events: none;
+  animation: rp-attn var(--motion-slow) var(--ease-out) 1 backwards;
+}
+.rp-pulse-once {
+  animation: rp-pulse-once var(--motion-slow) var(--ease-spring) 1;
+}
+.rp-fade-pulse-once {
+  animation: rp-fade-pulse-once var(--motion-slow) var(--ease-out) 1;
+}
+
+/* Sliding highlight behind a two-option toggle (see useSlidingHighlight). */
+.rp-segmented::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: var(--rp-seg-y, 0);
+  left: 0;
+  width: var(--rp-seg-w, 0);
+  height: var(--rp-seg-h, 0);
+  translate: var(--rp-seg-x, 0) 0;
+  border-radius: 0.375rem;
+  background: var(--rp-seg-bg, var(--primary));
+  opacity: var(--rp-seg-on, 0);
+  transition: translate var(--motion-base) var(--ease-out), width var(--motion-base) var(--ease-out),
+    opacity var(--motion-fast) var(--ease-out);
+}
+.rp-segmented[data-measured='true'] > button[aria-pressed='true'] {
+  background: transparent !important;
+}
+.rp-segmented > button {
+  position: relative;
+  z-index: 1;
+  transition: color var(--motion-base) var(--ease-out);
+}
+
+/* Form fields: border colour and glow animate on focus. */
+.rp-field {
+  transition: border-color var(--motion-base) var(--ease-out), box-shadow var(--motion-base) var(--ease-out),
+    background-color var(--motion-base) var(--ease-out);
+}
+.rp-field:focus-visible:not([aria-invalid='true']) {
+  box-shadow: var(--glow-focus);
+}
+
+/* Skeleton shimmer. One of the two allowed infinite animations (the other is the spinner). */
+.rp-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.rp-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--foreground) 12%, transparent), transparent);
+  animation: rp-shimmer var(--motion-shimmer) var(--ease-standard) infinite;
+}
+
+/* Floating "back to top" button. */
+.rp-fab {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  translate: 0 8px;
+  transition: opacity var(--motion-base) var(--ease-out), translate var(--motion-base) var(--ease-out),
+    visibility 0s linear var(--motion-base);
+}
+.rp-fab[data-visible='true'] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  translate: 0 0;
+  transition-delay: 0s;
+}
+
+/* Small delights. */
+.rp-icon-swap {
+  animation: rp-icon-in var(--motion-base) var(--ease-spring) backwards;
+}
+[data-leaving='true'] {
+  animation: rp-leave var(--motion-base) var(--ease-in) forwards;
+  pointer-events: none;
+}
+html.rp-theme-fade,
+html.rp-theme-fade *,
+html.rp-theme-fade *::before,
+html.rp-theme-fade *::after {
+  transition: background-color var(--motion-base) var(--ease-standard), color var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base) var(--ease-standard), fill var(--motion-base) var(--ease-standard),
+    stroke var(--motion-base) var(--ease-standard) !important;
+}
+
+/* Reduced motion: no animation, no transform, no zoom, no stagger, no pulse.
+   Only instant colour changes remain. Placed last so it wins. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation: none !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
+  .rp-interactive,
+  .rp-interactive > svg,
+  .rp-press,
+  .rp-card,
+  .rp-arrow,
+  .rp-underline::after,
+  .rp-fab,
+  .rp-hero-zoom,
+  .rp-segmented::before,
+  [data-reveal-state] {
+    translate: none !important;
+    scale: none !important;
+    rotate: none !important;
+  }
+  .rp-underline::after {
+    scale: 1 1 !important;
+    opacity: 0;
+  }
+  .rp-underline[aria-current='page']::after {
+    opacity: 1;
+  }
+  [data-reveal-state] {
+    opacity: 1 !important;
+  }
+  .rp-attn::after,
+  .rp-ripple::after {
+    display: none;
+  }
+}
+
+/* Fixed dark-surface palette for the home and traveller pages. These pages are
+   always dark, so the tones do not change with the theme. Pages reference the
+   tokens; raw hex values live only here. */
+:root {
+  --tone-mask-opaque: #000;
+  --tone-031119: #031119;
+  --tone-04131b: #04131b;
+  --tone-061821: #061821;
+  --tone-061822: #061822;
+  --tone-07151f: #07151f;
+  --tone-071b25: #071b25;
+  --tone-071c26: #071c26;
+  --tone-081e29: #081e29;
+  --tone-086caa: #086caa;
+  --tone-087ccb: #087ccb;
+  --tone-0a202b: #0a202b;
+  --tone-0b2531: #0b2531;
+  --tone-0b2c3b: #0b2c3b;
+  --tone-122e3c: #122e3c;
+  --tone-1592e9: #1592e9;
+  --tone-168de0: #168de0;
+  --tone-193644: #193644;
+  --tone-194459: #194459;
+  --tone-19475e: #19475e;
+  --tone-1a4357: #1a4357;
+  --tone-1b4559: #1b4559;
+  --tone-21495c: #21495c;
+  --tone-23536d: #23536d;
+  --tone-254b5f: #254b5f;
+  --tone-2767ab: #2767ab;
+  --tone-294c5b: #294c5b;
+  --tone-29566d: #29566d;
+  --tone-2b5366: #2b5366;
+  --tone-31a8ff: #31a8ff;
+  --tone-338df2: #338df2;
+  --tone-36adff: #36adff;
+  --tone-416981: #416981;
+  --tone-426477: #426477;
+  --tone-429bd0: #429bd0;
+  --tone-4381a1: #4381a1;
+  --tone-47b8ff: #47b8ff;
+  --tone-54baff: #54baff;
+  --tone-597786: #597786;
+  --tone-63baff: #63baff;
+  --tone-78a7c7: #78a7c7;
+  --tone-86caff: #86caff;
+  --tone-899da7: #899da7;
+  --tone-8bd1ff: #8bd1ff;
+  --tone-91a5b0: #91a5b0;
+  --tone-97a5ae: #97a5ae;
+  --tone-9db2bd: #9db2bd;
+  --tone-9eb4bf: #9eb4bf;
+  --tone-9ed5ff: #9ed5ff;
+  --tone-9fb3bd: #9fb3bd;
+  --tone-a64d19: #a64d19;
+  --tone-a6ddff: #a6ddff;
+  --tone-a7bac5: #a7bac5;
+  --tone-a8bac3: #a8bac3;
+  --tone-a8bdc7: #a8bdc7;
+  --tone-a9bac2: #a9bac2;
+  --tone-a9bbc4: #a9bbc4;
+  --tone-b7c1c8: #b7c1c8;
+  --tone-b7c8d0: #b7c8d0;
+  --tone-b9c9cf: #b9c9cf;
+  --tone-becbd1: #becbd1;
+  --tone-bed0d8: #bed0d8;
+  --tone-c1cbd0: #c1cbd0;
+  --tone-c1d0d6: #c1d0d6;
+  --tone-c1d1d8: #c1d1d8;
+  --tone-c2cdd2: #c2cdd2;
+  --tone-c2ced3: #c2ced3;
+  --tone-c3d0d6: #c3d0d6;
+  --tone-d4e0e5: #d4e0e5;
+  --tone-d7dce0: #d7dce0;
+  --tone-d7e0e4: #d7e0e4;
+  --tone-d7e2e7: #d7e2e7;
+  --tone-d7e8f4: #d7e8f4;
+  --tone-d8e7ed: #d8e7ed;
+  --tone-dce5e8: #dce5e8;
+  --tone-e0e7e9: #e0e7e9;
+  --tone-e0e8eb: #e0e8eb;
+  --tone-e1e6e9: #e1e6e9;
+  --tone-e45b31: #e45b31;
+  --tone-e6e9e9: #e6e9e9;
+  --tone-e8ecec: #e8ecec;
+  --tone-ed5350: #ed5350;
+  --tone-f0f1ef: #f0f1ef;
+  --tone-f1f3f3: #f1f3f3;
+  --tone-f2a22f: #f2a22f;
+  --tone-f2efe7: #f2efe7;
+  --tone-f2f5f5: #f2f5f5;
+  --tone-f3f1e9: #f3f1e9;
+  --tone-f5f2e9: #f5f2e9;
+  --tone-ff8a43: #ff8a43;
+  --tone-fff1e8: #fff1e8;
 }

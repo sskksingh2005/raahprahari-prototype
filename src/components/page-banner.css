@@ -1,17 +1,12 @@
 .rp-info-page {
-  --background: #04131b;
-  --foreground: #e6e4dc;
-  --card: #0a202b;
-  --card-foreground: #e6e4dc;
-  --surface: var(--background);
-  --surface-raised: var(--card);
-  --muted-foreground: #a7bac5;
-  --border: #194459;
-  --link: #40c4ff;
   min-height: calc(100svh - 4rem);
   min-width: 0;
   overflow-x: clip;
   color: var(--foreground);
+  background: var(--background);
+}
+
+.dark .rp-info-page {
   background:
     radial-gradient(ellipse at 82% 55%, rgb(10 47 62 / 28%), transparent 42%),
     var(--background);
@@ -88,15 +83,15 @@
 
 .rp-info-card {
   min-width: 0;
-  border: 1px solid #194459;
+  border: 1px solid var(--border);
   border-radius: 0.8rem;
-  background: linear-gradient(115deg, rgb(13 34 46 / 96%), rgb(9 26 36 / 96%));
+  background: var(--card);
   padding: clamp(1rem, 3vw, 1.4rem);
 }
 
 .rp-info-card h2 {
   margin: 0;
-  color: #e6e4dc;
+  color: var(--foreground);
   font-family: var(--font-heading);
   font-size: 1.1rem;
   font-weight: 700;
@@ -105,7 +100,7 @@
 
 .rp-info-card p,
 .rp-info-card li {
-  color: #b7c9d4;
+  color: var(--muted-foreground);
   font-size: 0.875rem;
   line-height: 1.6;
 }
@@ -115,7 +110,7 @@
 }
 
 .rp-info-card strong {
-  color: #e6e4dc;
+  color: var(--foreground);
 }
 
 .rp-info-actions {
@@ -137,14 +132,14 @@
 }
 
 .rp-contact-field label {
-  color: #e6e4dc;
+  color: var(--foreground);
   font-size: 0.875rem;
   font-weight: 600;
 }
 
 .rp-contact-help {
   margin: 0;
-  color: #a7bac5;
+  color: var(--muted-foreground);
   font-size: 0.75rem;
   line-height: 1.45;
 }
@@ -153,25 +148,25 @@
   width: 100%;
   min-width: 0;
   min-height: 2.9rem;
-  border: 1px solid #24485b;
+  border: 1px solid var(--input);
   border-radius: 0.65rem;
-  background: #071923;
+  background: var(--background);
   padding: 0.7rem 0.8rem;
-  color: #e6e4dc;
+  color: var(--foreground);
   font: inherit;
 }
 
 .rp-contact-control::placeholder {
-  color: #91a5b0;
+  color: var(--muted-foreground);
   opacity: 1;
 }
 
 .rp-contact-control[aria-invalid="true"] {
-  border-color: #ff8766;
+  border-color: var(--destructive);
 }
 
 .rp-contact-control:focus-visible {
-  outline: 2px solid #92c5ff;
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -182,32 +177,36 @@
 
 .rp-contact-error {
   margin: 0;
-  color: #ffad9a;
+  color: var(--destructive);
   font-size: 0.8rem;
+}
+
+.dark .rp-contact-error {
+  color: #ffad9a;
 }
 
 .rp-contact-notice,
 .rp-contact-emergency {
-  border-left: 2px solid #92c5ff;
+  border-left: 2px solid var(--link);
   padding: 0.65rem 0.8rem;
-  color: #d1dce2;
+  color: var(--foreground);
   font-size: 0.85rem;
   line-height: 1.5;
 }
 
 .rp-contact-notice {
   margin: 0;
-  background: rgb(20 61 83 / 42%);
+  background: color-mix(in srgb, var(--link) 14%, transparent);
 }
 
 .rp-contact-emergency {
   margin: 1rem 0 0;
-  border-left-color: #ff8766;
-  background: rgb(78 39 34 / 30%);
+  border-left-color: var(--brand-orange);
+  background: color-mix(in srgb, var(--brand-orange) 14%, transparent);
 }
 
 .rp-info-page a:focus-visible {
-  outline: 2px solid #92c5ff;
+  outline: 2px solid var(--ring);
   outline-offset: 3px;
 }
 

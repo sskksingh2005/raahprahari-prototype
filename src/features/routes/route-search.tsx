@@ -1,19 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { ArrowUpDown, LocateFixed, RotateCcw, Search, X } from 'lucide-react'
+import { useExitGhosts } from '@/components/motion'
 import { Button } from '@/components/ui/button'
 import { QUICK_PICKS } from '@/data/fixtures'
 import { usePrefs } from '@/i18n/preferences'
 import { getCurrentPosition, inCoverage, nearestPlace } from '@/lib/geo'
-import { STORAGE_KEYS, useLocalState } from '@/lib/storage'
+import { useAppStore } from '@/lib/app-store'
 import { cn } from '@/lib/utils'
 import { PlaceInput } from '@/features/routes/place-input'
-
-interface RecentSearch {
-  from: string
-  to: string
-  at: number
-}
 
 export function RouteSearchCard({
   initialFrom = null,
@@ -32,9 +27,14 @@ export function RouteSearchCard({
   const navigate = useNavigate()
   const [from, setFrom] = useState<string | null>(initialFrom)
   const [to, setTo] = useState<string | null>(initialTo)
+  const [ghosts, captureGhosts] = useExitGhosts<{ from: string; to: string }>()
   const [locMsg, setLocMsg] = useState<string | null>(null)
   const [locating, setLocating] = useState(false)
-  const [recent, setRecent] = useLocalState<RecentSearch[]>(STORAGE_KEYS.recentSearches, [])
+  const { places, recentSearches, setRecentSearches: setRecent } = useAppStore()
+  // Only route picks (with both ends) can refill the from/to inputs.
+  const recent = recentSearches.filter(
+    (r): r is typeof r & { from: string; to: string } => !!r.from && !!r.to,
+  )
 
   useEffect(() => {
     // Keep selections in sync when navigation changes the route's initial values.
@@ -49,7 +49,14 @@ export function RouteSearchCard({
   const submit = (e?: React.FormEvent) => {
     e?.preventDefault()
     if (!valid) return
-    setRecent((prev) => [{ from, to, at: Date.now() }, ...prev.filter((r) => !(r.from === from && r.to === to))].slice(0, 5))
+    const name = (id: string) => places.find((p) => p.id === id)?.name ?? id
+    const query = `${name(from)} to ${name(to)}`
+    setRecent((prev) =>
+      [
+        { query, from, to, at: Date.now() },
+        ...prev.filter((r) => r.query.toLowerCase() !== query.toLowerCase()),
+      ].slice(0, 5),
+    )
     if (destination === 'traveller') {
       void navigate({ to: '/traveller', search: { from, to } })
     } else {
@@ -97,6 +104,7 @@ export function RouteSearchCard({
               setFrom(to)
               setTo(from)
             }}
+            disabled={!from && !to}
             aria-label={t('search.swap')}
             title={t('search.swap')}
           >
@@ -148,7 +156,7 @@ export function RouteSearchCard({
                 onClick={() => pick(id)}
                 aria-pressed={selected}
                 className={cn(
-                  'min-h-11 rounded-full border px-3 text-sm transition-colors',
+                  'rp-press min-h-11 rounded-full border px-3 text-sm',
                   selected
                     ? 'border-brand-orange bg-brand-orange/15 text-foreground'
                     : 'border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground',
@@ -165,7 +173,10 @@ export function RouteSearchCard({
         <div>
           <div className="mb-1 flex items-center justify-between">
             <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">{t('search.recent')}</p>
-            <Button type="button" variant="ghost" size="sm" className="h-9 text-muted-foreground" onClick={() => setRecent([])}>
+            <Button type="button" variant="ghost" size="sm" className="h-9 text-muted-foreground" onClick={() => {
+              captureGhosts(recent.map(({ from, to }) => ({ from, to })))
+              setRecent((prev) => prev.filter((r) => !r.from || !r.to))
+            }}>
               <X />
               {t('search.clearRecent')}
             </Button>
@@ -184,6 +195,14 @@ export function RouteSearchCard({
                   <RotateCcw aria-hidden className="size-3.5 text-muted-foreground" />
                   {place(r.from)} → {place(r.to)}
                 </button>
+              </li>
+            ))}
+            {ghosts.map((r) => (
+              <li key={`ghost-${r.from}-${r.to}`} data-leaving="true" aria-hidden>
+                <span className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-accent px-3 text-sm">
+                  <RotateCcw aria-hidden className="size-3.5 text-muted-foreground" />
+                  {place(r.from)} → {place(r.to)}
+                </span>
               </li>
             ))}
           </ul>

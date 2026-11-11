@@ -1,0 +1,18 @@
+{
+  "name": "RaahPrahari",
+  "short_name": "RaahPrahari",
+  "description": "Prototype mockup, synthetic data. Check reported road hazards, information freshness, and official restrictions across Uttarakhand.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#07151f",
+  "background_color": "#07151f",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    }
+  ]
+}

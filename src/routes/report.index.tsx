@@ -8,9 +8,10 @@ export const Route = createFileRoute('/report/')({
 
 function ReportObservationPage() {
   const navigate = useNavigate()
+  const { segment } = Route.useSearch()
   const go = (path: ReportPath) => {
     if (path === '/') void navigate({ to: path })
     else void navigate({ to: path, search: { segment: undefined } })
   }
-  return <ReportStepPage step="observation" navigate={go} />
+  return <ReportStepPage step="observation" navigate={go} prefillSegmentId={segment} />
 }

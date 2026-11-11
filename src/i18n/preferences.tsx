@@ -1,10 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo } from 'react'
 import { en, hi, type TranslationKey } from '@/i18n/dictionary'
-import { DEMO_NOW, placeById } from '@/data/fixtures'
-import { STORAGE_KEYS, readLocal, writeLocal } from '@/lib/storage'
-
-export type Lang = 'en' | 'hi'
-export type Theme = 'system' | 'dark' | 'light'
+import { placeById } from '@/data/fixtures'
+import { STORAGE_KEYS } from '@/lib/storage'
+import { AppStoreProvider, useAppStore, type Lang, type Theme } from '@/lib/app-store'
+const DEMO_NOW = Date.UTC(2026, 9, 15, 7, 0, 0)
+export type { Lang, Theme }
 
 interface Preferences {
   lang: Lang
@@ -13,7 +13,7 @@ interface Preferences {
   setTheme: (t: Theme) => void
   now: number
   t: (key: TranslationKey) => string
-  /** Human age relative to the demo clock, e.g. "3 h ago" */
+  /** Human age relative to the injected clock (the store's now). */
   ago: (ts: number) => string
   /** Absolute local time, e.g. "25 Oct, 14:30" */
   stamp: (ts: number) => string
@@ -23,22 +23,19 @@ interface Preferences {
 
 const PreferencesContext = createContext<Preferences | null>(null)
 
+/** Language and theme live in the app store; this layer adds formatting helpers. */
 export function PreferencesProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('en')
-  const [theme, setThemeState] = useState<Theme>('dark')
+  return (
+    <AppStoreProvider>
+      <PreferencesBridge>{children}</PreferencesBridge>
+    </AppStoreProvider>
+  )
+}
 
-  useEffect(() => {
-    // Restore device preferences after hydration to keep the server and first client render aligned.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLangState(readLocal<Lang>(STORAGE_KEYS.lang, 'en'))
-    const storedTheme = readLocal<unknown>(STORAGE_KEYS.theme, 'dark')
-    setThemeState(
-      storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system'
-        ? storedTheme
-        : 'dark',
-    )
-  }, [])
-
+function PreferencesBridge({ children }: { children: React.ReactNode }) {
+  // The clock comes from the store (the seeded 2026 demo clock, or an injected one).
+  const { lang, setLang, theme, setTheme, now } = useAppStore()
+  
   useEffect(() => {
     document.documentElement.lang = lang
   }, [lang])
@@ -62,15 +59,6 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
     return () => media.removeEventListener('change', applyTheme)
   }, [theme])
 
-  const setLang = useCallback((l: Lang) => {
-    setLangState(l)
-    writeLocal(STORAGE_KEYS.lang, l)
-  }, [])
-  const setTheme = useCallback((t: Theme) => {
-    setThemeState(t)
-    writeLocal(STORAGE_KEYS.theme, t)
-  }, [])
-
   const value = useMemo<Preferences>(() => {
     const dict = lang === 'hi' ? hi : en
     const t = (key: TranslationKey) => dict[key] ?? en[key]
@@ -79,10 +67,10 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
       setLang,
       theme,
       setTheme,
-      now: DEMO_NOW,
+      now,
       t,
       ago: (ts) => {
-        const mins = Math.max(0, Math.round((DEMO_NOW - ts) / 60_000))
+        const mins = Math.max(0, Math.round((now - ts) / 60_000))
         if (mins < 5) return t('time.justNow')
         if (mins < 60) return `${mins} ${t('time.minAgo')}`
         const h = Math.round(mins / 60)
@@ -107,7 +95,7 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
         return h ? `${h} ${t('common.hr')} ${m ? `${m} ${t('common.min')}` : ''}`.trim() : `${m} ${t('common.min')}`
       },
     }
-  }, [lang, theme, setLang, setTheme])
+  }, [lang, theme, setLang, setTheme, now])
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>
 }

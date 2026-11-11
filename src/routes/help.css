@@ -1,17 +1,13 @@
 .help-page,
 .help-detail-page {
-  --background: #04131b;
-  --foreground: #e6e4dc;
-  --card: #0a202b;
-  --card-foreground: #e6e4dc;
-  --surface: var(--background);
-  --surface-raised: var(--card);
-  --muted-foreground: #a7bac5;
-  --border: #194459;
-  --link: #40c4ff;
   min-width: 0;
   overflow-x: clip;
   color: var(--foreground);
+  background: var(--background);
+}
+
+.dark .help-page,
+.dark .help-detail-page {
   background:
     radial-gradient(ellipse at 82% 55%, rgb(10 47 62 / 28%), transparent 42%),
     var(--background);
@@ -112,22 +108,22 @@
   inset-inline-start: 1rem;
   width: 1.15rem;
   height: 1.15rem;
-  color: #b7c9d4;
+  color: var(--muted-foreground);
   transform: translateY(-50%);
   pointer-events: none;
 }
 
 .help-search-input {
   height: 3rem;
-  border-color: #24485b;
+  border-color: var(--input);
   border-radius: 0.75rem;
-  background: #0b1d27;
+  background: var(--card);
   padding-inline-start: 3.2rem;
-  color: #e6e4dc;
+  color: var(--foreground);
 }
 
 .help-search-input::placeholder {
-  color: #a7bac5;
+  color: var(--muted-foreground);
   opacity: 1;
 }
 
@@ -144,9 +140,9 @@
   grid-template-columns: 3.35rem minmax(0, 1fr) 1rem;
   align-items: center;
   gap: 0.9rem;
-  border: 1px solid #18394a;
+  border: 1px solid var(--border);
   border-radius: 0.75rem;
-  background: linear-gradient(115deg, rgb(13 34 46 / 96%), rgb(9 26 36 / 96%));
+  background: var(--card);
   padding: 0.75rem 0.85rem;
   color: inherit;
   text-decoration: none;
@@ -156,14 +152,14 @@
 }
 
 .help-topic-card:hover {
-  border-color: #34708a;
-  background-color: #102b39;
+  border-color: var(--link);
+  background-color: var(--accent);
 }
 
 .help-topic-card:focus-visible,
 .help-back-link:focus-visible,
 .help-detail-back:focus-visible {
-  outline: 2px solid #92c5ff;
+  outline: 2px solid var(--ring);
   outline-offset: 3px;
 }
 
@@ -208,14 +204,14 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem;
-  color: #e6e4dc;
+  color: var(--foreground);
   font-size: 0.88rem;
   font-weight: 600;
   line-height: 1.3;
 }
 
 .help-topic-description {
-  color: #a7bac5;
+  color: var(--muted-foreground);
   font-size: 0.75rem;
   line-height: 1.45;
 }
@@ -223,17 +219,17 @@
 .help-topic-arrow {
   width: 1rem;
   height: 1rem;
-  color: #a7bac5;
+  color: var(--muted-foreground);
 }
 
 .help-planned {
   display: inline-flex;
   align-items: center;
-  border: 1px solid rgb(146 197 255 / 45%);
+  border: 1px solid color-mix(in srgb, var(--link) 55%, transparent);
   border-radius: 999px;
-  background: rgb(20 61 83 / 72%);
+  background: color-mix(in srgb, var(--link) 16%, transparent);
   padding: 0.12rem 0.45rem;
-  color: #c5e1ff;
+  color: var(--foreground);
   font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -244,10 +240,10 @@
 .help-empty {
   grid-column: 1 / -1;
   margin: 0;
-  border: 1px dashed #24485b;
+  border: 1px dashed var(--input);
   border-radius: 0.75rem;
   padding: 1rem;
-  color: #c2d0d7;
+  color: var(--muted-foreground);
   font-size: 0.875rem;
 }
 
@@ -350,8 +346,8 @@
 }
 
 .help-page-footer {
-  border-top: 1px solid rgb(145 174 189 / 20%);
-  background: rgb(3 17 24 / 88%);
+  border-top: 1px solid var(--border);
+  background: var(--card);
 }
 
 .help-footer-content {
@@ -368,14 +364,9 @@
   align-items: center;
   gap: 0.55rem;
   border-radius: 0.25rem;
-  color: #40c4ff;
+  color: var(--link);
   font-size: 0.8rem;
   text-decoration: none;
-}
-
-.help-back-link:hover,
-.help-detail-back:hover {
-  color: #bfeaff;
 }
 
 .help-back-link svg,
@@ -389,7 +380,7 @@
   border: 0;
   background: transparent;
   padding: 0;
-  color: #a7bac5;
+  color: var(--muted-foreground);
   font-size: 0.6rem;
   text-transform: uppercase;
 }
@@ -406,7 +397,7 @@
   gap: 0.5rem;
   margin: 0 0 0.4rem -0.5rem;
   border-radius: 0.25rem;
-  color: #92c5ff;
+  color: var(--link);
   font-size: 0.8rem;
   text-decoration: none;
 }
@@ -420,36 +411,36 @@
 
 .help-detail-card {
   width: min(100%, 54rem);
-  border: 1px solid #194459;
+  border: 1px solid var(--border);
   border-radius: 0.9rem;
-  background: linear-gradient(120deg, #0a202b, #071b25);
+  background: var(--card);
   padding: clamp(1.25rem, 4vw, 2rem);
 }
 
 .help-detail-card h2 {
   margin: 1.5rem 0 0.5rem;
-  color: #f0eee8;
+  color: var(--foreground);
   font-family: var(--font-heading);
   font-size: 1.35rem;
   font-weight: 700;
 }
 
 .help-detail-card p {
-  color: #c7d2d8;
+  color: var(--muted-foreground);
   font-size: 0.95rem;
   line-height: 1.7;
 }
 
 .help-detail-card .help-detail-intro {
   margin-top: 0;
-  color: #92c5ff;
+  color: var(--link);
 }
 
 .help-detail-card .help-detail-caution {
   margin: 1.5rem 0 0;
   border-left: 2px solid #eb5b38;
   padding-left: 0.9rem;
-  color: #e1e6e7;
+  color: var(--foreground);
 }
 
 .help-planned-detail {

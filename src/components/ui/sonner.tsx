@@ -13,6 +13,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme="light"
+      // Slides in from the top-right, below the sticky header, and dismisses itself.
+      // Sonner's region is aria-live="polite", so each toast is announced.
+      position="top-right"
+      offset={72}
+      mobileOffset={72}
+      duration={4000}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,

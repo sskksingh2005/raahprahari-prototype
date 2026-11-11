@@ -130,7 +130,35 @@ export const CORRIDORS: Corridor[] = [
   { id: 'rud', code: 'NH-109R', name: 'Rudrapur – Haldwani', stops: ['rudrapur', 'haldwani'], legs: [[40, 60]] },
 ]
 
-export const SEGMENTS: Segment[] = CORRIDORS.flatMap((c) => {
+/** Shown wherever segment lines are drawn on a map. */
+export const SEGMENT_GEOMETRY_NOTE = 'Road lines: approximate, synthetic data'
+
+/**
+ * APPROXIMATE, SYNTHETIC DATA. A gently curving line between two places,
+ * offset sideways by a small deterministic amount so lines look like roads.
+ * It is not a surveyed alignment and must never be used for navigation.
+ */
+function syntheticPath(fromId: string, toId: string, seed: number): [number, number][] {
+  const a = PLACES.find((p) => p.id === fromId)
+  const b = PLACES.find((p) => p.id === toId)
+  if (!a || !b) throw new Error(`Missing place for segment ${fromId} → ${toId}`)
+  const dLat = b.lat - a.lat
+  const dLon = b.lon - a.lon
+  const length = Math.hypot(dLat, dLon) || 1
+  // Unit vector perpendicular to the straight line.
+  const nLat = -dLon / length
+  const nLon = dLat / length
+  const steps = 6
+  const round = (n: number) => Math.round(n * 10_000) / 10_000
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const t = i / steps
+    const bend = Math.sin(Math.PI * t) * length * 0.08 * (seed % 2 ? 1 : -1)
+    const wiggle = Math.sin(t * Math.PI * 3 + seed) * length * 0.02 * Math.sin(Math.PI * t)
+    return [round(a.lat + dLat * t + nLat * (bend + wiggle)), round(a.lon + dLon * t + nLon * (bend + wiggle))]
+  })
+}
+
+export const SEGMENTS: Segment[] = CORRIDORS.flatMap((c, corridorIndex) => {
   let km = 0
   return c.legs.map(([distanceKm, typicalMinutes], i) => {
     const seg: Segment = {
@@ -143,6 +171,7 @@ export const SEGMENTS: Segment[] = CORRIDORS.flatMap((c) => {
       kmEnd: km + distanceKm,
       distanceKm,
       typicalMinutes,
+      path: syntheticPath(c.stops[i], c.stops[i + 1], corridorIndex * 7 + i),
     }
     km += distanceKm
     return seg

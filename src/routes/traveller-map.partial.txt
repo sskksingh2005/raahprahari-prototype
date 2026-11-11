@@ -1,0 +1,115 @@
+function TravellerMap({
+  results,
+  selectedSegmentId,
+  onSelectSegment,
+  routeFrom,
+  routeTo,
+  summary,
+}: {
+  results: { segment: Segment }[]
+  selectedSegmentId?: string
+  onSelectSegment: (id: string) => void
+  routeFrom?: string
+  routeTo?: string
+  summary: string
+}) {
+  const { place } = usePrefs()
+  const { segments, advisories } = useAppStore()
+  const [mode, setMode] = useState<'map' | 'list'>('map')
+  const [mapUnavailable, setMapUnavailable] = useState(false)
+  const resultSegments = results.map(({ segment }) => segment)
+  // With no search yet, show every covered road so the map is still useful.
+  const shown = resultSegments.length ? resultSegments : segments
+  const selected = selectedSegmentId ? segments.find((s) => s.id === selectedSegmentId) : undefined
+  const selectedAdvisory = selected ? advisories.get(selected.id) : undefined
+
+  return (
+    <section className="traveller-map-panel" aria-label="Road map">
+      <div className="traveller-map-surface">
+        {mode === 'map' ? (
+          <LeafletSegmentMap
+            segments={shown}
+            highlight={resultSegments.length ? resultSegments.map((s) => s.id) : undefined}
+            selectedSegmentId={selectedSegmentId}
+            onSelectSegment={onSelectSegment}
+            onUnavailable={() => {
+              setMapUnavailable(true)
+              setMode('list')
+            }}
+            label="Interactive map of matching road sections"
+            className="traveller-leaflet"
+          />
+        ) : (
+          <>
+            {mapUnavailable && (
+              <p className="traveller-map-fallback-notice" role="status">
+                The map tiles could not be loaded. Showing road sections instead.
+              </p>
+            )}
+            <div className="traveller-map-list">
+              <h2>Road sections</h2>
+              {results.length ? results.slice(0, 6).map(({ segment }) => (
+                <div className="traveller-map-list-row" key={segment.id}>
+                  <button
+                    type="button"
+                    aria-pressed={selectedSegmentId === segment.id}
+                    onClick={() => onSelectSegment(segment.id)}
+                  >
+                    {selectedSegmentId === segment.id ? 'Selected: ' : 'Select: '}
+                    {place(segment.from)} – {place(segment.to)}
+                  </button>
+                  <Link to="/advisories/$segmentId" params={{ segmentId: segment.id }}>
+                    View details
+                  </Link>
+                  <Link to="/report" search={{ segment: segment.id }}>
+                    Report this road
+                  </Link>
+                </div>
+              )) : <p>Search manually to view matching road sections.</p>}
+            </div>
+          </>
+        )}
+        <div className="traveller-map-toggle" role="group" aria-label="Map view">
+          <button
+            type="button"
+            aria-pressed={mode === 'map'}
+            disabled={mapUnavailable}
+            onClick={() => setMode('map')}
+          >
+            <MapIcon aria-hidden /> Map
+          </button>
+          <button type="button" aria-pressed={mode === 'list'} onClick={() => setMode('list')}>
+            <List aria-hidden /> List
+          </button>
+        </div>
+      </div>
+
+      {selected && selectedAdvisory ? (
+        <div className="traveller-selected" aria-live="polite">
+          <span className="sr-only">Selected road section:</span>
+          <strong>
+            {place(selected.from)} – {place(selected.to)} ({selected.code})
+          </strong>
+          <ActionBadge level={getTravellerResultAction(selectedAdvisory)} />
+          <Link to="/advisories/$segmentId" params={{ segmentId: selected.id }}>
+            View details
+          </Link>
+        </div>
+      ) : (
+        <p className="traveller-selected-hint">Select a road section on the map or in the list.</p>
+      )}
+
+      {mode === 'map' && <LeafletMapLegend className="traveller-map-legend" />}
+
+      <div className="traveller-route-summary">
+        <div className="traveller-summary-icon"><ArrowRight aria-hidden /></div>
+        <div>
+          <strong>{routeFrom && routeTo ? `${routeFrom} → ${routeTo}` : 'Route summary'}</strong>
+          <span>{summary}</span>
+        </div>
+        <span className="traveller-summary-approx">approx.</span>
+      </div>
+    </section>
+  )
+}
+

@@ -3,7 +3,7 @@ import { Bookmark, BookmarkCheck, Info, List, Map as MapIcon, TriangleAlert } fr
 import { Button } from '@/components/ui/button'
 import { ActionBadge, FreshnessChip, LEVEL_META } from '@/components/advisory'
 import { usePrefs } from '@/i18n/preferences'
-import { advisoryFor } from '@/lib/data'
+import { useAppStore } from '@/lib/app-store'
 import type { RouteAdvisorySummary } from '@/lib/advisory'
 import type { RouteOption } from '@/features/routes/routing'
 import { routeLabel } from '@/features/routes/routing'
@@ -42,6 +42,8 @@ export function RouteCard({
 }) {
   const { t, lang, ago, duration } = usePrefs()
   const letter = String.fromCharCode(65 + index)
+  const { advisories: advisoryMap } = useAppStore()
+  const advisoryFor = (id: string) => advisoryMap.get(id)
   const advisories = route.segments.map((segment) => advisoryFor(segment.id)).filter((advisory) => advisory !== undefined)
   const timestamps = advisories
     .map(getAdvisorySourceTimestamp)
@@ -54,7 +56,8 @@ export function RouteCard({
   return (
     <article
       className={cn(
-        'flex flex-col rounded-2xl border bg-card p-5 transition-colors',
+        'rp-card rp-enter flex flex-col rounded-2xl border bg-card p-5',
+        selected && 'is-selected',
         selected ? 'border-foreground/60 ring-1 ring-foreground/30' : 'border-border',
       )}
       aria-label={`Route ${letter}`}
@@ -126,7 +129,7 @@ export function RouteCard({
           {t('results.details')}
         </Button>
         <Button variant="outline" className="h-auto min-h-11 rounded-xl py-2 whitespace-normal" onClick={onToggleSave} aria-pressed={saved}>
-          {saved ? <BookmarkCheck /> : <Bookmark />}
+          {saved ? <BookmarkCheck key="saved" className="rp-pop" /> : <Bookmark />}
           {saved ? t('results.saved') : t('results.save')}
         </Button>
         <Button asChild variant="outline" className="h-auto min-h-11 rounded-xl py-2 whitespace-normal">

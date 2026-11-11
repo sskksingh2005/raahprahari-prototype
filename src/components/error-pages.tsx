@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { PageBanner } from "@/components/page-banner";
 import { Button } from "@/components/ui/button";
-import { DemoBadge } from "@/components/advisory";
+import { PrototypeRibbon } from "@/components/prototype-ribbon";
 
 export function NotFoundPage() {
   useEffect(() => {
@@ -39,7 +39,7 @@ export function NotFoundPage() {
             </Link>
           </Button>
         </div>
-        <DemoBadge className="mt-6" />
+        <div className="mt-6"><PrototypeRibbon /></div>
       </div>
     </div>
   );

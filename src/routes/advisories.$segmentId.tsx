@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from '@tanstack/react-router'
+import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
   ArrowLeft,
@@ -21,16 +21,19 @@ import {
 } from 'lucide-react'
 import { ActionBadge, FreshnessChip } from '@/components/advisory'
 import { AdvisoryCard } from '@/components/advisory-card'
+import { useSlidingHighlight } from '@/components/motion'
 import { Button } from '@/components/ui/button'
 import { LoadingState } from '@/components/ui/feedback'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { SegmentMap } from '@/features/routes/schematic-map'
+import { LeafletMapLegend, LeafletSegmentMap } from '@/features/map/leaflet-segment-map'
 import { SegmentDetail, StatusTimeline } from '@/features/routes/segment-detail'
 import { RouteErrorPage } from '@/components/error-pages'
-import { REPORTS, segmentById } from '@/data/fixtures'
-import { advisoryFor, reportByRef } from '@/lib/data'
+import { segmentById } from '@/data/fixtures'
+// Loaders run outside React, so they resolve ids through the module-level layer.
+import { reportByRef } from '@/lib/data'
 import { getAdvisorySourceTimestamp, type AdvisoryLevel } from '@/lib/advisory'
 import { usePrefs } from '@/i18n/preferences'
+import { useAppStore } from '@/lib/app-store'
 import type { CommunityReport, Segment } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -61,7 +64,7 @@ export const Route = createFileRoute('/advisories/$segmentId')({
     ],
   }),
   pendingComponent: () => (
-    <LoadingState label="Loading road information…" className="min-h-72" />
+    <LoadingState label="Loading road information…" variant="cards" className="rp-container py-8" />
   ),
   errorComponent: RouteErrorPage,
   notFoundComponent: DetailNotFound,
@@ -184,17 +187,18 @@ function SummaryItem({
 
 function SegmentOverview({ segment }: { segment: Segment }) {
   const { place, stamp } = usePrefs()
+  const { reports, advisories } = useAppStore()
   const [tab, setTab] = useState('overview')
-  const advisory = advisoryFor(segment.id)
+  const advisory = advisories.get(segment.id)
   if (!advisory) throw new Error(`Missing advisory for segment "${segment.id}"`)
 
-  const reports = REPORTS.filter(
+  const reports_for_segment = reports.filter(
     (report) =>
       report.segmentId === segment.id &&
       report.status !== 'duplicate' &&
       report.status !== 'rejected',
   )
-  const hazards = reports.filter((report) => report.kind === 'hazard')
+  const hazards = reports_for_segment.filter((report) => report.kind === 'hazard')
   const sourceTimestamp = getAdvisorySourceTimestamp(advisory)
 
   return (
@@ -280,7 +284,7 @@ function SegmentOverview({ segment }: { segment: Segment }) {
                       onClick={() => setTab('hazards')}
                     />
                     <CountLink
-                      count={reports.length}
+                      count={reports_for_segment.length}
                       label="Total reports"
                       icon={FileText}
                       onClick={() => setTab('hazards')}
@@ -469,7 +473,8 @@ function OfficialRestrictionCard({
   segmentId: string
   className?: string
 }) {
-  const advisory = advisoryFor(segmentId)
+  const { advisories } = useAppStore()
+  const advisory = advisories.get(segmentId)
   if (!advisory) throw new Error(`Missing advisory for segment "${segmentId}"`)
   return (
     <section
@@ -513,7 +518,13 @@ function TerrainPanel({
   reports: CommunityReport[]
 }) {
   const { t, place } = usePrefs()
+  const { segments } = useAppStore()
+  const navigate = useNavigate()
   const [view, setView] = useState<'map' | 'list'>('map')
+  const toggleRef = useSlidingHighlight<HTMLDivElement>(view)
+  const [mapUnavailable, setMapUnavailable] = useState(false)
+  // This segment plus the rest of its corridor for context (closures are always added by the map).
+  const corridorSegments = segments.filter((s) => s.corridorId === segment.corridorId)
   return (
     <aside
       className="min-w-0 lg:sticky lg:top-20 lg:self-start"
@@ -521,24 +532,29 @@ function TerrainPanel({
     >
       <div className="relative min-h-[360px] overflow-hidden rounded-xl border border-border bg-[#0b2531] sm:min-h-[440px] lg:min-h-[510px]">
         {view === 'map' ? (
-          <>
-            <img
-              src="/img/map-terrain.png"
-              alt=""
-              className="absolute inset-0 size-full object-cover opacity-70"
-            />
-            <div className="absolute inset-0 bg-[#07151f]/20" />
-            <SegmentMap
-              terrain
-              highlight={[segment.id]}
-              selectedSegmentId={segment.id}
-              endpoints={[segment.from, segment.to]}
-              labelPlaces={[segment.from, segment.to]}
-              className="absolute inset-0"
-            />
-          </>
+          <LeafletSegmentMap
+            segments={corridorSegments}
+            highlight={[segment.id]}
+            fitTo={[segment.id]}
+            selectedSegmentId={segment.id}
+            onSelectSegment={(id) => {
+              // Selecting another section opens its detail page.
+              if (id !== segment.id) void navigate({ to: '/advisories/$segmentId', params: { segmentId: id } })
+            }}
+            onUnavailable={() => {
+              setMapUnavailable(true)
+              setView('list')
+            }}
+            label={`Interactive map of ${place(segment.from)} – ${place(segment.to)}`}
+            className="rp-lmap-fill"
+          />
         ) : (
-          <div className="relative z-10 h-full min-h-[360px] overflow-y-auto bg-background/95 p-4 sm:min-h-[440px] lg:min-h-[510px]">
+          <div className="relative z-10 h-full min-h-[360px] overflow-y-auto bg-background/95 p-4 pt-14 sm:min-h-[440px] lg:min-h-[510px]">
+            {mapUnavailable && (
+              <p role="status" className="mb-3 rounded-lg border border-status-caution/60 bg-status-caution/10 p-2 text-xs">
+                The map tiles could not be loaded. Showing the community reports list instead.
+              </p>
+            )}
             <h2 className="mb-3 font-semibold">Community hazard reports</h2>
             {reports.length ? (
               <ul className="space-y-2">
@@ -572,13 +588,14 @@ function TerrainPanel({
           </div>
         )}
 
-        <div className="absolute top-3 right-3 z-20 inline-flex rounded-lg border border-white/20 bg-[#07151f]/85 p-1">
+        <div ref={toggleRef} className="rp-segmented absolute top-3 left-3 z-[600] inline-flex rounded-lg border border-white/20 bg-[#07151f]/85 p-1">
           <button
             type="button"
             aria-pressed={view === 'map'}
+            disabled={mapUnavailable}
             onClick={() => setView('map')}
             className={cn(
-              'inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs',
+              'inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs disabled:opacity-50',
               view === 'map'
                 ? 'bg-primary text-primary-foreground'
                 : 'text-white/75 hover:text-white',
@@ -600,29 +617,9 @@ function TerrainPanel({
             <List aria-hidden className="size-3.5" /> List
           </button>
         </div>
-
-        <ul className="absolute inset-x-2 bottom-2 z-20 grid grid-cols-3 gap-1 rounded-lg border border-white/15 bg-[#07151f]/90 p-2 text-[10px] text-white sm:inset-x-3 sm:bottom-3 sm:gap-2 sm:p-3 sm:text-xs">
-          <LegendItem icon={TriangleAlert} label="Reported hazard" />
-          <LegendItem icon={Shield} label="Official restriction" />
-          <LegendItem icon={CircleHelp} label="Unknown information" />
-        </ul>
       </div>
+      <LeafletMapLegend className="mt-3" />
     </aside>
-  )
-}
-
-function LegendItem({
-  icon: Icon,
-  label,
-}: {
-  icon: LucideIcon
-  label: string
-}) {
-  return (
-    <li className="flex min-w-0 items-center justify-center gap-1 border-r border-white/15 px-1 last:border-0 sm:gap-2">
-      <Icon aria-hidden className="size-4 shrink-0 text-blue-on-dark" />
-      <span className="text-center">{label}</span>
-    </li>
   )
 }
 
@@ -674,7 +671,7 @@ function HazardDetail({
                 icon={RouteIcon}
               />
               <Fact
-                label="Observation time"
+                label={t('segment.observationTime')}
                 value={`${ago(report.observedAt)} · ${stamp(report.observedAt)}`}
                 icon={Clock3}
               />
@@ -743,24 +740,7 @@ function HazardDetail({
             <p className="mt-2 text-xs text-muted-foreground">
               Location accuracy: {report.locationConfidence} confidence
             </p>
-            <div className="relative mt-3 h-44 overflow-hidden rounded-lg border border-border">
-              <img
-                src="/img/map-terrain.png"
-                alt=""
-                className="size-full object-cover"
-              />
-              <div className="absolute inset-0 grid place-items-center bg-[#07151f]/55 text-center">
-                <div>
-                  <CircleHelp
-                    aria-hidden
-                    className="mx-auto size-7 text-status-unknown"
-                  />
-                  <p className="mt-1 text-xs text-white">
-                    Coordinates unavailable
-                  </p>
-                </div>
-              </div>
-            </div>
+            <ReportLocationMap segment={segment} />
           </section>
           <p className="rounded-lg border border-status-unknown/40 bg-status-unknown/10 p-3 text-xs text-muted-foreground">
             <Info
@@ -818,6 +798,38 @@ function EmptyPanel({ title, message }: { title: string; message: string }) {
       <CircleHelp aria-hidden className="mx-auto size-6 text-status-unknown" />
       <h2 className="mt-2 font-semibold">{title}</h2>
       <p className="mt-1 text-sm text-muted-foreground">{message}</p>
+    </div>
+  )
+}
+
+/** Report location: exact report coordinates are not shared, so the whole road section is shown. */
+function ReportLocationMap({ segment }: { segment: Segment }) {
+  const { place } = usePrefs()
+  const [unavailable, setUnavailable] = useState(false)
+  return (
+    <div className="mt-3">
+      <div className="relative h-56 overflow-hidden rounded-lg border border-border">
+        {unavailable ? (
+          <p role="status" className="grid h-full place-items-center p-4 text-center text-xs text-muted-foreground">
+            The map tiles could not be loaded. The report is on {segment.code}, {place(segment.from)} to{' '}
+            {place(segment.to)}.
+          </p>
+        ) : (
+          <LeafletSegmentMap
+            segments={[segment]}
+            highlight={[segment.id]}
+            fitTo={[segment.id]}
+            selectedSegmentId={segment.id}
+            onUnavailable={() => setUnavailable(true)}
+            label={`Map of the reported road section, ${place(segment.from)} – ${place(segment.to)}`}
+            className="rp-lmap-fill"
+          />
+        )}
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Exact report coordinates are not shared. The highlighted line is the whole road section (approximate,
+        synthetic data).
+      </p>
     </div>
   )
 }

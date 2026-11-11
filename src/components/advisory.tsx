@@ -3,7 +3,6 @@ import {
   CircleCheck,
   CircleQuestionMark,
   Clock,
-  FlaskConical,
   OctagonAlert,
   OctagonX,
   ShieldCheck,
@@ -36,10 +35,14 @@ export function AdvisoryBadge({
   const { t } = usePrefs()
   const meta = LEVEL_META[level]
   const Icon = meta.icon
+  // One attention pulse on load for AVOID and official closures; never infinite.
+  const attention = level === 'avoid' || level === 'do_not_travel'
   return (
     <span
+      style={attention ? ({ '--rp-attn-color': meta.color } as React.CSSProperties) : undefined}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border font-semibold text-foreground',
+        'rp-fade-in inline-flex items-center gap-1.5 rounded-full border font-semibold text-foreground',
+        attention && 'rp-attn',
         size === 'lg' ? 'px-3 py-1.5 text-sm' : 'px-2.5 py-0.5 text-xs',
         meta.chip,
         className,
@@ -99,7 +102,7 @@ export function FreshnessChip({
     <span
       data-testid="freshness-chip"
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium text-foreground',
+        'rp-fade-in inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium text-foreground',
         meta.chip,
         className,
       )}
@@ -112,10 +115,10 @@ export function FreshnessChip({
 }
 
 export function CacheTimeLabel({ timestamp }: { timestamp: number }) {
-  const { stamp } = usePrefs()
+  const { stamp, t } = usePrefs()
   return (
     <span className="text-xs text-muted-foreground" data-testid="cache-time">
-      Cached: <time dateTime={new Date(timestamp).toISOString()}>{stamp(timestamp)}</time>
+      {t('time.cached')} <time dateTime={new Date(timestamp).toISOString()}>{stamp(timestamp)}</time>
     </span>
   )
 }
@@ -141,27 +144,12 @@ export function OfficialBadge({ label, className }: { label?: string; className?
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border border-status-official bg-status-official/15 px-2.5 py-0.5 text-xs font-semibold text-foreground',
+        'rp-fade-in rp-attn [--rp-attn-color:var(--status-official)] inline-flex items-center gap-1.5 rounded-full border border-status-official bg-status-official/15 px-2.5 py-0.5 text-xs font-semibold text-foreground',
         className,
       )}
     >
       <ShieldCheck aria-hidden className="size-3.5 text-status-official" />
       {label ?? t('level.official')}
-    </span>
-  )
-}
-
-export function DemoBadge({ className }: { className?: string }) {
-  const { t } = usePrefs()
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-md border border-border bg-background/70 px-2 py-0.5 font-mono text-[11px] font-medium tracking-wide text-muted-foreground',
-        className,
-      )}
-    >
-      <FlaskConical aria-hidden className="size-3" />
-      {t('demo.badge')}
     </span>
   )
 }

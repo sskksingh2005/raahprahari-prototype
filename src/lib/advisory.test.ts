@@ -163,7 +163,7 @@ describe('computeSegmentAdvisory', () => {
 
 describe('summariseRoute', () => {
   const seg = (id: string, km: number): Segment => ({
-    id, corridorId: 'c', code: id, from: 'a', to: 'b', kmStart: 0, kmEnd: km, distanceKm: km, typicalMinutes: km,
+    id, corridorId: 'c', code: id, from: 'a', to: 'b', kmStart: 0, kmEnd: km, distanceKm: km, typicalMinutes: km, path: [],
   })
 
   it('a community clear observation plus an unknown segment is unknown overall', () => {

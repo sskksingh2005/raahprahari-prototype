@@ -10,7 +10,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SkipLink } from "@/components/ui/feedback";
 import { NotFoundPage } from "@/components/error-pages";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
-import { DemoBadge } from "@/components/advisory";
+import { BackToTop, PageTransition, RevealObserver } from "@/components/motion";
+import { PrototypeRibbon } from "@/components/prototype-ribbon";
 import { AccountScopeBoundary } from "@/components/account-scope-boundary";
 import { SyncProvider } from "@/components/sync-provider";
 import { PreferencesProvider, themeBootScript } from "@/i18n/preferences";
@@ -65,9 +66,11 @@ export const Route = createRootRoute({
           name: "twitter:card",
           content: "summary_large_image",
         },
-        { name: "theme-color", content: "#111719" },
+        { name: "theme-color", content: "#07151f" },
       ],
       links: [
+        // Web app manifest only. There is no service worker, so nothing is cached for offline use.
+        { rel: "manifest", href: "/manifest.webmanifest" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
           rel: "preconnect",
@@ -86,9 +89,11 @@ export const Route = createRootRoute({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const { isHome, isTraveller, isMap, isHelp, isNotFound, isAdvisories } =
+  // These routes render the shared PrototypeRibbon inside their own layout.
+  const { isHome, isTraveller, isMap, isHelp, isNotFound, isAdvisories, isReport } =
     useRouterState({
       select: (state) => ({
+        isReport: state.location.pathname.startsWith("/report"),
         isHome: state.location.pathname === "/",
         isTraveller: state.location.pathname === "/traveller",
         isMap: state.location.pathname === "/map",
@@ -119,30 +124,25 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <AccountScopeBoundary>
               <SyncProvider>
                 <SkipLink>Skip to content</SkipLink>
-                <div className="flex min-h-svh flex-col">
-                  {!isMap && <SiteHeader />}
-                  <main
-                    id="main"
-                    className={
-                      isHome || isTraveller || isMap
-                        ? "flex-1"
-                        : "flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0"
-                    }
-                  >
+                <PageTransition />
+                <RevealObserver />
+                <BackToTop />
+                <div className="flex min-h-svh flex-col overflow-x-clip pb-[calc(5rem+env(safe-area-inset-bottom))] xl:pb-0">
+                  <SiteHeader />
+                  <main id="main" className="min-w-0 flex-1">
                     {children}
                   </main>
-                  {!isHome && !isTraveller && !isMap && !isHelp && (
-                    <SiteFooter />
-                  )}
+                  {!isHome && !isTraveller && !isMap && !isHelp && <SiteFooter />}
                 </div>
                 {!isHome &&
                   !isTraveller &&
                   !isMap &&
                   !isHelp &&
                   !isNotFound &&
+                  !isReport &&
                   !isAdvisories && (
-                    <div className="rp-demo-badge-ribbon pointer-events-none fixed right-2 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 lg:bottom-2">
-                      <DemoBadge />
+                    <div className="rp-demo-badge-ribbon pointer-events-none fixed right-2 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 xl:bottom-2">
+                      <PrototypeRibbon />
                     </div>
                   )}
               </SyncProvider>

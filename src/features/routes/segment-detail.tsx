@@ -2,9 +2,8 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight, Camera, CircleQuestionMark, Clock3, Copy, GitCompare, MapPin, Route as RouteIcon, ShieldCheck, TriangleAlert, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ActionBadge, AdvisoryBadge, CacheTimeLabel, FreshnessChip, OfficialBadge, RoadCode } from '@/components/advisory'
-import { corridorById, segmentById } from '@/data/fixtures'
-import { getAdvisorySourceTimestamp, getFreshnessState, type AdvisoryLevel } from '@/lib/advisory'
-import { advisoryFor, getAdvisoryCacheTimestamp } from '@/lib/data'
+import { getAdvisorySourceTimestamp, getFreshnessState, type AdvisoryLevel, type SegmentAdvisory } from '@/lib/advisory'
+import { useAppStore } from '@/lib/app-store'
 import { usePrefs } from '@/i18n/preferences'
 import type { CommunityReport, Segment } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -78,8 +77,9 @@ export function SegmentDetail({
   variant?: 'default' | 'map' | 'overview'
 }) {
   const { t, ago, stamp, place } = usePrefs()
-  const seg = segment ?? (segmentId ? segmentById(segmentId) : undefined)
-  const adv = seg ? advisoryFor(seg.id) : undefined
+  const { segments, corridors, advisories, advisoryCacheTimestamp } = useAppStore()
+  const seg = segment ?? (segmentId ? segments.find((s) => s.id === segmentId) : undefined)
+  const adv = seg ? advisories.get(seg.id) : undefined
 
   if (!seg || !adv) {
     return (
@@ -90,13 +90,13 @@ export function SegmentDetail({
     )
   }
 
-  const corridor = corridorById(seg.corridorId)
+  const corridor = corridors.find((c) => c.id === seg.corridorId)
   const hazards = adv.evidence.filter((r) => r.kind === 'hazard')
   const latestHazard = hazards[0]
   const unverified = adv.evidence.some((r) => r.kind === 'hazard' && r.status !== 'verified')
   const sources = new Set(adv.evidence.map((r) => r.source))
   const r = adv.restriction
-  const cacheTimestamp = getAdvisoryCacheTimestamp()
+  const cacheTimestamp = advisoryCacheTimestamp
 
   if (variant === 'map') {
     return (
@@ -251,7 +251,7 @@ function OverviewSegmentDetail({
   segment,
   className,
 }: {
-  segment: NonNullable<ReturnType<typeof segmentById>>
+  segment: Segment
   className?: string
 }) {
   const { place, duration } = usePrefs()
@@ -294,7 +294,7 @@ export function StatusTimeline({
   report: CommunityReport
   level: AdvisoryLevel
 }) {
-  const { ago, stamp } = usePrefs()
+  const { t, ago, stamp } = usePrefs()
   const communityLevel: AdvisoryLevel =
     level === 'clear' || level === 'do_not_travel' ? 'unknown' : level
   const statusLabel = report.status === 'under_review'
@@ -310,7 +310,7 @@ export function StatusTimeline({
       <ol className="space-y-4 border-l border-border pl-4">
         <li className="relative">
           <span className="absolute top-1 -left-[1.32rem] size-2.5 rounded-full bg-blue-on-dark" />
-          <p className="text-sm font-medium">Reported</p>
+          <p className="text-sm font-medium">{t('segment.timelineReported')}</p>
           <p className="text-xs text-muted-foreground">
             {ago(report.receivedAt)} · {stamp(report.receivedAt)}
           </p>
@@ -322,7 +322,7 @@ export function StatusTimeline({
         </li>
         <li className="relative">
           <span className="absolute top-1 -left-[1.32rem] size-2.5 rounded-full border-2 border-status-unknown bg-background" />
-          <p className="text-sm font-medium">AI-assisted indication, not an official closure</p>
+          <p className="text-sm font-medium">{t('segment.aiIndication')}</p>
           <ActionBadge level={communityLevel} className="mt-2" />
         </li>
       </ol>
@@ -337,14 +337,14 @@ export function MapSegmentDetail({
   onClose,
   className,
 }: {
-  segment: NonNullable<ReturnType<typeof segmentById>>
-  advisory: NonNullable<ReturnType<typeof advisoryFor>>
+  segment: Segment
+  advisory: SegmentAdvisory
   corridorName?: string
   onClose?: () => void
   className?: string
 }) {
   const { t, ago, stamp, place } = usePrefs()
-  const cacheTimestamp = getAdvisoryCacheTimestamp()
+  const { advisoryCacheTimestamp: cacheTimestamp } = useAppStore()
   const sourceTimestamp = getAdvisorySourceTimestamp(advisory)
   const condition = advisory.evidence.find((report) => report.kind === 'hazard') ?? advisory.evidence[0]
   const source = advisory.evidence.length
@@ -389,9 +389,9 @@ export function MapSegmentDetail({
 
       <dl className="rp-map-observation-grid">
         <div>
-          <dt>Observation time</dt>
+          <dt>{t('segment.observationTime')}</dt>
           <dd>
-            {advisory.latestObservationAt ? ago(advisory.latestObservationAt) : 'Unknown'}
+            {advisory.latestObservationAt ? ago(advisory.latestObservationAt) : t('common.unknown')}
             {advisory.latestObservationAt && <small>{stamp(advisory.latestObservationAt)}</small>}
           </dd>
         </div>
@@ -403,9 +403,9 @@ export function MapSegmentDetail({
           </dd>
         </div>
         <div>
-          <dt>Source time</dt>
+          <dt>{t('segment.sourceTime')}</dt>
           <dd>
-            {sourceTimestamp ? ago(sourceTimestamp) : 'Unknown'}
+            {sourceTimestamp ? ago(sourceTimestamp) : t('common.unknown')}
             {sourceTimestamp && <small>{stamp(sourceTimestamp)}</small>}
           </dd>
         </div>
@@ -436,7 +436,7 @@ export function MapSegmentDetail({
         params={{ segmentId: segment.id }}
         className="rp-map-details-link"
       >
-        View details <ArrowRight aria-hidden />
+        {t('common.viewDetails')} <ArrowRight aria-hidden />
       </Link>
 
       <div className="rp-map-reports">

@@ -4,7 +4,7 @@ import { render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PreferencesProvider } from '@/i18n/preferences'
 import { computeSegmentAdvisory, getAdvisorySourceTimestamp } from '@/lib/advisory'
-import { advisoryFor, getAdvisoryCacheTimestamp } from '@/lib/data'
+import { AppStoreProvider } from '@/lib/app-store'
 import { AdvisoryCard } from '@/components/advisory-card'
 import { SegmentDetail, StatusTimeline } from '@/features/routes/segment-detail'
 import { DEMO_NOW } from '@/data/fixtures'
@@ -29,24 +29,24 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   return { ...actual, Link: MockLink }
 })
 
-vi.mock('@/lib/data', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/data')>()
-  return {
-    ...actual,
-    advisoryFor: vi.fn(),
-    getAdvisoryCacheTimestamp: vi.fn(),
-  }
-})
+// Synthetic scenarios are injected through the shared app store's seed, the
+// same seam real persistence will use. Advisories are taken as given so the
+// UI is tested against each exact scenario.
+const SH15_SEED = {
+  segments: SH15_SCENARIO_LIST.map((item) => item.segment),
+  advisories: new Map(SH15_SCENARIO_LIST.map((item) => [item.segment.id, item.advisory])),
+  now: DEMO_NOW,
+}
 
 function renderWithPreferences(ui: React.ReactNode) {
-  return render(<PreferencesProvider>{ui}</PreferencesProvider>)
+  return render(
+    <AppStoreProvider seed={SH15_SEED}>
+      <PreferencesProvider>{ui}</PreferencesProvider>
+    </AppStoreProvider>,
+  )
 }
 
 function mockScenarioAdvisory(scenario: (typeof SH15_SCENARIO_LIST)[number]) {
-  vi.mocked(advisoryFor).mockImplementation((segmentId) =>
-    SH15_SCENARIO_LIST.find((item) => item.segment.id === segmentId)?.advisory,
-  )
-  vi.mocked(getAdvisoryCacheTimestamp).mockReturnValue(DEMO_NOW)
   return scenario
 }
 
