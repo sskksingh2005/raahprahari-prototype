@@ -191,7 +191,7 @@ export function SiteHeader() {
     }),
   })
   const active = activeNavTarget(pathname, view)
-  const current = (to: NavTarget) => (active === to ? ('page' as const) : undefined)
+  const current = (to: NavTarget | boolean) => (active === to || to === true ? ('page' as const) : undefined)
 
   const openLogin = (returnTo: HTMLButtonElement | null) => {
     loginReturnFocusRef.current = returnTo
@@ -221,6 +221,16 @@ export function SiteHeader() {
                 {t(label)}
               </Link>
             ))}
+            <Link
+              to="/official"
+              aria-current={current(pathname === '/official')}
+              className={cn(
+                'rp-underline inline-flex min-h-11 items-center px-2.5 text-sm font-medium whitespace-nowrap transition-colors 2xl:px-3.5',
+                pathname === '/official' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              Official
+            </Link>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -331,6 +341,20 @@ export function SiteHeader() {
                       </Link>
                     </SheetClose>
                   ))}
+                  <SheetClose asChild>
+                    <Link
+                      to="/official"
+                      aria-current={current(pathname === '/official')}
+                      className={cn(
+                        'rp-press inline-flex min-h-11 items-center rounded-lg px-3 text-base font-medium',
+                        pathname === '/official'
+                          ? 'bg-raised text-foreground'
+                          : 'text-muted-foreground hover:text-foreground',
+                      )}
+                    >
+                      Official
+                    </Link>
+                  </SheetClose>
                 </nav>
                 <nav
                   aria-label={t('nav.more')}
