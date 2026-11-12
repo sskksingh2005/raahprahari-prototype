@@ -134,7 +134,7 @@ describe("header and bottom navigation", () => {
     await waitFor(() => expect(hi).toHaveAttribute("aria-pressed", "true"));
     expect(en).toHaveAttribute("aria-pressed", "false");
     expect(
-      within(header()).getByRole("button", { name: "समुदाय लॉगिन" }),
+      within(header()).getAllByRole("link", { name: "ख़तरा बताएँ" })[0],
     ).toBeVisible();
     fireEvent.click(en);
     await waitFor(() => expect(en).toHaveAttribute("aria-pressed", "true"));
@@ -160,18 +160,15 @@ describe("header and bottom navigation", () => {
     expect(seen.size).toBeGreaterThan(1);
   }, 30_000);
 
-  it("Community Login opens an honest dialog and Close dismisses it", async () => {
+  it("hides controls for features that are not available yet", async () => {
     await mountAt("/");
-    fireEvent.click(
-      within(header()).getByRole("button", { name: "Community Login" }),
-    );
-    const dialog = await openDialog();
-    // Login is not built yet; the dialog says so instead of pretending to sign in.
-    expect(dialog).toHaveTextContent("Community login");
-    fireEvent.click(within(dialog).getByRole("button", { name: "Got it" }));
-    await waitFor(() =>
-      expect(document.querySelector('[role="dialog"]')).toBeNull(),
-    );
+    // Login and the official portal are deferred (VA-16), so no control pretends to offer them.
+    expect(
+      within(header()).queryByRole("button", { name: /login/i }),
+    ).toBeNull();
+    expect(
+      within(header()).queryByRole("link", { name: "Official" }),
+    ).toBeNull();
   }, 30_000);
 
   it("mobile menu opens, its links navigate and it closes", async () => {
@@ -187,34 +184,13 @@ describe("header and bottom navigation", () => {
     );
   }, 30_000);
 
-  it("mobile menu Login and Report buttons work", async () => {
+  it("mobile menu Report button works and offers no login", async () => {
     const router = await mountAt("/");
     fireEvent.click(
       within(header()).getByRole("button", { name: "Open menu" }),
     );
-    let menu = await openDialog();
-    fireEvent.click(
-      within(menu).getByRole("button", { name: "Community Login" }),
-    );
-    // The menu closes and the login dialog takes its place.
-    const login = await waitFor(() => {
-      const dialogs = document.querySelectorAll<HTMLElement>('[role="dialog"]');
-      if (dialogs.length !== 1 || dialogs[0] === menu)
-        throw new Error("login not open yet");
-      return dialogs[0];
-    });
-    expect(within(login).queryByRole("navigation")).toBeNull();
-    fireEvent.click(
-      within(login).getAllByRole("button", { name: /close/i })[0],
-    );
-    await waitFor(() =>
-      expect(document.querySelector('[role="dialog"]')).toBeNull(),
-    );
-
-    fireEvent.click(
-      within(header()).getByRole("button", { name: "Open menu" }),
-    );
-    menu = await openDialog();
+    const menu = await openDialog();
+    expect(within(menu).queryByRole("button", { name: /login/i })).toBeNull();
     fireEvent.click(within(menu).getByRole("link", { name: "Report Hazard" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/report"));
   }, 30_000);

@@ -61,17 +61,36 @@ export function setSyncTransportForTests(
   injectedTransport = transport;
 }
 
-export function getTransport() {
+/**
+ * Where the engine's transport comes from, in precedence order:
+ * a test-injected transport, the configured HTTP service, the development
+ * receipt stub, or nothing. This is the only place that order is decided;
+ * `getTransport` and the System Status view both read it.
+ */
+export type TransportSource = "injected" | "http" | "dev_stub" | "none";
+
+export function getTransportSource(): TransportSource {
   if (injectedTransport !== undefined)
-    return Promise.resolve(injectedTransport);
-  const configured = getConfiguredTransport();
-  if (configured) return Promise.resolve(configured);
-  if (import.meta.env.DEV && import.meta.env.VITE_DEV_RECEIPT_STUB === "true") {
-    return import("@/dev/receipt-stub").then(({ getDevReceiptStub }) =>
-      getDevReceiptStub(),
-    );
+    return injectedTransport ? "injected" : "none";
+  if (getConfiguredTransport()) return "http";
+  if (import.meta.env.DEV && import.meta.env.VITE_DEV_RECEIPT_STUB === "true")
+    return "dev_stub";
+  return "none";
+}
+
+export function getTransport(): Promise<SyncTransport | null> {
+  switch (getTransportSource()) {
+    case "injected":
+      return Promise.resolve(injectedTransport ?? null);
+    case "http":
+      return Promise.resolve(getConfiguredTransport());
+    case "dev_stub":
+      return import("@/dev/receipt-stub").then(({ getDevReceiptStub }) =>
+        getDevReceiptStub(),
+      );
+    case "none":
+      return Promise.resolve(null);
   }
-  return Promise.resolve(null);
 }
 
 function parseIso(value: string) {

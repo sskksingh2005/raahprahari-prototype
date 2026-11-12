@@ -1,4 +1,3 @@
-import { useRef, useState } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import {
   ChevronDown,
@@ -11,20 +10,10 @@ import {
   Search,
   Sun,
   TriangleAlert,
-  UserRound,
 } from 'lucide-react'
 import { crossFadeTheme, useScrolled } from '@/components/motion'
 import { OfflineBanner } from '@/components/offline-banner'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +31,7 @@ import {
 } from '@/components/ui/sheet'
 import { Logo } from '@/components/logo'
 import { usePrefs } from '@/i18n/preferences'
+import { useAccountSession } from '@/lib/account-session'
 import { cn } from '@/lib/utils'
 
 function LanguageSwitch() {
@@ -101,39 +91,13 @@ function ThemeSwitch() {
   )
 }
 
-function LoginDialog({
-  open,
-  onOpenChange,
-  returnFocusRef,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  returnFocusRef: React.RefObject<HTMLButtonElement | null>
-}) {
-  const { t } = usePrefs()
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        onCloseAutoFocus={(event) => {
-          if (returnFocusRef.current?.isConnected) {
-            event.preventDefault()
-            returnFocusRef.current.focus()
-          }
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle className="font-display">{t('login.title')}</DialogTitle>
-          <DialogDescription>{t('login.body')}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button>{t('login.close')}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
+// Deferred navigation (VA-16). These are hidden, not faked, until they work:
+// - Community Login: no sign-in provider exists in this build. The old button
+//   only opened a "not available yet" dialog. Restore it with real auth.
+// - Official (/official): the publishing service it posts to does not exist
+//   (see /status). The route stays reachable directly for development.
+// - My Reports (/reports): it needs a signed-in account, so it is listed only
+//   while a session exists.
 
 export const PRIMARY_NAV = [
   { to: '/', label: 'nav.home' },
@@ -178,11 +142,15 @@ export function activeNavTarget(pathname: string, view?: string): NavTarget | nu
   return null
 }
 
+/** Secondary links available now. My Reports appears only with a session. */
+function useSecondaryNav() {
+  const signedIn = useAccountSession().status === 'authenticated'
+  return SECONDARY_NAV.filter(({ to }) => to !== '/reports' || signedIn)
+}
+
 export function SiteHeader() {
   const { t } = usePrefs()
-  const [loginOpen, setLoginOpen] = useState(false)
-  const loginReturnFocusRef = useRef<HTMLButtonElement>(null)
-  const menuTriggerRef = useRef<HTMLButtonElement>(null)
+  const secondaryNav = useSecondaryNav()
   const scrolled = useScrolled()
   const { pathname, view } = useRouterState({
     select: (state) => ({
@@ -191,12 +159,7 @@ export function SiteHeader() {
     }),
   })
   const active = activeNavTarget(pathname, view)
-  const current = (to: NavTarget | boolean) => (active === to || to === true ? ('page' as const) : undefined)
-
-  const openLogin = (returnTo: HTMLButtonElement | null) => {
-    loginReturnFocusRef.current = returnTo
-    setLoginOpen(true)
-  }
+  const current = (to: NavTarget) => (active === to ? ('page' as const) : undefined)
 
   return (
     <>
@@ -221,28 +184,18 @@ export function SiteHeader() {
                 {t(label)}
               </Link>
             ))}
-            <Link
-              to="/official"
-              aria-current={current(pathname === '/official')}
-              className={cn(
-                'rp-underline inline-flex min-h-11 items-center px-2.5 text-sm font-medium whitespace-nowrap transition-colors 2xl:px-3.5',
-                pathname === '/official' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              Official
-            </Link>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   className={cn(
                     'min-h-11 gap-1 px-2.5 text-sm font-medium',
-                    SECONDARY_NAV.some(({ to }) => active === to)
+                    secondaryNav.some(({ to }) => active === to)
                       ? 'text-foreground'
                       : 'text-muted-foreground',
                   )}
                   aria-current={
-                    SECONDARY_NAV.some(({ to }) => active === to) ? 'page' : undefined
+                    secondaryNav.some(({ to }) => active === to) ? 'page' : undefined
                   }
                 >
                   {t('nav.more')}
@@ -250,7 +203,7 @@ export function SiteHeader() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {SECONDARY_NAV.map(({ to, label }) => (
+                {secondaryNav.map(({ to, label }) => (
                   <DropdownMenuItem key={to} asChild>
                     <Link to={to} aria-current={current(to)}>
                       {t(label)}
@@ -264,14 +217,6 @@ export function SiteHeader() {
           <div className="ml-auto hidden min-w-0 shrink-0 items-center gap-3 xl:flex">
             <LanguageSwitch />
             <ThemeSwitch />
-            <Button
-              variant="ghost"
-              className="h-10 rounded-full whitespace-nowrap"
-              onClick={(event) => openLogin(event.currentTarget)}
-            >
-              <UserRound aria-hidden />
-              {t('nav.login')}
-            </Button>
             <Button asChild variant="report" className="h-10 rounded-full px-4 font-semibold whitespace-nowrap">
               <Link
                 to="/report"
@@ -305,7 +250,6 @@ export function SiteHeader() {
             <Sheet key={pathname}>
               <SheetTrigger asChild>
                 <Button
-                  ref={menuTriggerRef}
                   variant="ghost"
                   size="icon-lg"
                   className="rounded-full xl:hidden"
@@ -341,26 +285,12 @@ export function SiteHeader() {
                       </Link>
                     </SheetClose>
                   ))}
-                  <SheetClose asChild>
-                    <Link
-                      to="/official"
-                      aria-current={current(pathname === '/official')}
-                      className={cn(
-                        'rp-press inline-flex min-h-11 items-center rounded-lg px-3 text-base font-medium',
-                        pathname === '/official'
-                          ? 'bg-raised text-foreground'
-                          : 'text-muted-foreground hover:text-foreground',
-                      )}
-                    >
-                      Official
-                    </Link>
-                  </SheetClose>
                 </nav>
                 <nav
                   aria-label={t('nav.more')}
                   className="mt-2 flex flex-col gap-1 border-t border-border px-4 pt-3"
                 >
-                  {SECONDARY_NAV.map(({ to, label }) => (
+                  {secondaryNav.map(({ to, label }) => (
                     <SheetClose key={to} asChild>
                       <Link
                         to={to}
@@ -380,16 +310,6 @@ export function SiteHeader() {
                 <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 pt-4 pb-6">
                   <LanguageSwitch />
                   <ThemeSwitch />
-                  <SheetClose asChild>
-                    <Button
-                      variant="outline"
-                      className="h-11 w-full rounded-full"
-                      onClick={() => openLogin(menuTriggerRef.current)}
-                    >
-                      <UserRound aria-hidden />
-                      {t('nav.login')}
-                    </Button>
-                  </SheetClose>
                   <SheetClose asChild>
                     <Button asChild variant="report" className="h-11 w-full rounded-full font-semibold">
                       <Link
@@ -445,26 +365,25 @@ export function SiteHeader() {
           ))}
         </ul>
       </nav>
-
-      <LoginDialog
-        open={loginOpen}
-        onOpenChange={setLoginOpen}
-        returnFocusRef={loginReturnFocusRef}
-      />
     </>
   )
 }
 
+const FOOTER_LINKS = [
+  ['footer.about', '/about', undefined],
+  ['footer.privacy', '/about', 'privacy'],
+  ['footer.terms', '/about', 'terms'],
+  ['footer.accessibility', '/about', 'accessibility'],
+  ['footer.contact', '/contact', undefined],
+  ['nav.myReports', '/reports', undefined],
+  ['footer.contributions', '/contributions', undefined],
+  ['footer.status', '/status', undefined],
+] as const
+
 export function SiteFooter() {
   const { t } = usePrefs()
-  const items = [
-    ['footer.about', '/about', undefined],
-    ['footer.privacy', '/about', 'privacy'],
-    ['footer.terms', '/about', 'terms'],
-    ['footer.accessibility', '/about', 'accessibility'],
-    ['footer.contact', '/contact', undefined],
-    ['nav.myReports', '/reports', undefined],
-  ] as const
+  const signedIn = useAccountSession().status === 'authenticated'
+  const items = FOOTER_LINKS.filter(([, to]) => to !== '/reports' || signedIn)
   return (
     <footer data-reveal className="border-t border-border bg-card/40">
       <div className="rp-container flex flex-col gap-6 py-10 md:flex-row md:items-start md:justify-between">

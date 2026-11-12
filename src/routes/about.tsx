@@ -8,7 +8,9 @@ import {
   LockKeyhole,
   Mail,
   Route as RouteIcon,
+  Scale,
 } from "lucide-react";
+import { POLICY_OPEN_QUESTIONS } from "@/content/policy-open-questions";
 import { Logo } from "@/components/logo";
 import { PageBanner } from "@/components/page-banner";
 import { Button } from "@/components/ui/button";
@@ -98,6 +100,27 @@ function AboutPage() {
             </p>
           </article>
         </div>
+
+        <article id="policy-status" className="rp-info-card mt-3 scroll-mt-24">
+          <Scale aria-hidden className="mb-3 size-5 text-brand-orange" />
+          <h2>{t("aboutPage.policyStatusTitle")}</h2>
+          <p>{t("aboutPage.policyStatusBody")}</p>
+          <h3 className="mt-4 text-sm font-semibold text-foreground">
+            {t("aboutPage.policyOpenHeading")}
+          </h3>
+          {POLICY_OPEN_QUESTIONS.length ? (
+            <ul className="mt-2 space-y-2 pl-5">
+              {POLICY_OPEN_QUESTIONS.map((item) => (
+                <li key={item.id}>
+                  <strong>{t(`aboutPage.policyArea.${item.area}`)}:</strong>{" "}
+                  {t(item.question)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>{t("aboutPage.policyOpenNone")}</p>
+          )}
+        </article>
 
         <div
           className="rp-info-actions"
