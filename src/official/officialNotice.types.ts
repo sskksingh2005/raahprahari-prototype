@@ -1,26 +1,33 @@
-export type RestrictionType = 'Closed' | 'One-lane' | 'Vehicles banned';
+import type { TranslationKey } from "@/i18n/dictionary";
+
+export type RestrictionType = "Closed" | "One-lane" | "Vehicles banned";
+
+export const RESTRICTION_TYPES: readonly RestrictionType[] = [
+  "Closed",
+  "One-lane",
+  "Vehicles banned",
+];
 
 export interface OfficialNoticeFormData {
-  sourceReference: string;       // 1. Source reference (text)
-  publicationTime: string;       // 2. Publication time (date + time)
-  effectiveStartTime: string;    // 3. Effective start time
-  effectiveEndTime: string;      // 3. Effective end time
-  segment: string;               // 4. Segment (road ka hissa)
-  restriction: RestrictionType;  // 5. Restriction (dropdown)
-  jurisdiction: string;          // 6. Jurisdiction (area / authority)
+  sourceReference: string;
+  publicationTime: string;
+  effectiveStartTime: string;
+  effectiveEndTime: string;
+  segment: string;
+  restriction: RestrictionType;
+  jurisdiction: string;
 }
 
-export interface OfficialNoticeFormErrors {
-  sourceReference?: string;
-  publicationTime?: string;
-  effectiveStartTime?: string;
-  effectiveEndTime?: string;
-  segment?: string;
-  restriction?: string;
-  jurisdiction?: string;
-}
+export type OfficialNoticeField = keyof OfficialNoticeFormData;
+
+/** Each error is a dictionary key, so it is shown in the reader's language. */
+export type OfficialNoticeFormErrors = Partial<
+  Record<OfficialNoticeField, TranslationKey>
+>;
+
+/** Results carry codes, not prose; the UI turns them into translated text. */
 export type PublishResult =
   | { kind: "success"; noticeId: string }
-  | { kind: "forbidden"; message: string }
+  | { kind: "forbidden" }
   | { kind: "session-expired" }
-  | { kind: "error"; message: string };
+  | { kind: "error"; reason: "network" | "server"; status?: number };

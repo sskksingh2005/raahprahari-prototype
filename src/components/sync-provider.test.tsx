@@ -19,7 +19,14 @@ const { syncNowMock } = vi.hoisted(() => ({ syncNowMock: vi.fn() }));
 vi.mock("@/lib/sync/sync-engine", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("@/lib/sync/sync-engine")>();
-  return { ...actual, syncNow: syncNowMock, getLastSyncAt: () => null };
+  return {
+    ...actual,
+    syncNow: syncNowMock,
+    getLastSyncAt: () => null,
+    // SyncNowButton hides itself when nothing could send (VA-16); these tests
+    // exercise the visible button, so report a transport as present.
+    getTransportSource: () => "dev_stub" as const,
+  };
 });
 
 beforeEach(async () => {

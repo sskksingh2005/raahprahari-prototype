@@ -1,181 +1,186 @@
-import React, { useState } from 'react';
-import { OfficialNoticeFormData, OfficialNoticeFormErrors } from './officialNotice.types';
-import { PublishFlow } from './PublishFlow';
-import { OfficialSegmentStatus } from './OfficialSegmentStatus';
-import { SEGMENTS } from '@/data/fixtures';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { SEGMENTS } from "@/data/fixtures";
+import { usePrefs } from "@/i18n/preferences";
+import { OfficialSegmentStatus } from "./OfficialSegmentStatus";
+import { PublishFlow } from "./PublishFlow";
+import {
+  RESTRICTION_TYPES,
+  type OfficialNoticeField,
+  type OfficialNoticeFormData,
+  type OfficialNoticeFormErrors,
+  type RestrictionType,
+} from "./officialNotice.types";
 
-export const OfficialNoticeForm: React.FC = () => {
-  const [formData, setFormData] = useState<OfficialNoticeFormData>({
-    sourceReference: '',
-    publicationTime: '',
-    effectiveStartTime: '',
-    effectiveEndTime: '',
-    segment: '',
-    restriction: 'Closed',
-    jurisdiction: '',
-  });
+const EMPTY: OfficialNoticeFormData = {
+  sourceReference: "",
+  publicationTime: "",
+  effectiveStartTime: "",
+  effectiveEndTime: "",
+  segment: "",
+  restriction: "Closed",
+  jurisdiction: "",
+};
 
+/** Field order on screen, used to focus the first invalid field. */
+const FIELD_ORDER: OfficialNoticeField[] = [
+  "sourceReference",
+  "publicationTime",
+  "effectiveStartTime",
+  "effectiveEndTime",
+  "segment",
+  "restriction",
+  "jurisdiction",
+];
+
+export function validateNotice(
+  data: OfficialNoticeFormData,
+): OfficialNoticeFormErrors {
+  const errors: OfficialNoticeFormErrors = {};
+  const source = data.sourceReference.trim();
+  if (!source) errors.sourceReference = "official.err.sourceRequired";
+  else if (!/^[A-Za-z0-9/#\s-]+$/.test(source))
+    errors.sourceReference = "official.err.sourceFormat";
+  if (!data.publicationTime)
+    errors.publicationTime = "official.err.publicationRequired";
+  if (!data.effectiveStartTime)
+    errors.effectiveStartTime = "official.err.startRequired";
+  if (!data.effectiveEndTime)
+    errors.effectiveEndTime = "official.err.endRequired";
+  else if (
+    data.effectiveStartTime &&
+    data.effectiveEndTime <= data.effectiveStartTime
+  )
+    errors.effectiveEndTime = "official.err.endBeforeStart";
+  if (!data.segment.trim()) errors.segment = "official.err.segmentRequired";
+  if (!data.jurisdiction.trim())
+    errors.jurisdiction = "official.err.jurisdictionRequired";
+  return errors;
+}
+
+const fieldId = (name: OfficialNoticeField) => `official-${name}`;
+
+export function OfficialNoticeForm() {
+  const { t } = usePrefs();
+  const [formData, setFormData] = useState<OfficialNoticeFormData>(EMPTY);
   const [errors, setErrors] = useState<OfficialNoticeFormErrors>({});
-  const [submittedData, setSubmittedData] = useState<OfficialNoticeFormData | null>(null);
   const [draft, setDraft] = useState<OfficialNoticeFormData | null>(null);
-  const [published, setPublished] = useState<{ noticeId: string; segment: string } | null>(null);
+  const [published, setPublished] = useState<{
+    noticeId: string;
+    segment: string;
+  } | null>(null);
+  const readyRef = useRef<HTMLHeadingElement>(null);
+  const publishedRef = useRef<HTMLParagraphElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing/correcting
-    if (errors[name as keyof OfficialNoticeFormErrors]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
-    }
+  // Move focus to whatever the last action produced, so keyboard and screen
+  // reader users land on the result instead of being left on a removed control.
+  useEffect(() => {
+    if (draft) readyRef.current?.focus();
+  }, [draft]);
+  useEffect(() => {
+    if (published) publishedRef.current?.focus();
+  }, [published]);
+
+  const handleChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const name = event.target.name as OfficialNoticeField;
+    const value = event.target.value;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Any edit invalidates a checked draft, so a stale notice cannot be published.
+    setDraft(null);
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: OfficialNoticeFormErrors = {};
-
-    // 1. Source reference validation
-    if (!formData.sourceReference.trim()) {
-      newErrors.sourceReference = 'Source reference is required.';
-    } else if (!/^[A-Za-z0-9\/\-#\s]+$/.test(formData.sourceReference)) {
-      newErrors.sourceReference = 'Invalid format (allowed: letters, numbers, /, #, -).';
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setPublished(null);
+    const found = validateNotice(formData);
+    setErrors(found);
+    const firstInvalid = FIELD_ORDER.find((name) => found[name]);
+    if (firstInvalid) {
+      setDraft(null);
+      document.getElementById(fieldId(firstInvalid))?.focus();
+      return;
     }
-
-    // 2. Publication time validation
-    if (!formData.publicationTime) {
-      newErrors.publicationTime = 'Publication time is required.';
-    }
-
-    // 3. Start time validation
-    if (!formData.effectiveStartTime) {
-      newErrors.effectiveStartTime = 'Effective start time is required.';
-    }
-
-    // 3. End time validation & logical comparison
-    if (!formData.effectiveEndTime) {
-      newErrors.effectiveEndTime = 'Effective end time is required.';
-    } else if (formData.effectiveStartTime && formData.effectiveEndTime <= formData.effectiveStartTime) {
-      newErrors.effectiveEndTime = 'End time must be after start time.';
-    }
-
-    // 4. Segment validation
-    if (!formData.segment.trim()) {
-      newErrors.segment = 'Road segment is required.';
-    }
-
-    // 6. Jurisdiction validation
-    if (!formData.jurisdiction.trim()) {
-      newErrors.jurisdiction = 'Jurisdiction / Authority is required.';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setDraft(formData);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmittedData(null);
+  const err = (name: OfficialNoticeField) =>
+    errors[name] ? t(errors[name]) : undefined;
 
-    if (validateForm()) {
-      console.log("Valid Official Notice Submitted:", formData);
-      setSubmittedData(formData);
-      setDraft(formData);
-    }
-  };
+  const textField = (
+    name: Exclude<OfficialNoticeField, "restriction">,
+    label: Parameters<typeof t>[0],
+    type: "text" | "datetime-local",
+    extra: {
+      description?: Parameters<typeof t>[0];
+      list?: string;
+      autoComplete?: string;
+    } = {},
+  ) => (
+    <Field
+      id={fieldId(name)}
+      label={t(label)}
+      description={extra.description ? t(extra.description) : undefined}
+      error={err(name)}
+      required
+    >
+      <Input
+        type={type}
+        name={name}
+        value={formData[name]}
+        onChange={handleChange}
+        list={extra.list}
+        autoComplete={extra.autoComplete ?? "off"}
+      />
+    </Field>
+  );
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-[#070B16] text-[#E6E4DC] rounded-xl border border-gray-800 shadow-xl">
-      <h2 className="text-xl font-bold mb-4 text-[#EB5B38]">Official Road Restriction Notice</h2>
+    <div className="space-y-4">
+      <section aria-labelledby="official-form-title" className="rp-info-card">
+        <h2 id="official-form-title">{t("official.formTitle")}</h2>
+        <p>{t("official.requiredNote")}</p>
 
-      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-        {/* 1. Source Reference */}
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="sourceReference">
-            Source Reference *
-          </label>
-          <input
-            type="text"
-            id="sourceReference"
-            name="sourceReference"
-            value={formData.sourceReference}
-            onChange={handleChange}
-            placeholder="e.g., Order No. 402/Traffic"
-            className={`w-full p-2 bg-[#111719] border rounded text-sm text-white focus:outline-none ${
-              errors.sourceReference ? 'border-red-500' : 'border-gray-700 focus:border-[#247BFF]'
-            }`}
-          />
-          {errors.sourceReference && <p className="text-xs text-red-400 mt-1">{errors.sourceReference}</p>}
-        </div>
-
-        {/* 2. Publication Time */}
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="publicationTime">
-            Publication Time *
-          </label>
-          <input
-            type="datetime-local"
-            id="publicationTime"
-            name="publicationTime"
-            value={formData.publicationTime}
-            onChange={handleChange}
-            className={`w-full p-2 bg-[#111719] border rounded text-sm text-white focus:outline-none ${
-              errors.publicationTime ? 'border-red-500' : 'border-gray-700 focus:border-[#247BFF]'
-            }`}
-          />
-          {errors.publicationTime && <p className="text-xs text-red-400 mt-1">{errors.publicationTime}</p>}
-        </div>
-
-        {/* 3. Effective Start & End Time */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="effectiveStartTime">
-              Effective Start Time *
-            </label>
-            <input
-              type="datetime-local"
-              id="effectiveStartTime"
-              name="effectiveStartTime"
-              value={formData.effectiveStartTime}
-              onChange={handleChange}
-              className={`w-full p-2 bg-[#111719] border rounded text-sm text-white focus:outline-none ${
-                errors.effectiveStartTime ? 'border-red-500' : 'border-gray-700 focus:border-[#247BFF]'
-              }`}
-            />
-            {errors.effectiveStartTime && <p className="text-xs text-red-400 mt-1">{errors.effectiveStartTime}</p>}
+        <form onSubmit={handleSubmit} noValidate className="mt-4 grid gap-4">
+          {textField(
+            "sourceReference",
+            "official.field.sourceReference",
+            "text",
+            {
+              description: "official.help.sourceReference",
+            },
+          )}
+          {textField(
+            "publicationTime",
+            "official.field.publicationTime",
+            "datetime-local",
+          )}
+          <div className="grid gap-4 md:grid-cols-2">
+            {textField(
+              "effectiveStartTime",
+              "official.field.effectiveStart",
+              "datetime-local",
+            )}
+            {textField(
+              "effectiveEndTime",
+              "official.field.effectiveEnd",
+              "datetime-local",
+            )}
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="effectiveEndTime">
-              Effective End Time *
-            </label>
-            <input
-              type="datetime-local"
-              id="effectiveEndTime"
-              name="effectiveEndTime"
-              value={formData.effectiveEndTime}
-              onChange={handleChange}
-              className={`w-full p-2 bg-[#111719] border rounded text-sm text-white focus:outline-none ${
-                errors.effectiveEndTime ? 'border-red-500' : 'border-gray-700 focus:border-[#247BFF]'
-              }`}
-            />
-            {errors.effectiveEndTime && <p className="text-xs text-red-400 mt-1">{errors.effectiveEndTime}</p>}
-          </div>
-        </div>
-
-        {/* 4. Segment */}
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="segment">
-            Road Segment / Stretch *
-          </label>
-          <input
-            type="text"
-            id="segment"
-            name="segment"
-            value={formData.segment}
-            onChange={handleChange}
-            placeholder="e.g., NH-74 Bypass (Km 42-48)"
-            list="official-segment-ids"
-            className={`w-full p-2 bg-[#111719] border rounded text-sm text-white focus:outline-none ${
-              errors.segment ? 'border-red-500' : 'border-gray-700 focus:border-[#247BFF]'
-            }`}
-          />
+          {textField("segment", "official.field.segment", "text", {
+            description: "official.help.segment",
+            list: "official-segment-ids",
+          })}
           <datalist id="official-segment-ids">
             {SEGMENTS.map((s) => (
               <option key={s.id} value={s.id}>
@@ -183,91 +188,82 @@ export const OfficialNoticeForm: React.FC = () => {
               </option>
             ))}
           </datalist>
-          {errors.segment && <p className="text-xs text-red-400 mt-1">{errors.segment}</p>}
           <OfficialSegmentStatus
             segmentText={formData.segment}
-            heading="Current public status for this segment"
+            heading={t("official.statusHeading")}
           />
-        </div>
-
-        {/* 5. Restriction Type */}
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="restriction">
-            Restriction Type *
-          </label>
-          <select
-            id="restriction"
-            name="restriction"
-            value={formData.restriction}
-            onChange={handleChange}
-            className="w-full p-2 bg-[#111719] border border-gray-700 rounded text-sm text-white focus:outline-none focus:border-[#247BFF]"
+          <Field
+            id={fieldId("restriction")}
+            label={t("official.field.restriction")}
+            required
           >
-            <option value="Closed">Closed</option>
-            <option value="One-lane">One-lane</option>
-            <option value="Vehicles banned">Vehicles banned</option>
-          </select>
-        </div>
-
-        {/* 6. Jurisdiction */}
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="jurisdiction">
-            Jurisdiction / Authority *
-          </label>
-          <input
-            type="text"
-            id="jurisdiction"
-            name="jurisdiction"
-            value={formData.jurisdiction}
-            onChange={handleChange}
-            placeholder="e.g., Dehradun Traffic Police"
-            className={`w-full p-2 bg-[#111719] border rounded text-sm text-white focus:outline-none ${
-              errors.jurisdiction ? 'border-red-500' : 'border-gray-700 focus:border-[#247BFF]'
-            }`}
-          />
-          {errors.jurisdiction && <p className="text-xs text-red-400 mt-1">{errors.jurisdiction}</p>}
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full py-2.5 bg-[#247BFF] hover:bg-[#1d63d8] text-white font-semibold rounded-lg transition"
-        >
-          Submit Notice Draft
-        </button>
-      </form>
+            <select
+              id={fieldId("restriction")}
+              name="restriction"
+              value={formData.restriction}
+              onChange={handleChange}
+              required
+              className="rp-field min-h-11 w-full rounded-md border border-input bg-transparent px-3 text-base text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+            >
+              {RESTRICTION_TYPES.map((type: RestrictionType) => (
+                <option key={type} value={type}>
+                  {t(`official.restriction.${type}`)}
+                </option>
+              ))}
+            </select>
+          </Field>
+          {textField("jurisdiction", "official.field.jurisdiction", "text", {
+            description: "official.help.jurisdiction",
+          })}
+          <Button type="submit" className="min-h-11 w-full sm:w-fit">
+            {t("official.submit")}
+          </Button>
+        </form>
+      </section>
 
       {draft && (
-        <div className="mt-6 p-4 border border-border rounded-lg bg-card shadow-sm">
-          <h3 className="text-lg font-semibold mb-3">Ready to Publish</h3>
-          <PublishFlow
-            draft={draft}
-            onSuccess={(noticeId) => {
-              setPublished({ noticeId, segment: draft.segment });
-              setSubmittedData(null);
-              setDraft(null);
-            }}
-          />
-        </div>
+        <section
+          aria-labelledby="official-ready-title"
+          className="rp-info-card"
+        >
+          <h2
+            id="official-ready-title"
+            ref={readyRef}
+            tabIndex={-1}
+            className="outline-none"
+          >
+            {t("official.readyTitle")}
+          </h2>
+          <p>{t("official.draftReady")}</p>
+          <div className="mt-3">
+            <PublishFlow
+              draft={draft}
+              onSuccess={(noticeId) => {
+                setPublished({ noticeId, segment: draft.segment });
+                setDraft(null);
+              }}
+            />
+          </div>
+        </section>
       )}
 
       {published && (
-        <div className="mt-6 p-4 border border-border rounded-lg bg-card shadow-sm">
-          <p role="status" className="official-banner ok">
-            Notice published. ID: {published.noticeId}
+        <section className="rp-info-card">
+          <p
+            ref={publishedRef}
+            role="status"
+            tabIndex={-1}
+            className="m-0! rounded-lg border border-status-clear bg-status-clear/10 px-3 py-2.5 text-sm font-medium text-foreground! outline-none"
+          >
+            {t("official.result.success").replace("{id}", published.noticeId)}
           </p>
           <OfficialSegmentStatus
             segmentText={published.segment}
-            heading="Public status for this segment"
-            note="Prototype: this card shows the seeded advisory. The new notice is not reflected until real persistence is connected."
+            heading={t("official.publishedStatusHeading")}
+            note={t("official.statusNote")}
           />
-        </div>
-      )}
-
-      {submittedData && (
-        <div className="mt-4 p-3 bg-emerald-950 border border-emerald-800 rounded text-xs text-emerald-300">
-          ✔ Validated successfully! Notice object ready for secure publication.
-        </div>
+        </section>
       )}
     </div>
   );
-};
+}
