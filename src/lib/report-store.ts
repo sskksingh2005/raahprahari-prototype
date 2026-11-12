@@ -1,4 +1,56 @@
+import { z } from "zod";
 import { STORAGE_KEYS } from "@/lib/storage";
+
+/**
+ * Optional observation details (SU-05). Each defaults to an explicit
+ * "unknown"; the UI never forces a guess. These stay in the local draft only:
+ * the report API contract does not carry them until the backend agrees it.
+ */
+export const OBSERVATION_SOURCES = [
+  "unknown",
+  "firsthand",
+  "secondhand",
+] as const;
+export const LANE_DIRECTIONS = [
+  "unknown",
+  "full_width",
+  "one_lane",
+  "roadside",
+] as const;
+export const VEHICLE_APPLICABILITY = [
+  "unknown",
+  "all_vehicles",
+  "light_vehicles",
+  "two_wheelers",
+  "no_vehicles",
+] as const;
+
+export type ObservationSource = (typeof OBSERVATION_SOURCES)[number];
+export type LaneDirection = (typeof LANE_DIRECTIONS)[number];
+export type VehicleApplicability = (typeof VEHICLE_APPLICABILITY)[number];
+
+/** Invalid or missing values fall back to "unknown" (older drafts lack them). */
+export const ObservationExtrasSchema = z.object({
+  source: z.enum(OBSERVATION_SOURCES).catch("unknown"),
+  laneDirection: z.enum(LANE_DIRECTIONS).catch("unknown"),
+  vehicleApplicability: z.enum(VEHICLE_APPLICABILITY).catch("unknown"),
+});
+
+export type ObservationExtras = z.infer<typeof ObservationExtrasSchema>;
+
+export function observationExtras(value: unknown): ObservationExtras {
+  return ObservationExtrasSchema.parse(
+    typeof value === "object" && value !== null ? value : {},
+  );
+}
+
+/** Fills the optional observation fields on drafts saved before they existed. */
+export function withObservationDefaults(
+  draft: Omit<ReportDraft, keyof ObservationExtras> &
+    Partial<ObservationExtras>,
+): ReportDraft {
+  return { ...draft, ...observationExtras(draft) };
+}
 
 export type ReportHazard =
   | "landslide"
@@ -35,6 +87,9 @@ export interface ReportDraft {
   observedAt: string;
   photo: ReportPhoto | null;
   location: ReportLocation | null;
+  source: ObservationSource;
+  laneDirection: LaneDirection;
+  vehicleApplicability: VehicleApplicability;
 }
 
 export interface LocalReport {
@@ -55,6 +110,9 @@ export const createEmptyReportDraft = (date = new Date()): ReportDraft => ({
   observedAt: toLocalDateTime(date),
   photo: null,
   location: null,
+  source: "unknown",
+  laneDirection: "unknown",
+  vehicleApplicability: "unknown",
 });
 
 const pad = (value: number) => String(value).padStart(2, "0");
@@ -216,6 +274,7 @@ export function readReportDraft(): ReportDraft | null {
     observedAt: saved.observedAt,
     photo,
     location,
+    ...observationExtras(saved),
   };
 }
 

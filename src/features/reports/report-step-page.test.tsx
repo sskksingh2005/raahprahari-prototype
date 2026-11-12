@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ReportStepPage } from "@/features/reports/report-step-page";
@@ -284,5 +290,112 @@ describe("report step flow", () => {
     });
     expect(await screen.findByText(/Server received:/)).toBeInTheDocument();
     expect(screen.getByText(/receipt-live-update/)).toBeInTheDocument();
+  });
+});
+
+describe("optional observation details", () => {
+  const group = (name: string) => screen.getByRole("group", { name });
+
+  it("defaults source, road impact and vehicles to an explicit Unknown", async () => {
+    expect(createEmptyReportDraft()).toMatchObject({
+      source: "unknown",
+      laneDirection: "unknown",
+      vehicleApplicability: "unknown",
+    });
+    render(<ReportStepPage step="observation" navigate={navigate} />);
+    for (const legend of [
+      "How do you know about this?",
+      "Which part of the road is affected?",
+      "Which vehicles can still pass?",
+    ]) {
+      expect(within(group(legend)).getByRole("radio", { name: "Unknown" })).toBeChecked();
+    }
+    // Optional: Continue works with everything left as Unknown.
+    await waitFor(() =>
+      expect(
+        (screen.getByLabelText("When did you observe it?") as HTMLInputElement).value,
+      ).not.toBe(""),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Landslide" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(navigate).toHaveBeenCalledWith("/report/photo");
+    // Let the save started by Continue finish so it cannot leak into the next test.
+    await waitFor(() =>
+      expect(readReportDraft()).toMatchObject({
+        hazardType: "landslide",
+        source: "unknown",
+      }),
+    );
+  });
+
+  it("keeps chosen values in the draft and shows them on the review step", async () => {
+    const first = render(<ReportStepPage step="observation" navigate={navigate} />);
+    await waitFor(() =>
+      expect(
+        (screen.getByLabelText("When did you observe it?") as HTMLInputElement).value,
+      ).not.toBe(""),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Landslide" }));
+    fireEvent.click(
+      within(group("How do you know about this?")).getByRole("radio", {
+        name: "I saw it myself",
+      }),
+    );
+    fireEvent.click(
+      within(group("Which part of the road is affected?")).getByRole("radio", {
+        name: "One lane or part of the road",
+      }),
+    );
+    fireEvent.click(
+      within(group("Which vehicles can still pass?")).getByRole("radio", {
+        name: "Two-wheelers only",
+      }),
+    );
+    await waitFor(() =>
+      expect(readReportDraft()).toMatchObject({
+        source: "firsthand",
+        laneDirection: "one_lane",
+        vehicleApplicability: "two_wheelers",
+      }),
+    );
+    // A debounced autosave from an earlier test may also land, so look for
+    // this draft among the saved records rather than assuming it is first.
+    await waitFor(async () => {
+      const saved = await localDb.drafts.toArray();
+      expect(saved.map((record) => record.payload)).toContainEqual(
+        expect.objectContaining({
+          source: "firsthand",
+          laneDirection: "one_lane",
+          vehicleApplicability: "two_wheelers",
+        }),
+      );
+    });
+    first.unmount();
+
+    render(<ReportStepPage step="review" navigate={navigate} />);
+    const review = await screen.findByRole("heading", { name: "Road impact and source" });
+    const section = review.closest("section")!;
+    await waitFor(() => expect(section).toHaveTextContent("I saw it myself"));
+    expect(section).toHaveTextContent("One lane or part of the road");
+    expect(section).toHaveTextContent("Two-wheelers only");
+  });
+
+  it("treats older or invalid saved values as Unknown", () => {
+    window.localStorage.setItem(
+      STORAGE_KEYS.reportDraft,
+      JSON.stringify({
+        hazardType: "landslide",
+        description: "",
+        observedAt: "2026-10-25T09:00",
+        photo: null,
+        location: null,
+        laneDirection: "sideways",
+      }),
+    );
+    expect(readReportDraft()).toMatchObject({
+      source: "unknown",
+      laneDirection: "unknown",
+      vehicleApplicability: "unknown",
+    });
   });
 });

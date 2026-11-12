@@ -153,6 +153,9 @@ describe("click audit: every control in page content does something", () => {
         if (
           control.getAttribute("aria-pressed") === "true" ||
           control.getAttribute("aria-selected") === "true" ||
+          // An already-checked radio (e.g. an explicit "Unknown" default).
+          (control.getAttribute("role") === "radio" &&
+            control.getAttribute("aria-checked") === "true") ||
           control.getAttribute("aria-current") === "page"
         ) {
           cleanup();

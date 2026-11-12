@@ -45,6 +45,9 @@ function draftRecord(overrides: Partial<DraftRecord> = {}): DraftRecord {
         source: "device",
         confirmed: true,
       },
+      source: "firsthand",
+      laneDirection: "one_lane",
+      vehicleApplicability: "light_vehicles",
     },
     attachments: [],
     localReference: null,
@@ -397,6 +400,11 @@ describe("sync contract and queue behavior", () => {
     expect(sendMetadata).not.toHaveBeenCalled();
     expect((await syncNow({ reason: "manual" })).received).toBe(1);
     expect(sendMetadata).toHaveBeenCalledOnce();
+    // Local-only observation details are not part of the agreed API contract.
+    const [sentPayload] = sendMetadata.mock.calls[0];
+    expect(sentPayload).not.toHaveProperty("source");
+    expect(sentPayload).not.toHaveProperty("laneDirection");
+    expect(sentPayload).not.toHaveProperty("vehicleApplicability");
   });
 
   it("deduplicates concurrent sync calls into one queue run", async () => {

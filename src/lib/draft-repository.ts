@@ -11,7 +11,11 @@ import {
   type ReceiptEventRecord,
   type ReceiptEventType,
 } from "@/lib/local-db";
-import { makeLocalReference, type ReportDraft } from "@/lib/report-store";
+import {
+  makeLocalReference,
+  observationExtras,
+  type ReportDraft,
+} from "@/lib/report-store";
 
 export type RepositoryWriteResult =
   | { ok: true; id: string; savedAt: number }
@@ -56,7 +60,7 @@ function toUtcIso(dateValue: string | undefined) {
 }
 
 function normalizePayload(payload?: ReportDraft | null): ReportDraft {
-  const seed = payload ?? {
+  const seed: Partial<ReportDraft> = payload ?? {
     hazardType: "",
     description: "",
     observedAt: formatLocalDateTime(new Date()),
@@ -69,6 +73,8 @@ function normalizePayload(payload?: ReportDraft | null): ReportDraft {
     observedAt: seed.observedAt ?? formatLocalDateTime(new Date()),
     photo: seed.photo ?? null,
     location: seed.location ?? null,
+    // Optional observation details; missing or invalid values stay "unknown".
+    ...observationExtras(seed),
   };
 }
 

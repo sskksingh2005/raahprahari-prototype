@@ -26,8 +26,11 @@ import {
 import { SyncNowButton } from "@/components/sync-now-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { PLACES, SEGMENTS, placeById } from "@/data/fixtures";
+import type { TranslationKey } from "@/i18n/dictionary";
 import { usePrefs } from "@/i18n/preferences";
 import { getActiveAccountScope } from "@/lib/account-scope";
 import {
@@ -51,6 +54,10 @@ import {
   toLocalDateTime,
   validateObservation,
   photoValidationCode,
+  withObservationDefaults,
+  LANE_DIRECTIONS,
+  OBSERVATION_SOURCES,
+  VEHICLE_APPLICABILITY,
   writeReportDraft,
   type ReportDraft,
   type ReportHazard,
@@ -222,7 +229,7 @@ export function ReportStepPage({
         const saved = await loadActiveDraft(scope);
         if (!active) return;
         if (saved) {
-          setDraft(saved.payload);
+          setDraft(withObservationDefaults(saved.payload));
           setDraftId(saved.id);
           setLocationSearch(saved.payload.location?.query ?? "");
           setNotice(t("saveStatus.draftRestored"));
@@ -913,6 +920,38 @@ export function ReportStepPage({
                   )}
                 </div>
 
+                <div className="mt-6 space-y-5">
+                  <p className="text-sm text-muted-foreground">
+                    {t("obs.optionalNote")}
+                  </p>
+                  <ObservationChoice
+                    id="report-source"
+                    legend={t("obs.source.legend")}
+                    value={draft.source}
+                    options={OBSERVATION_SOURCES}
+                    labelKey={(value) => `obs.source.${value}`}
+                    onChange={(source) => updateDraft({ source })}
+                  />
+                  <ObservationChoice
+                    id="report-lane"
+                    legend={t("obs.lane.legend")}
+                    value={draft.laneDirection}
+                    options={LANE_DIRECTIONS}
+                    labelKey={(value) => `obs.lane.${value}`}
+                    onChange={(laneDirection) => updateDraft({ laneDirection })}
+                  />
+                  <ObservationChoice
+                    id="report-vehicle"
+                    legend={t("obs.vehicle.legend")}
+                    value={draft.vehicleApplicability}
+                    options={VEHICLE_APPLICABILITY}
+                    labelKey={(value) => `obs.vehicle.${value}`}
+                    onChange={(vehicleApplicability) =>
+                      updateDraft({ vehicleApplicability })
+                    }
+                  />
+                </div>
+
                 <div className="mt-5 overflow-hidden rounded-xl border border-border">
                   <img
                     src="/img/hero-road.png"
@@ -1558,6 +1597,25 @@ export function ReportStepPage({
                       )}
                   </ReviewSection>
                   <ReviewSection
+                    title={t("obs.review.title")}
+                    edit={() => go("/report")}
+                  >
+                    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                      <dt className="text-muted-foreground">
+                        {t("obs.review.source")}
+                      </dt>
+                      <dd>{t(`obs.source.${draft.source}`)}</dd>
+                      <dt className="text-muted-foreground">
+                        {t("obs.review.lane")}
+                      </dt>
+                      <dd>{t(`obs.lane.${draft.laneDirection}`)}</dd>
+                      <dt className="text-muted-foreground">
+                        {t("obs.review.vehicle")}
+                      </dt>
+                      <dd>{t(`obs.vehicle.${draft.vehicleApplicability}`)}</dd>
+                    </dl>
+                  </ReviewSection>
+                  <ReviewSection
                     title={t("segment.observationTime")}
                     edit={() => go("/report")}
                   >
@@ -1636,6 +1694,44 @@ function StepActions({
         <ArrowRight aria-hidden />
       </Button>
     </div>
+  );
+}
+
+/** Optional single-choice observation field; "unknown" is a real, explicit choice. */
+function ObservationChoice<T extends string>({
+  id,
+  legend,
+  value,
+  options,
+  labelKey,
+  onChange,
+}: {
+  id: string;
+  legend: string;
+  value: T;
+  options: readonly T[];
+  labelKey: (value: T) => TranslationKey;
+  onChange: (value: T) => void;
+}) {
+  const { t } = usePrefs();
+  return (
+    <fieldset>
+      <legend className="mb-2 text-sm font-medium">{legend}</legend>
+      <RadioGroup
+        value={value}
+        onValueChange={(next) => onChange(next as T)}
+        className="grid gap-1 sm:grid-cols-2"
+      >
+        {options.map((option) => (
+          <div key={option} className="flex min-h-11 items-center gap-2">
+            <RadioGroupItem value={option} id={`${id}-${option}`} />
+            <Label htmlFor={`${id}-${option}`} className="font-normal">
+              {t(labelKey(option))}
+            </Label>
+          </div>
+        ))}
+      </RadioGroup>
+    </fieldset>
   );
 }
 

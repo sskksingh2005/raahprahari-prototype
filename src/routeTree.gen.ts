@@ -17,6 +17,7 @@ import { Route as ContributionsRouteImport } from './routes/contributions'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as OfficialRouteImport } from './routes/official'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReportRouteImport } from './routes/report'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as TravellerRouteImport } from './routes/traveller'
@@ -71,6 +72,11 @@ const MapRoute = MapRouteImport.update({
 const OfficialRoute = OfficialRouteImport.update({
   id: '/official',
   path: '/official',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportRoute = ReportRouteImport.update({
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/help': typeof HelpRouteWithChildren
   '/map': typeof MapRoute
   '/official': typeof OfficialRoute
+  '/profile': typeof ProfileRoute
   '/report': typeof ReportRouteWithChildren
   '/status': typeof StatusRoute
   '/traveller': typeof TravellerRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByTo {
   '/help': typeof HelpRouteWithChildren
   '/map': typeof MapRoute
   '/official': typeof OfficialRoute
+  '/profile': typeof ProfileRoute
   '/status': typeof StatusRoute
   '/traveller': typeof TravellerRoute
   '/advisories/$segmentId': typeof AdvisoriesSegmentIdRoute
@@ -208,6 +216,7 @@ export interface FileRoutesById {
   '/help': typeof HelpRouteWithChildren
   '/map': typeof MapRoute
   '/official': typeof OfficialRoute
+  '/profile': typeof ProfileRoute
   '/report': typeof ReportRouteWithChildren
   '/status': typeof StatusRoute
   '/traveller': typeof TravellerRoute
@@ -235,6 +244,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/map'
     | '/official'
+    | '/profile'
     | '/report'
     | '/status'
     | '/traveller'
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/map'
     | '/official'
+    | '/profile'
     | '/status'
     | '/traveller'
     | '/advisories/$segmentId'
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/map'
     | '/official'
+    | '/profile'
     | '/report'
     | '/status'
     | '/traveller'
@@ -310,6 +322,7 @@ export interface RootRouteChildren {
   HelpRoute: typeof HelpRouteWithChildren
   MapRoute: typeof MapRoute
   OfficialRoute: typeof OfficialRoute
+  ProfileRoute: typeof ProfileRoute
   ReportRoute: typeof ReportRouteWithChildren
   StatusRoute: typeof StatusRoute
   TravellerRoute: typeof TravellerRoute
@@ -377,6 +390,13 @@ declare module '@tanstack/react-router' {
       path: '/official'
       fullPath: '/official'
       preLoaderRoute: typeof OfficialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/report': {
@@ -525,6 +545,7 @@ const rootRouteChildren: RootRouteChildren = {
   HelpRoute: HelpRouteWithChildren,
   MapRoute: MapRoute,
   OfficialRoute: OfficialRoute,
+  ProfileRoute: ProfileRoute,
   ReportRoute: ReportRouteWithChildren,
   StatusRoute: StatusRoute,
   TravellerRoute: TravellerRoute,
