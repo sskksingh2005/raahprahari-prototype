@@ -1,0 +1,62 @@
+/* src/official/official.css — colours come from theme tokens in src/styles.css. */
+.official-dialog {
+  width: min(32rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  background: var(--color-popover);
+  color: var(--color-popover-foreground);
+}
+.official-dialog::backdrop {
+  background: var(--color-scrim);
+}
+.official-summary {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+}
+.official-summary dt {
+  font-weight: 600;
+}
+.official-summary dd {
+  margin: 0;
+}
+.official-ack {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin: 1rem 0;
+}
+.official-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+/* Scoped to the publish flow so it does not restyle buttons elsewhere. */
+.official-actions button,
+.official-publish button {
+  min-height: 44px;
+  padding: 0 1rem;
+}
+.official-banner {
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  border: 1px solid;
+  color: var(--color-foreground);
+}
+.official-banner.ok {
+  background: color-mix(in oklab, var(--color-status-clear) 14%, var(--color-background));
+  border-color: var(--color-status-clear);
+}
+.official-banner.warn {
+  background: color-mix(in oklab, var(--color-status-caution) 14%, var(--color-background));
+  border-color: var(--color-status-caution);
+}
+.official-banner.bad {
+  background: color-mix(in oklab, var(--color-destructive) 14%, var(--color-background));
+  border-color: var(--color-destructive);
+}
