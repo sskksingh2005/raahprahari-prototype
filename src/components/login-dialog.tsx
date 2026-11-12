@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,13 +22,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { usePrefs } from "@/i18n/preferences";
 import type { TranslationKey } from "@/i18n/dictionary";
-import {
-  applyAuthSession,
-  signOutAccount,
-  useAccountSession,
-} from "@/lib/account-session";
+import { applyAuthSession, useAccountSession } from "@/lib/account-session";
 import { SupabaseConfigError, getSupabaseClient } from "@/lib/supabase";
 import { ForgotPasswordForm, SignupForm } from "@/components/auth-forms";
+import { SignOutButton } from "@/components/sign-out-control";
 
 export type LoginErrorKind =
   | "invalid_credentials"
@@ -166,33 +163,18 @@ function LoginForm({ onSignedIn }: { onSignedIn: () => void }) {
   );
 }
 
-function SignedInPanel() {
+function SignedInPanel({ onNavigate }: { onNavigate: () => void }) {
   const { t } = usePrefs();
-  const [pending, setPending] = useState(false);
-  const signOut = async () => {
-    setPending(true);
-    try {
-      await signOutAccount();
-    } catch {
-      // The local session is already cleared, so this panel unmounts; a toast
-      // keeps the provider failure visible.
-      toast.error(t("login.signOutError"));
-    } finally {
-      setPending(false);
-    }
-  };
   return (
     <div className="space-y-4">
       <p role="status">{t("login.signedIn")}</p>
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        disabled={pending}
-        onClick={() => void signOut()}
-      >
-        {pending ? t("login.signingOut") : t("login.signOut")}
+      <Button asChild variant="link" className="px-0">
+        <Link to="/profile" onClick={onNavigate}>
+          {t("profile.link")}
+        </Link>
       </Button>
+      {/* Checks for unsynced drafts before signing out. */}
+      <SignOutButton className="w-full" />
     </div>
   );
 }
@@ -250,7 +232,7 @@ export function LoginDialog({
         {session.status === "loading" ? (
           <p role="status">{t("login.checking")}</p>
         ) : session.status === "authenticated" ? (
-          <SignedInPanel />
+          <SignedInPanel onNavigate={close} />
         ) : mode === "signup" ? (
           <SignupForm onSignedIn={close} />
         ) : mode === "forgot" ? (

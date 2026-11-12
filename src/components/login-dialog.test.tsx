@@ -15,6 +15,19 @@ vi.mock("@/lib/supabase", async (importOriginal) => {
   return { ...actual, getSupabaseClient: getClient };
 });
 
+// The signed-in panel links to /profile; render links without a router.
+vi.mock("@tanstack/react-router", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@tanstack/react-router")>();
+  return {
+    ...actual,
+    Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => (
+      <a href={to} {...rest}>
+        {children}
+      </a>
+    ),
+  };
+});
+
 function mount(onOpenChange = vi.fn()) {
   render(
     <PreferencesProvider>

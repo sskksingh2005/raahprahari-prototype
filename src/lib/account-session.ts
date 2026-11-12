@@ -3,7 +3,18 @@ import { useSyncExternalStore } from "react";
 export type AccountSession =
   | { status: "loading"; userId: null; expiresAt?: null }
   | { status: "signed_out"; userId: null; expiresAt?: null }
-  | { status: "authenticated"; userId: string; expiresAt?: number | null };
+  | {
+      status: "authenticated";
+      userId: string;
+      expiresAt?: number | null;
+      /** Display only; never used for access decisions. */
+      email?: string | null;
+      /**
+       * Role from the provider's server-controlled app metadata, shown
+       * read-only. The backend enforces roles; the UI never grants them.
+       */
+      role?: string | null;
+    };
 
 type AccessTokenProvider = () => Promise<string | null>;
 
@@ -53,7 +64,13 @@ export function setAccessTokenProvider(provider: AccessTokenProvider | null) {
 type AuthSessionLike = {
   access_token: string;
   expires_at?: number;
-  user: { id: string };
+  user: {
+    id: string;
+    email?: string | null;
+    // Only app_metadata is server-controlled; user_metadata is user-editable
+    // and must never be read as a role.
+    app_metadata?: Record<string, unknown> | null;
+  };
 };
 
 export type SupabaseAuthLike = {
@@ -75,6 +92,7 @@ export function applyAuthSession(authSession: AuthSessionLike | null) {
     setAccountSession({ status: "signed_out", userId: null });
     return;
   }
+  const role = authSession.user.app_metadata?.role;
   setAccountSession({
     status: "authenticated",
     userId: authSession.user.id,
@@ -83,6 +101,8 @@ export function applyAuthSession(authSession: AuthSessionLike | null) {
       typeof authSession.expires_at === "number"
         ? authSession.expires_at * 1000
         : null,
+    email: authSession.user.email ?? null,
+    role: typeof role === "string" && role.trim() ? role.trim() : null,
   });
 }
 

@@ -98,6 +98,35 @@ export const en = {
   "reset.done": "Your password has been updated.",
   "reset.noSession":
     "Open the reset link from your email to set a new password. Links expire after a short time.",
+  "profile.title": "Profile",
+  "profile.link": "Profile and preferences",
+  "profile.account": "Account",
+  "profile.signedOut":
+    "You are not signed in. Preferences below are saved on this device.",
+  "profile.email": "Email",
+  "profile.emailUnknown": "Not provided",
+  "profile.role": "Role",
+  "profile.roleNone": "No role assigned",
+  "profile.roleNote":
+    "Roles such as reviewer or official are assigned by RaahPrahari administrators and checked by the server. They cannot be changed here.",
+  "profile.preferences": "Preferences",
+  "profile.prefsNote": "Saved in this browser.",
+  "profile.language": "Language",
+  "profile.theme": "Theme",
+  "profile.themeLight": "Light",
+  "profile.themeDark": "Dark",
+  "profile.themeSystem": "Use system setting",
+  "signout.title": "Sign out with unsynced drafts?",
+  "signout.unsyncedOne":
+    "You have {count} unsynced draft. It will remain on this device but won't sync until you sign in again.",
+  "signout.unsyncedMany":
+    "You have {count} unsynced drafts. They will remain on this device but won't sync until you sign in again.",
+  "signout.unknown":
+    "We could not check for unsynced drafts. Any drafts remain on this device but won't sync until you sign in again.",
+  "signout.kept":
+    "Signing out does not delete drafts. They are kept for this account and resume syncing when the same account signs in on this device.",
+  "signout.cancel": "Stay signed in",
+  "signout.confirm": "Sign out anyway",
 
   "hero.eyebrow": "Uttarakhand road-hazard advisories",
   "hero.title": "Know before you go.",
@@ -993,6 +1022,35 @@ export const hi: Record<TranslationKey, string> = {
   "reset.done": "आपका पासवर्ड अपडेट हो गया है।",
   "reset.noSession":
     "नया पासवर्ड सेट करने के लिए अपने ईमेल का रीसेट लिंक खोलें। लिंक कुछ समय बाद समाप्त हो जाते हैं।",
+  "profile.title": "प्रोफ़ाइल",
+  "profile.link": "प्रोफ़ाइल और प्राथमिकताएँ",
+  "profile.account": "खाता",
+  "profile.signedOut":
+    "आप साइन इन नहीं हैं। नीचे की प्राथमिकताएँ इसी डिवाइस पर सहेजी जाती हैं।",
+  "profile.email": "ईमेल",
+  "profile.emailUnknown": "उपलब्ध नहीं",
+  "profile.role": "भूमिका",
+  "profile.roleNone": "कोई भूमिका तय नहीं",
+  "profile.roleNote":
+    "समीक्षक या अधिकारी जैसी भूमिकाएँ राहप्रहरी व्यवस्थापक तय करते हैं और सर्वर उनकी जाँच करता है। इन्हें यहाँ नहीं बदला जा सकता।",
+  "profile.preferences": "प्राथमिकताएँ",
+  "profile.prefsNote": "इसी ब्राउज़र में सहेजी गईं।",
+  "profile.language": "भाषा",
+  "profile.theme": "थीम",
+  "profile.themeLight": "हल्की",
+  "profile.themeDark": "गहरी",
+  "profile.themeSystem": "सिस्टम सेटिंग अपनाएँ",
+  "signout.title": "बिना सिंक हुए ड्राफ़्ट के साथ साइन आउट करें?",
+  "signout.unsyncedOne":
+    "आपका {count} ड्राफ़्ट सिंक नहीं हुआ है। यह इसी डिवाइस पर रहेगा, लेकिन दोबारा साइन इन करने तक सिंक नहीं होगा।",
+  "signout.unsyncedMany":
+    "आपके {count} ड्राफ़्ट सिंक नहीं हुए हैं। ये इसी डिवाइस पर रहेंगे, लेकिन दोबारा साइन इन करने तक सिंक नहीं होंगे।",
+  "signout.unknown":
+    "बिना सिंक हुए ड्राफ़्ट की जाँच नहीं हो सकी। कोई भी ड्राफ़्ट इसी डिवाइस पर रहेगा, लेकिन दोबारा साइन इन करने तक सिंक नहीं होगा।",
+  "signout.kept":
+    "साइन आउट करने से ड्राफ़्ट नहीं मिटते। वे इसी खाते के लिए रखे जाते हैं और इसी डिवाइस पर वही खाता साइन इन करने पर फिर सिंक होने लगते हैं।",
+  "signout.cancel": "साइन इन रहें",
+  "signout.confirm": "फिर भी साइन आउट करें",
 
   "hero.eyebrow": "उत्तराखंड सड़क-ख़तरा परामर्श",
   "hero.title": "सफ़र से पहले सुरक्षा की ख़बर",
