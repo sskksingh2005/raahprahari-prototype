@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { History, MessageSquareWarning } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +32,25 @@ function AppealControl({ entry }: { entry: LedgerEntry }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
   const [problem, setProblem] = useState<AppealNoteProblem | null>(null);
+  // Each step replaces the control that was just used, so focus is handed to
+  // the control that replaces it instead of falling back to the page body.
+  const focusNext = useRef<"field" | "saved" | "action" | null>(null);
+  const fieldRef = useRef<HTMLTextAreaElement>(null);
+  const savedRef = useRef<HTMLParagraphElement>(null);
+  const actionRef = useRef<HTMLButtonElement>(null);
+  const setFocusNext = (target: "field" | "saved" | "action") => {
+    focusNext.current = target;
+  };
+  // Runs after every render; acts only when a handler asked for a focus move
+  // to a control that the same update renders.
+  useEffect(() => {
+    const pending = focusNext.current;
+    if (!pending) return;
+    focusNext.current = null;
+    ({ field: fieldRef, saved: savedRef, action: actionRef })[
+      pending
+    ].current?.focus();
+  });
   const saved = appeals[entry.id];
 
   if (entry.appealOutcome) {
@@ -48,7 +67,12 @@ function AppealControl({ entry }: { entry: LedgerEntry }) {
   if (saved) {
     return (
       <div className="mt-1 space-y-1">
-        <p className="m-0! text-xs">
+        <p
+          ref={savedRef}
+          role="status"
+          tabIndex={-1}
+          className="m-0! text-xs outline-none"
+        >
           {fill(t("contrib.appeal.saved"), { date: stamp(saved.at) })}
         </p>
         <p className="m-0! text-xs italic">{saved.note}</p>
@@ -57,7 +81,10 @@ function AppealControl({ entry }: { entry: LedgerEntry }) {
           variant="outline"
           size="sm"
           className="min-h-11"
-          onClick={() => withdraw(entry.id)}
+          onClick={() => {
+            withdraw(entry.id);
+            setFocusNext("action");
+          }}
         >
           {t("contrib.appeal.withdraw")}
         </Button>
@@ -68,11 +95,15 @@ function AppealControl({ entry }: { entry: LedgerEntry }) {
   if (!open) {
     return (
       <Button
+        ref={actionRef}
         type="button"
         variant="outline"
         size="sm"
         className="mt-1 min-h-11"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          setFocusNext("field");
+        }}
       >
         <MessageSquareWarning aria-hidden />
         {t("contrib.appeal.action")}
@@ -89,16 +120,33 @@ function AppealControl({ entry }: { entry: LedgerEntry }) {
         event.preventDefault();
         const found = checkAppealNote(note);
         setProblem(found);
-        if (found) return;
+        if (found) {
+          // The field is already rendered, and the same error twice causes no re-render.
+          fieldRef.current?.focus();
+          return;
+        }
         save(entry.id, note);
         setOpen(false);
         setNote("");
+        setFocusNext("saved");
+      }}
+      onKeyDown={(event) => {
+        // Escape abandons the appeal, like the Cancel button.
+        if (event.key !== "Escape") return;
+        event.preventDefault();
+        setOpen(false);
+        setProblem(null);
+        setFocusNext("action");
       }}
     >
-      <label htmlFor={fieldId} className="block text-sm font-medium text-foreground">
+      <label
+        htmlFor={fieldId}
+        className="block text-sm font-medium text-foreground"
+      >
         {t("contrib.appeal.label")}
       </label>
       <Textarea
+        ref={fieldRef}
         id={fieldId}
         value={note}
         maxLength={APPEAL_NOTE_MAX + 50}
@@ -126,6 +174,7 @@ function AppealControl({ entry }: { entry: LedgerEntry }) {
           onClick={() => {
             setOpen(false);
             setProblem(null);
+            setFocusNext("action");
           }}
         >
           {t("contrib.appeal.cancel")}
@@ -145,7 +194,9 @@ export function LedgerTab() {
           <p>{t("contrib.ledger.how")}</p>
         </Card>
         <Card title={t("contrib.ledger.yours")}>
-          <p data-testid="your-ledger-empty">{t("contrib.ledger.yoursEmpty")}</p>
+          <p data-testid="your-ledger-empty">
+            {t("contrib.ledger.yoursEmpty")}
+          </p>
         </Card>
       </div>
       <Card title={t("contrib.ledger.exampleTitle")}>
@@ -184,13 +235,18 @@ export function LedgerTab() {
                     isReversal(entry) ? "text-status-dnt" : "text-foreground",
                   )}
                 >
-                  {entry.points > 0 ? `+${entry.points}` : `−${Math.abs(entry.points)}`}
+                  {entry.points > 0
+                    ? `+${entry.points}`
+                    : `−${Math.abs(entry.points)}`}
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-        <p data-testid="ledger-balance" className="font-semibold text-foreground!">
+        <p
+          data-testid="ledger-balance"
+          className="font-semibold text-foreground!"
+        >
           {fill(t("contrib.ledger.balance"), { points: balance })}
         </p>
       </Card>

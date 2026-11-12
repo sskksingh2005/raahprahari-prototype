@@ -1,93 +1,151 @@
-// src/official/ConsequentialChangeDialog.tsx
-import { useEffect, useRef, useState } from "react";
+import { useId, useState, type RefObject } from "react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { usePrefs } from "@/i18n/preferences";
 import type { OfficialNoticeFormData } from "./officialNotice.types";
 
-type NoticeDraft = OfficialNoticeFormData;
-
 interface Props {
-  draft: NoticeDraft;
+  open: boolean;
+  draft: OfficialNoticeFormData;
   submitting: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Receives focus when the dialog closes. */
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
-const RESTRICTION_LABEL: Record<string, string> = {
-  closed: "Road closed",
-  Closed: "Road closed",
-  "one-lane": "One-lane only",
-  "One-lane": "One-lane only",
-  "vehicles-banned": "Vehicles banned",
-  "Vehicles banned": "Vehicles banned",
-};
-
-const fmt = (v: string) => (v ? new Date(v).toLocaleString("en-IN") : "-");
-
-export function ConsequentialChangeDialog({ draft, submitting, onConfirm, onCancel }: Props) {
-  const ref = useRef<HTMLDialogElement>(null);
+/**
+ * Confirmation step before an official notice is published.
+ *
+ * Radix Dialog supplies role="dialog", aria-modal, the focus trap, Escape and
+ * focus return to the button that opened it. While the notice is being sent,
+ * Escape, outside clicks and the close button are all ignored, so the request
+ * cannot be abandoned half-way.
+ */
+export function ConsequentialChangeDialog({
+  open,
+  draft,
+  submitting,
+  onConfirm,
+  onCancel,
+  returnFocusRef,
+}: Props) {
+  const { t, stamp } = usePrefs();
   const [acknowledged, setAcknowledged] = useState(false);
-
-  useEffect(() => {
-    const dlg = ref.current;
-    if (dlg && !dlg.open) dlg.showModal();
-    return () => dlg?.close();
-  }, []);
-
-  // Safe property fallbacks for both naming conventions
-  const legacy = draft as NoticeDraft & {
-    effectiveStart?: string;
-    effectiveEnd?: string;
+  const ackId = useId();
+  const when = (value: string) => {
+    const ms = Date.parse(value);
+    return Number.isNaN(ms) ? "–" : stamp(ms);
   };
-  const startTime = draft.effectiveStartTime || legacy.effectiveStart || "";
-  const endTime = draft.effectiveEndTime || legacy.effectiveEnd || "";
+
+  const close = (next: boolean) => {
+    if (next || submitting) return;
+    setAcknowledged(false);
+    onCancel();
+  };
+
+  const rows: [string, string][] = [
+    [t("official.field.sourceReference"), draft.sourceReference],
+    [t("official.field.segment"), draft.segment],
+    [
+      t("official.field.restriction"),
+      t(`official.restriction.${draft.restriction}`),
+    ],
+    [
+      t("official.dialog.effective"),
+      t("official.dialog.range")
+        .replace("{start}", when(draft.effectiveStartTime))
+        .replace("{end}", when(draft.effectiveEndTime)),
+    ],
+    [t("official.field.publicationTime"), when(draft.publicationTime)],
+    [t("official.field.jurisdiction"), draft.jurisdiction],
+  ];
 
   return (
-    <dialog
-      ref={ref}
-      className="official-dialog"
-      aria-labelledby="confirm-title"
-      onCancel={(e) => {
-        e.preventDefault();
-        if (!submitting) onCancel();
-      }}
-    >
-      <h2 id="confirm-title">Publish se pehle check karo</h2>
-      <p>Neeche ka notice publish hone wala hai. Ek baar dekh lo.</p>
+    <Dialog open={open} onOpenChange={close}>
+      <DialogContent
+        showCloseButton={!submitting}
+        aria-busy={submitting || undefined}
+        onEscapeKeyDown={(event) => {
+          if (submitting) event.preventDefault();
+        }}
+        onInteractOutside={(event) => {
+          if (submitting) event.preventDefault();
+        }}
+        onCloseAutoFocus={(event) => {
+          // Radix only restores focus to a DialogTrigger; this dialog is opened
+          // from state, so focus goes back to the button that opened it.
+          const target = returnFocusRef?.current;
+          if (target?.isConnected) {
+            event.preventDefault();
+            target.focus();
+          }
+        }}
+        className="max-h-[calc(100dvh-2rem)] overflow-y-auto"
+      >
+        <DialogHeader>
+          <DialogTitle className="font-display">
+            {t("official.dialog.title")}
+          </DialogTitle>
+          <DialogDescription>
+            {t("official.dialog.description")}
+          </DialogDescription>
+        </DialogHeader>
 
-      <dl className="official-summary">
-        <dt>Source reference</dt>
-        <dd>{draft.sourceReference}</dd>
-        <dt>Segment</dt>
-        <dd>{draft.segment}</dd>
-        <dt>Restriction</dt>
-        <dd>{RESTRICTION_LABEL[draft.restriction] || draft.restriction}</dd>
-        <dt>Effective</dt>
-        <dd>
-          {fmt(startTime)} se {fmt(endTime)} tak
-        </dd>
-        <dt>Publication time</dt>
-        <dd>{fmt(draft.publicationTime)}</dd>
-        <dt>Jurisdiction</dt>
-        <dd>{draft.jurisdiction}</dd>
-      </dl>
+        <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
+          {rows.map(([label, value]) => (
+            <div key={label} className="contents">
+              <dt className="font-semibold text-foreground">{label}</dt>
+              <dd className="m-0 mb-2 break-words text-muted-foreground sm:mb-0">
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
 
-      <label className="official-ack">
-        <input
-          type="checkbox"
-          checked={acknowledged}
-          onChange={(e) => setAcknowledged(e.target.checked)}
-          disabled={submitting}
-        />
-        Maine details check kar li hain aur main is notice ko publish karna chahta/chahti hu.
-      </label>
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id={ackId}
+            checked={acknowledged}
+            onCheckedChange={(value) => setAcknowledged(value === true)}
+            disabled={submitting}
+            className="mt-0.5"
+          />
+          <label htmlFor={ackId} className="text-sm text-foreground">
+            {t("official.dialog.ack")}
+          </label>
+        </div>
 
-      <div className="official-actions">
-        <button type="button" onClick={onCancel} disabled={submitting}>
-          Wapas jao
-        </button>
-        <button type="button" onClick={onConfirm} disabled={!acknowledged || submitting}>
-          {submitting ? "Publishing..." : "Publish karo"}
-        </button>
-      </div>
-    </dialog>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11"
+            onClick={() => close(false)}
+            disabled={submitting}
+          >
+            {t("official.dialog.back")}
+          </Button>
+          <Button
+            type="button"
+            className="min-h-11"
+            onClick={onConfirm}
+            disabled={!acknowledged || submitting}
+          >
+            {submitting
+              ? t("official.dialog.publishing")
+              : t("official.dialog.publish")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
