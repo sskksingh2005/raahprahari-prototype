@@ -161,6 +161,9 @@ export function SiteHeader() {
           </Link>
         </>
       )}
+      <Link to="/official" onClick={onClick} aria-current={current(pathname === '/official')} className={linkClass(pathname === '/official')}>
+        Official
+      </Link>
     </>
   )
 

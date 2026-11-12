@@ -15,6 +15,7 @@ import { Route as CheckRouteImport } from './routes/check'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as MapRouteImport } from './routes/map'
+import { Route as OfficialRouteImport } from './routes/official'
 import { Route as ReportRouteImport } from './routes/report'
 import { Route as TravellerRouteImport } from './routes/traveller'
 import { Route as AdvisoriesIndexRouteImport } from './routes/advisories.index'
@@ -56,6 +57,11 @@ const HelpRoute = HelpRouteImport.update({
 const MapRoute = MapRouteImport.update({
   id: '/map',
   path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfficialRoute = OfficialRouteImport.update({
+  id: '/official',
+  path: '/official',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportRoute = ReportRouteImport.update({
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/help': typeof HelpRouteWithChildren
   '/map': typeof MapRoute
+  '/official': typeof OfficialRoute
   '/report': typeof ReportRouteWithChildren
   '/traveller': typeof TravellerRoute
   '/advisories/$segmentId': typeof AdvisoriesSegmentIdRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/help': typeof HelpRouteWithChildren
   '/map': typeof MapRoute
+  '/official': typeof OfficialRoute
   '/traveller': typeof TravellerRoute
   '/advisories/$segmentId': typeof AdvisoriesSegmentIdRoute
   '/help/$topic': typeof HelpTopicRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/help': typeof HelpRouteWithChildren
   '/map': typeof MapRoute
+  '/official': typeof OfficialRoute
   '/report': typeof ReportRouteWithChildren
   '/traveller': typeof TravellerRoute
   '/advisories/$segmentId': typeof AdvisoriesSegmentIdRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/help'
     | '/map'
+    | '/official'
     | '/report'
     | '/traveller'
     | '/advisories/$segmentId'
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/help'
     | '/map'
+    | '/official'
     | '/traveller'
     | '/advisories/$segmentId'
     | '/help/$topic'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/help'
     | '/map'
+    | '/official'
     | '/report'
     | '/traveller'
     | '/advisories/$segmentId'
@@ -248,6 +260,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   HelpRoute: typeof HelpRouteWithChildren
   MapRoute: typeof MapRoute
+  OfficialRoute: typeof OfficialRoute
   ReportRoute: typeof ReportRouteWithChildren
   TravellerRoute: typeof TravellerRoute
   AdvisoriesSegmentIdRoute: typeof AdvisoriesSegmentIdRoute
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/map'
       fullPath: '/map'
       preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/official': {
+      id: '/official'
+      path: '/official'
+      fullPath: '/official'
+      preLoaderRoute: typeof OfficialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/report': {
@@ -423,6 +443,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   HelpRoute: HelpRouteWithChildren,
   MapRoute: MapRoute,
+  OfficialRoute: OfficialRoute,
   ReportRoute: ReportRouteWithChildren,
   TravellerRoute: TravellerRoute,
   AdvisoriesSegmentIdRoute: AdvisoriesSegmentIdRoute,
