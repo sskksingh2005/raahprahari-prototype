@@ -558,6 +558,15 @@ export const en = {
   'aboutPage.accessibilityTitle': 'Accessibility',
   'aboutPage.accessibilityBody':
     'Status colours always come with an icon and a text label. Pages work with a keyboard and in English and Hindi. Full accessibility validation still needs testing with assistive technologies.',
+  'aboutPage.policyStatusTitle': 'Status of this policy text',
+  'aboutPage.policyStatusBody':
+    'The Privacy, Terms and Accessibility notes above describe this prototype only. No legal review or formal approval of them is recorded in the project files, and they make no commitments beyond what is written.',
+  'aboutPage.policyOpenHeading': 'Unresolved policy questions',
+  'aboutPage.policyOpenNone':
+    'No unresolved policy questions are recorded in the project files. That does not mean none exist.',
+  'aboutPage.policyArea.privacy': 'Privacy',
+  'aboutPage.policyArea.terms': 'Terms',
+  'aboutPage.policyArea.accessibility': 'Accessibility',
   'aboutPage.contactTitle': 'Contact',
   'aboutPage.contactBody':
     'There is no message service in this prototype. You can try the contact form, but nothing is sent.',
@@ -585,6 +594,233 @@ export const en = {
   'contactPage.submit': 'Submit message',
   'contactPage.emergency': 'In an emergency, contact local emergency services.',
   'footer.tagline': 'Know before you go.',
+  'footer.contributions': 'Points & reputation',
+  'contrib.eyebrow': 'COMMUNITY',
+  'contrib.title': 'Points, reputation and leaderboard',
+  'contrib.description':
+    'How reviewed community reports are recognised. Everything here depends on a reviewer’s decision, not on how much is sent.',
+  'contrib.notice':
+    'Illustrative scoring rules for this prototype. They are not an approved programme, and the leaderboard lists made-up handles, not real people.',
+  'contrib.tabsLabel': 'Points, reputation and leaderboard',
+  'contrib.tab.points': 'Points',
+  'contrib.tab.reputation': 'Reputation',
+  'contrib.tab.leaderboard': 'Leaderboard',
+  'contrib.col.outcome': 'Review outcome',
+  'contrib.col.points': 'Points',
+  'contrib.col.meaning': 'What it means',
+  'contrib.col.level': 'Level',
+  'contrib.col.rule': 'When it applies',
+  'contrib.col.rank': 'Rank',
+  'contrib.col.contributor': 'Contributor',
+  'contrib.col.verified': 'Verified',
+  'contrib.col.decided': 'Decided',
+  'contrib.outcome.verified': 'Verified',
+  'contrib.outcome.duplicate': 'Duplicate',
+  'contrib.outcome.rejected': 'Rejected',
+  'contrib.outcome.under_review': 'Under review',
+  'contrib.outcome.needs_info': 'Needs more information',
+  'contrib.outcome.conflicting': 'Conflicting',
+  'contrib.meaning.verified':
+    'A reviewer confirmed the report was useful and accurate.',
+  'contrib.meaning.duplicate':
+    'A reviewer found it matched an earlier report of the same hazard. It still counts as a separate sighting.',
+  'contrib.meaning.rejected':
+    'A reviewer could not confirm it. It earns nothing, and nothing is taken away.',
+  'contrib.meaning.under_review': 'Waiting for a reviewer. It earns nothing yet.',
+  'contrib.meaning.needs_info':
+    'The reviewer asked for more detail. It earns nothing until it is settled.',
+  'contrib.meaning.conflicting':
+    'It disagrees with another report and is not settled. It earns nothing until it is.',
+  'contrib.points.yours': 'Your points',
+  'contrib.points.yoursNote':
+    'Reports saved on this device: {count}. Review is not available in this prototype, so none has been reviewed and no points are counted.',
+  'contrib.points.howTitle': 'How points are calculated',
+  'contrib.points.howBody':
+    'Points come only from a reviewer’s decision on a report. Sending a report, its length, its photos and the number of reports you send do not earn points.',
+  'contrib.points.tableCaption': 'Points for each review outcome',
+  'contrib.points.perReport': '+{points} per report',
+  'contrib.points.none': 'No points',
+  'contrib.points.noDeduction':
+    'Points are not taken away as a penalty, and a rejected report simply earns nothing. The only reduction is a reversal of an earlier award, which appears as its own ledger entry with a reason and can be appealed.',
+  'contrib.rep.yours': 'Your reputation',
+  'contrib.rep.yoursNote':
+    'Decided reports: {count}. A level above New needs at least {min} decided reports.',
+  'contrib.rep.howTitle': 'How reputation is calculated',
+  'contrib.rep.howBody':
+    'Reputation shows how often your decided reports were verified. It is a share, not a count, so sending more reports does not raise it on its own.',
+  'contrib.rep.formula':
+    'Verified share = verified ÷ (verified + rejected). Duplicates and reports still waiting for review are left out.',
+  'contrib.rep.minimum':
+    'A level above New is shown only after {min} decided reports, so a short record cannot earn a high level.',
+  'contrib.rep.tableCaption': 'Reputation levels',
+  'contrib.rep.limit':
+    'Reputation does not create, change or lift an official closure or restriction, and it does not make a report official.',
+  'contrib.level.new': 'New',
+  'contrib.level.building': 'Building',
+  'contrib.level.reliable': 'Reliable',
+  'contrib.level.trusted': 'Trusted',
+  'contrib.levelRule.new': 'Fewer than {min} decided reports.',
+  'contrib.levelRule.building':
+    '{min} or more decided reports, with a verified share under {percent}%.',
+  'contrib.levelRule.reliable':
+    '{min} or more decided reports, with a verified share of {percent}% or more and under {upper}%.',
+  'contrib.levelRule.trusted':
+    '{min} or more decided reports, with a verified share of {percent}% or more.',
+  'contrib.board.title': 'Leaderboard',
+  'contrib.board.body':
+    'Ranked by points, then by verified share. The handles are made up for illustration, and no real people are listed.',
+  'contrib.board.caption': 'Illustrative leaderboard of made-up contributors',
+  'contrib.board.note':
+    'Reputation sits next to points because points grow with volume and reputation does not. Neither changes any road advisory.',
+  'contrib.board.synthetic': 'Synthetic',
+  'contrib.tab.ledger': 'Ledger',
+  'contrib.tab.settings': 'Privacy',
+  'contrib.col.date': 'Date',
+  'contrib.col.reason': 'Reason',
+  'contrib.col.report': 'Report',
+  'contrib.ledger.title': 'Points ledger',
+  'contrib.ledger.how':
+    'Every change to points is its own entry with a reason. Entries are never edited or deleted. A reversal is a new entry that takes back an earlier award and names the entry it reverses.',
+  'contrib.ledger.yours': 'Your ledger',
+  'contrib.ledger.yoursEmpty':
+    'No entries yet. An entry is added only when a reviewer decides on a report, and review is not available in this prototype.',
+  'contrib.ledger.exampleTitle': 'Example ledger (synthetic)',
+  'contrib.ledger.exampleNote':
+    'This example belongs to no real person. It shows an award, reversals, an appeal that was upheld, and a reversal that can still be appealed.',
+  'contrib.ledger.balance': 'Balance: {points} points',
+  'contrib.ledger.reverses': 'Reverses {id}',
+  'contrib.reason.verified': 'Report verified by a reviewer',
+  'contrib.reason.duplicate':
+    'Matched an earlier report and counted as a separate sighting',
+  'contrib.reason.verification_withdrawn':
+    'A reviewer withdrew the verification after new information',
+  'contrib.reason.review_corrected':
+    'A reviewer corrected an earlier review decision',
+  'contrib.reason.appeal_upheld': 'An appeal was upheld and the points restored',
+  'contrib.appeal.title': 'Appeals',
+  'contrib.appeal.how':
+    'You can appeal a reversal. Say why in a few words, without phone numbers, exact coordinates or other personal details. In this prototype an appeal is saved on this device only: nobody receives or reviews it.',
+  'contrib.appeal.action': 'Appeal',
+  'contrib.appeal.label': 'Why do you think this reversal is wrong?',
+  'contrib.appeal.submit': 'Save appeal',
+  'contrib.appeal.cancel': 'Cancel',
+  'contrib.appeal.withdraw': 'Withdraw appeal',
+  'contrib.appeal.saved':
+    'Appeal saved on this device on {date}. It was not sent, because no review service is connected.',
+  'contrib.appeal.upheld': 'Appeal upheld',
+  'contrib.appeal.notUpheld': 'Appeal not upheld',
+  'contrib.appeal.err.empty': 'Write a short reason first.',
+  'contrib.appeal.err.tooLong': 'Keep it to {max} characters or fewer.',
+  'contrib.appeal.err.phone':
+    'This looks like a phone number. Remove it, because phone numbers are not accepted.',
+  'contrib.appeal.err.coordinates':
+    'This looks like exact coordinates. Remove them, because precise locations are not accepted.',
+  'contrib.set.title': 'Privacy settings',
+  'contrib.set.intro':
+    'Both options are off until you turn them on, and you can turn them off at any time. They are stored in this browser only.',
+  'contrib.set.board': 'Show my pseudonym on the leaderboard',
+  'contrib.set.boardHelp':
+    'Others would see only your random pseudonym, points and level.',
+  'contrib.set.aggregates': 'Count my reviewed reports in community totals',
+  'contrib.set.aggregatesHelp':
+    'Totals combine many people and never name anyone.',
+  'contrib.set.pseudonym': 'Your pseudonym',
+  'contrib.set.pseudonymNone':
+    'None yet. One is created when you turn an option on.',
+  'contrib.set.pseudonymNew': 'New pseudonym',
+  'contrib.set.pseudonymNote':
+    'Made at random on this device. It is not based on your name, account or contact details.',
+  'contrib.set.reset': 'Turn everything off and delete my pseudonym and appeal notes',
+  'contrib.set.resetDone':
+    'Settings, pseudonym and appeal notes were deleted from this device.',
+  'contrib.never.title': 'What is never collected or paid out',
+  'contrib.never.body':
+    'This feature does not collect or show phone numbers or precise GPS locations. Points have no cash value: there is no cash, voucher or other redemption.',
+  'contrib.agg.title': 'Community totals (pseudonymous)',
+  'contrib.agg.body':
+    'Combined from people who opted in. No one is named.',
+  'contrib.agg.participants': 'Participants: {count}',
+  'contrib.agg.tooFew':
+    'Totals stay hidden until at least {min} people have opted in, so no one can be picked out.',
+  'contrib.agg.verified': 'Verified',
+  'contrib.agg.duplicate': 'Duplicate',
+  'contrib.agg.rejected': 'Rejected',
+  'contrib.agg.share': 'Verified share',
+  'contrib.board.optedInOnly': 'Only people who opted in are listed.',
+  'contrib.board.you': 'You',
+  'footer.status': 'System status',
+  'status.eyebrow': 'SYSTEM STATUS',
+  'status.title': 'System status',
+  'status.description':
+    'What is connected, what is simulated and what is unavailable in this build, with what each channel last reported on this device.',
+  'status.legendLabel': 'Integration states',
+  'status.state.configured': 'Configured',
+  'status.state.simulated': 'Simulated',
+  'status.state.unavailable': 'Unavailable',
+  'status.state.checking': 'Checking',
+  'status.stateHelp.configured':
+    'Wired up in this build. Configured does not mean reachable; see the channel line.',
+  'status.stateHelp.simulated':
+    'Stands in for a real service with synthetic or development-only behaviour.',
+  'status.stateHelp.unavailable':
+    'Nothing is connected, or this browser cannot support it.',
+  'status.channelLabel': 'Channel',
+  'status.channelNone': 'No live channel to observe',
+  'status.lastSuccess': 'Last successful sync',
+  'status.nextAttempt': 'Next retry',
+  'status.never': 'Never on this device',
+  'status.item.reportDelivery': 'Report delivery',
+  'status.item.accountSession': 'Account sign-in',
+  'status.item.backgroundSync': 'Background retry',
+  'status.item.advisoryData': 'Road advisories',
+  'status.item.routing': 'Route finding',
+  'status.item.mapTiles': 'Map tiles',
+  'status.item.officialPublishing': 'Official notice publishing',
+  'status.reason.deliveryHttp':
+    'A report service address is configured. Reachability is only known after a sync attempt.',
+  'status.reason.deliveryStub':
+    'Reports go to a development stand-in that returns receipts. No real server receives them.',
+  'status.reason.deliveryNone':
+    'No report service is configured. Reports stay saved on this device.',
+  'status.reason.sessionLive': 'A session is present on this device.',
+  'status.reason.sessionStub':
+    'Sign-in uses a development helper, not a real account service.',
+  'status.reason.sessionNone':
+    'No sign-in provider is connected in this build, so reports cannot be sent.',
+  'status.reason.backgroundChecking': 'Checking browser support.',
+  'status.reason.backgroundAvailable':
+    'This browser can schedule a retry when the connection returns.',
+  'status.reason.backgroundNoWorker':
+    'This browser supports it, but no service worker is installed, so retries only run while the app is open.',
+  'status.reason.backgroundUnsupported':
+    'This browser does not support background retry. Retries only run while the app is open.',
+  'status.reason.advisoryData':
+    'Roads, observations and restrictions are synthetic sample data on a fixed demo clock.',
+  'status.reason.routingSeeded':
+    'Routes are found over seeded sample corridors in the browser. No routing service is called.',
+  'status.reason.routingLive': 'Routes come from a server-side routing service.',
+  'status.reason.mapTiles':
+    'Tiles load from the public OpenStreetMap server. The map is not available offline.',
+  'status.reason.officialPublishing':
+    'No publishing service exists in this build. Development builds can mock responses with ?mock=, which is not a backend.',
+  'status.channel.syncing': 'Sync in progress',
+  'status.channel.deviceOffline': 'Device offline, nothing can be sent',
+  'status.channel.noSyncYet': 'No sync has run on this device yet',
+  'status.channel.lastRunComplete': 'Last sync completed',
+  'status.channel.lastRunNothing': 'Last sync found nothing to send',
+  'status.channel.lastRunError': 'Last sync failed',
+  'status.channel.lastRunSignedOut': 'Last sync stopped: not signed in',
+  'status.channel.lastRunOffline': 'Last sync stopped: device offline',
+  'status.channel.lastRunNotConfigured': 'Last sync stopped: service not configured',
+  'status.channel.sessionSignedIn': 'Signed in',
+  'status.channel.sessionSignedOut': 'Signed out',
+  'status.channel.sessionLoading': 'Checking session',
+  'status.channel.tilesOnline': 'Device online. Tile loading is only confirmed on the map.',
+  'status.channel.tilesOffline': 'Device offline, tiles cannot load',
+  'status.channel.tilesChecking': 'Checking connection',
+  'status.channel.seededData': 'Bundled sample data, not a live feed',
+  'status.disclaimer':
+    'This page reports configuration and the last results seen on this device. It does not probe any service, and a connection does not confirm report delivery.',
   'nav.homeLabel': 'RaahPrahari — home',
   'nav.footer': 'Footer',
 } as const;
@@ -1140,6 +1376,15 @@ export const hi: Record<TranslationKey, string> = {
   'aboutPage.accessibilityTitle': 'सुगम्यता',
   'aboutPage.accessibilityBody':
     'स्थिति के रंग हमेशा आइकन और पाठ लेबल के साथ आते हैं। पृष्ठ कीबोर्ड से और अंग्रेज़ी व हिन्दी में काम करते हैं। पूर्ण सुगम्यता जाँच के लिए सहायक तकनीकों से परीक्षण अभी भी आवश्यक है।',
+  'aboutPage.policyStatusTitle': 'इस नीति-पाठ की स्थिति',
+  'aboutPage.policyStatusBody':
+    'ऊपर की गोपनीयता, शर्तों और सुगम्यता की टिप्पणियाँ केवल इस प्रोटोटाइप का वर्णन करती हैं। प्रोजेक्ट फ़ाइलों में इनकी कोई कानूनी समीक्षा या औपचारिक मंज़ूरी दर्ज नहीं है, और ये जो लिखा है उससे आगे कोई वादा नहीं करतीं।',
+  'aboutPage.policyOpenHeading': 'अनसुलझे नीतिगत प्रश्न',
+  'aboutPage.policyOpenNone':
+    'प्रोजेक्ट फ़ाइलों में कोई अनसुलझा नीतिगत प्रश्न दर्ज नहीं है। इसका मतलब यह नहीं कि कोई है ही नहीं।',
+  'aboutPage.policyArea.privacy': 'गोपनीयता',
+  'aboutPage.policyArea.terms': 'शर्तें',
+  'aboutPage.policyArea.accessibility': 'सुगम्यता',
   'aboutPage.contactTitle': 'संपर्क',
   'aboutPage.contactBody':
     'इस प्रोटोटाइप में संदेश सेवा नहीं है। आप संपर्क फ़ॉर्म आज़मा सकते हैं, पर कुछ भेजा नहीं जाता।',
@@ -1167,6 +1412,233 @@ export const hi: Record<TranslationKey, string> = {
   'contactPage.submit': 'संदेश सबमिट करें',
   'contactPage.emergency': 'आपातकाल में स्थानीय आपातकालीन सेवाओं से संपर्क करें।',
   'footer.tagline': 'सफ़र से पहले सुरक्षा की ख़बर',
+  'footer.contributions': 'अंक और प्रतिष्ठा',
+  'contrib.eyebrow': 'समुदाय',
+  'contrib.title': 'अंक, प्रतिष्ठा और लीडरबोर्ड',
+  'contrib.description':
+    'समीक्षा की गई सामुदायिक रिपोर्टों को कैसे पहचाना जाता है। यहाँ सब कुछ समीक्षक के निर्णय पर निर्भर है, इस पर नहीं कि कितना भेजा गया।',
+  'contrib.notice':
+    'इस प्रोटोटाइप के लिए उदाहरण-स्वरूप स्कोरिंग नियम। ये कोई अनुमोदित कार्यक्रम नहीं हैं, और लीडरबोर्ड में काल्पनिक हैंडल हैं, असली लोग नहीं।',
+  'contrib.tabsLabel': 'अंक, प्रतिष्ठा और लीडरबोर्ड',
+  'contrib.tab.points': 'अंक',
+  'contrib.tab.reputation': 'प्रतिष्ठा',
+  'contrib.tab.leaderboard': 'लीडरबोर्ड',
+  'contrib.col.outcome': 'समीक्षा का नतीजा',
+  'contrib.col.points': 'अंक',
+  'contrib.col.meaning': 'इसका मतलब',
+  'contrib.col.level': 'स्तर',
+  'contrib.col.rule': 'कब लागू होता है',
+  'contrib.col.rank': 'रैंक',
+  'contrib.col.contributor': 'योगदानकर्ता',
+  'contrib.col.verified': 'सत्यापित',
+  'contrib.col.decided': 'निर्णीत',
+  'contrib.outcome.verified': 'सत्यापित',
+  'contrib.outcome.duplicate': 'डुप्लिकेट',
+  'contrib.outcome.rejected': 'अस्वीकृत',
+  'contrib.outcome.under_review': 'समीक्षाधीन',
+  'contrib.outcome.needs_info': 'और जानकारी चाहिए',
+  'contrib.outcome.conflicting': 'परस्पर विरोधी',
+  'contrib.meaning.verified':
+    'समीक्षक ने पुष्टि की कि रिपोर्ट उपयोगी और सही थी।',
+  'contrib.meaning.duplicate':
+    'समीक्षक ने पाया कि यह उसी ख़तरे की पहले की रिपोर्ट से मेल खाती है। यह फिर भी अलग प्रेक्षण गिना जाता है।',
+  'contrib.meaning.rejected':
+    'समीक्षक पुष्टि नहीं कर सका। इससे कुछ नहीं मिलता, और कुछ घटाया भी नहीं जाता।',
+  'contrib.meaning.under_review': 'समीक्षक की प्रतीक्षा में। अभी कुछ नहीं मिलता।',
+  'contrib.meaning.needs_info':
+    'समीक्षक ने और विवरण माँगा। निपटने तक कुछ नहीं मिलता।',
+  'contrib.meaning.conflicting':
+    'यह किसी और रिपोर्ट से मेल नहीं खाती और निपटी नहीं है। निपटने तक कुछ नहीं मिलता।',
+  'contrib.points.yours': 'आपके अंक',
+  'contrib.points.yoursNote':
+    'इस डिवाइस पर सहेजी रिपोर्टें: {count}। इस प्रोटोटाइप में समीक्षा उपलब्ध नहीं है, इसलिए किसी की समीक्षा नहीं हुई और कोई अंक नहीं गिने गए।',
+  'contrib.points.howTitle': 'अंक कैसे गिने जाते हैं',
+  'contrib.points.howBody':
+    'अंक केवल रिपोर्ट पर समीक्षक के निर्णय से मिलते हैं। रिपोर्ट भेजने, उसकी लंबाई, उसकी फ़ोटो और भेजी गई रिपोर्टों की संख्या से अंक नहीं मिलते।',
+  'contrib.points.tableCaption': 'हर समीक्षा नतीजे के अंक',
+  'contrib.points.perReport': 'प्रति रिपोर्ट +{points}',
+  'contrib.points.none': 'कोई अंक नहीं',
+  'contrib.points.noDeduction':
+    'अंक दंड के रूप में नहीं घटाए जाते, और अस्वीकृत रिपोर्ट से बस कुछ नहीं मिलता। एकमात्र कटौती पहले दिए अंकों का उलटाव है, जो कारण के साथ अपनी अलग बही-प्रविष्टि के रूप में दिखता है और जिसकी अपील की जा सकती है।',
+  'contrib.rep.yours': 'आपकी प्रतिष्ठा',
+  'contrib.rep.yoursNote':
+    'निर्णीत रिपोर्टें: {count}। नए से ऊपर का स्तर पाने के लिए कम से कम {min} निर्णीत रिपोर्टें चाहिए।',
+  'contrib.rep.howTitle': 'प्रतिष्ठा कैसे गिनी जाती है',
+  'contrib.rep.howBody':
+    'प्रतिष्ठा दिखाती है कि आपकी निर्णीत रिपोर्टों में से कितनी सत्यापित हुईं। यह गिनती नहीं, अनुपात है, इसलिए ज़्यादा रिपोर्ट भेजने से यह अपने आप नहीं बढ़ती।',
+  'contrib.rep.formula':
+    'सत्यापित अनुपात = सत्यापित ÷ (सत्यापित + अस्वीकृत)। डुप्लिकेट और समीक्षा की प्रतीक्षा वाली रिपोर्टें शामिल नहीं होतीं।',
+  'contrib.rep.minimum':
+    'नए से ऊपर का स्तर केवल {min} निर्णीत रिपोर्टों के बाद दिखता है, ताकि छोटा रिकॉर्ड ऊँचा स्तर न पा सके।',
+  'contrib.rep.tableCaption': 'प्रतिष्ठा के स्तर',
+  'contrib.rep.limit':
+    'प्रतिष्ठा किसी आधिकारिक बंदी या प्रतिबंध को बनाती, बदलती या हटाती नहीं, और किसी रिपोर्ट को आधिकारिक नहीं बनाती।',
+  'contrib.level.new': 'नया',
+  'contrib.level.building': 'बन रहा',
+  'contrib.level.reliable': 'भरोसेमंद',
+  'contrib.level.trusted': 'विश्वसनीय',
+  'contrib.levelRule.new': '{min} से कम निर्णीत रिपोर्टें।',
+  'contrib.levelRule.building':
+    '{min} या अधिक निर्णीत रिपोर्टें, सत्यापित अनुपात {percent}% से कम।',
+  'contrib.levelRule.reliable':
+    '{min} या अधिक निर्णीत रिपोर्टें, सत्यापित अनुपात {percent}% या अधिक और {upper}% से कम।',
+  'contrib.levelRule.trusted':
+    '{min} या अधिक निर्णीत रिपोर्टें, सत्यापित अनुपात {percent}% या अधिक।',
+  'contrib.board.title': 'लीडरबोर्ड',
+  'contrib.board.body':
+    'अंकों के आधार पर, फिर सत्यापित अनुपात के आधार पर क्रम। हैंडल उदाहरण के लिए गढ़े गए हैं, कोई असली व्यक्ति सूचीबद्ध नहीं है।',
+  'contrib.board.caption': 'काल्पनिक योगदानकर्ताओं का उदाहरण लीडरबोर्ड',
+  'contrib.board.note':
+    'प्रतिष्ठा अंकों के साथ इसलिए दिखाई गई है कि अंक संख्या के साथ बढ़ते हैं, प्रतिष्ठा नहीं। दोनों में से कोई भी सड़क परामर्श नहीं बदलता।',
+  'contrib.board.synthetic': 'कृत्रिम',
+  'contrib.tab.ledger': 'बही',
+  'contrib.tab.settings': 'गोपनीयता',
+  'contrib.col.date': 'तारीख़',
+  'contrib.col.reason': 'कारण',
+  'contrib.col.report': 'रिपोर्ट',
+  'contrib.ledger.title': 'अंकों की बही',
+  'contrib.ledger.how':
+    'अंकों में हर बदलाव कारण के साथ अपनी अलग प्रविष्टि है। प्रविष्टियाँ कभी बदली या मिटाई नहीं जातीं। उलटाव एक नई प्रविष्टि है जो पहले दिए अंक वापस लेती है और बताती है कि किस प्रविष्टि को उलट रही है।',
+  'contrib.ledger.yours': 'आपकी बही',
+  'contrib.ledger.yoursEmpty':
+    'अभी कोई प्रविष्टि नहीं। प्रविष्टि तभी जुड़ती है जब समीक्षक रिपोर्ट पर निर्णय देता है, और इस प्रोटोटाइप में समीक्षा उपलब्ध नहीं है।',
+  'contrib.ledger.exampleTitle': 'उदाहरण बही (कृत्रिम)',
+  'contrib.ledger.exampleNote':
+    'यह उदाहरण किसी असली व्यक्ति का नहीं है। इसमें अंक देना, उलटाव, स्वीकार की गई अपील और ऐसा उलटाव दिखता है जिसकी अपील अब भी हो सकती है।',
+  'contrib.ledger.balance': 'शेष: {points} अंक',
+  'contrib.ledger.reverses': '{id} को उलटता है',
+  'contrib.reason.verified': 'समीक्षक ने रिपोर्ट सत्यापित की',
+  'contrib.reason.duplicate':
+    'पहले की रिपोर्ट से मेल खाई और अलग प्रेक्षण गिनी गई',
+  'contrib.reason.verification_withdrawn':
+    'नई जानकारी के बाद समीक्षक ने सत्यापन वापस ले लिया',
+  'contrib.reason.review_corrected':
+    'समीक्षक ने पहले का समीक्षा निर्णय सुधारा',
+  'contrib.reason.appeal_upheld': 'अपील स्वीकार हुई और अंक लौटाए गए',
+  'contrib.appeal.title': 'अपीलें',
+  'contrib.appeal.how':
+    'आप उलटाव की अपील कर सकते हैं। कारण कुछ शब्दों में लिखें, फ़ोन नंबर, सटीक निर्देशांक या अन्य निजी जानकारी के बिना। इस प्रोटोटाइप में अपील केवल इसी डिवाइस पर सहेजी जाती है: कोई उसे प्राप्त या उसकी समीक्षा नहीं करता।',
+  'contrib.appeal.action': 'अपील करें',
+  'contrib.appeal.label': 'आपको यह उलटाव गलत क्यों लगता है?',
+  'contrib.appeal.submit': 'अपील सहेजें',
+  'contrib.appeal.cancel': 'रद्द करें',
+  'contrib.appeal.withdraw': 'अपील वापस लें',
+  'contrib.appeal.saved':
+    'अपील {date} को इस डिवाइस पर सहेजी गई। यह भेजी नहीं गई, क्योंकि कोई समीक्षा सेवा जुड़ी नहीं है।',
+  'contrib.appeal.upheld': 'अपील स्वीकार',
+  'contrib.appeal.notUpheld': 'अपील अस्वीकार',
+  'contrib.appeal.err.empty': 'पहले एक छोटा कारण लिखें।',
+  'contrib.appeal.err.tooLong': 'इसे {max} अक्षरों या उससे कम रखें।',
+  'contrib.appeal.err.phone':
+    'यह फ़ोन नंबर जैसा लगता है। इसे हटाएँ, क्योंकि फ़ोन नंबर स्वीकार नहीं किए जाते।',
+  'contrib.appeal.err.coordinates':
+    'यह सटीक निर्देशांक जैसा लगता है। इन्हें हटाएँ, क्योंकि सटीक स्थान स्वीकार नहीं किए जाते।',
+  'contrib.set.title': 'गोपनीयता सेटिंग',
+  'contrib.set.intro':
+    'दोनों विकल्प आपके चालू करने तक बंद रहते हैं, और आप कभी भी बंद कर सकते हैं। ये केवल इसी ब्राउज़र में रखे जाते हैं।',
+  'contrib.set.board': 'लीडरबोर्ड पर मेरा छद्मनाम दिखाएँ',
+  'contrib.set.boardHelp':
+    'दूसरों को केवल आपका यादृच्छिक छद्मनाम, अंक और स्तर दिखेगा।',
+  'contrib.set.aggregates': 'मेरी समीक्षित रिपोर्टें सामुदायिक कुल में गिनें',
+  'contrib.set.aggregatesHelp':
+    'कुल कई लोगों को मिलाकर बनते हैं और किसी का नाम नहीं लेते।',
+  'contrib.set.pseudonym': 'आपका छद्मनाम',
+  'contrib.set.pseudonymNone':
+    'अभी कोई नहीं। कोई विकल्प चालू करने पर एक बन जाता है।',
+  'contrib.set.pseudonymNew': 'नया छद्मनाम',
+  'contrib.set.pseudonymNote':
+    'यह इसी डिवाइस पर यादृच्छिक रूप से बनता है। यह आपके नाम, खाते या संपर्क विवरण पर आधारित नहीं है।',
+  'contrib.set.reset': 'सब बंद करें और मेरा छद्मनाम व अपील नोट हटाएँ',
+  'contrib.set.resetDone':
+    'सेटिंग, छद्मनाम और अपील नोट इस डिवाइस से हटा दिए गए।',
+  'contrib.never.title': 'जो कभी इकट्ठा या भुगतान नहीं किया जाता',
+  'contrib.never.body':
+    'यह सुविधा फ़ोन नंबर या सटीक GPS स्थान न इकट्ठा करती है, न दिखाती है। अंकों का कोई नकद मूल्य नहीं है: कोई नकद, वाउचर या अन्य भुनाने की सुविधा नहीं है।',
+  'contrib.agg.title': 'सामुदायिक कुल (छद्मनामित)',
+  'contrib.agg.body':
+    'उन लोगों से मिलाकर जिन्होंने भाग लेना चुना। किसी का नाम नहीं लिया जाता।',
+  'contrib.agg.participants': 'भागीदार: {count}',
+  'contrib.agg.tooFew':
+    'कुल तब तक छिपे रहते हैं जब तक कम से कम {min} लोग भाग लेना न चुन लें, ताकि कोई अलग से पहचाना न जा सके।',
+  'contrib.agg.verified': 'सत्यापित',
+  'contrib.agg.duplicate': 'डुप्लिकेट',
+  'contrib.agg.rejected': 'अस्वीकृत',
+  'contrib.agg.share': 'सत्यापित अनुपात',
+  'contrib.board.optedInOnly': 'केवल वही लोग सूचीबद्ध हैं जिन्होंने भाग लेना चुना।',
+  'contrib.board.you': 'आप',
+  'footer.status': 'सिस्टम की स्थिति',
+  'status.eyebrow': 'सिस्टम की स्थिति',
+  'status.title': 'सिस्टम की स्थिति',
+  'status.description':
+    'इस संस्करण में क्या जुड़ा है, क्या नकली (सिमुलेटेड) है और क्या उपलब्ध नहीं है, और हर चैनल ने इस डिवाइस पर आख़िरी बार क्या बताया।',
+  'status.legendLabel': 'इंटीग्रेशन की स्थितियाँ',
+  'status.state.configured': 'कॉन्फ़िगर किया गया',
+  'status.state.simulated': 'सिमुलेटेड',
+  'status.state.unavailable': 'उपलब्ध नहीं',
+  'status.state.checking': 'जाँच जारी',
+  'status.stateHelp.configured':
+    'इस संस्करण में जुड़ा है। कॉन्फ़िगर होने का मतलब पहुँच में होना नहीं है; चैनल की पंक्ति देखें।',
+  'status.stateHelp.simulated':
+    'असली सेवा की जगह नकली या केवल विकास के लिए बने व्यवहार का उपयोग होता है।',
+  'status.stateHelp.unavailable':
+    'कुछ भी जुड़ा नहीं है, या यह ब्राउज़र इसे समर्थन नहीं करता।',
+  'status.channelLabel': 'चैनल',
+  'status.channelNone': 'देखने के लिए कोई लाइव चैनल नहीं',
+  'status.lastSuccess': 'अंतिम सफल सिंक',
+  'status.nextAttempt': 'अगला पुनः प्रयास',
+  'status.never': 'इस डिवाइस पर कभी नहीं',
+  'status.item.reportDelivery': 'रिपोर्ट भेजना',
+  'status.item.accountSession': 'खाता साइन-इन',
+  'status.item.backgroundSync': 'बैकग्राउंड पुनः प्रयास',
+  'status.item.advisoryData': 'सड़क परामर्श',
+  'status.item.routing': 'रूट खोज',
+  'status.item.mapTiles': 'मानचित्र टाइलें',
+  'status.item.officialPublishing': 'आधिकारिक सूचना प्रकाशन',
+  'status.reason.deliveryHttp':
+    'रिपोर्ट सेवा का पता कॉन्फ़िगर है। पहुँच केवल सिंक के प्रयास के बाद पता चलती है।',
+  'status.reason.deliveryStub':
+    'रिपोर्टें विकास के लिए बने नकली सर्वर पर जाती हैं जो रसीदें लौटाता है। कोई असली सर्वर इन्हें प्राप्त नहीं करता।',
+  'status.reason.deliveryNone':
+    'कोई रिपोर्ट सेवा कॉन्फ़िगर नहीं है। रिपोर्टें इस डिवाइस पर सहेजी रहती हैं।',
+  'status.reason.sessionLive': 'इस डिवाइस पर एक सत्र मौजूद है।',
+  'status.reason.sessionStub':
+    'साइन-इन विकास के सहायक से होता है, असली खाता सेवा से नहीं।',
+  'status.reason.sessionNone':
+    'इस संस्करण में कोई साइन-इन सेवा नहीं जुड़ी है, इसलिए रिपोर्टें भेजी नहीं जा सकतीं।',
+  'status.reason.backgroundChecking': 'ब्राउज़र का समर्थन जाँचा जा रहा है।',
+  'status.reason.backgroundAvailable':
+    'कनेक्शन लौटने पर यह ब्राउज़र पुनः प्रयास शेड्यूल कर सकता है।',
+  'status.reason.backgroundNoWorker':
+    'ब्राउज़र समर्थन करता है, पर कोई सर्विस वर्कर स्थापित नहीं है, इसलिए पुनः प्रयास केवल ऐप खुला होने पर चलते हैं।',
+  'status.reason.backgroundUnsupported':
+    'यह ब्राउज़र बैकग्राउंड पुनः प्रयास का समर्थन नहीं करता। पुनः प्रयास केवल ऐप खुला होने पर चलते हैं।',
+  'status.reason.advisoryData':
+    'सड़कें, अवलोकन और प्रतिबंध नमूना (सिंथेटिक) डेटा हैं, जो तय डेमो घड़ी पर चलते हैं।',
+  'status.reason.routingSeeded':
+    'रूट ब्राउज़र में नमूना गलियारों पर खोजे जाते हैं। कोई रूटिंग सेवा नहीं बुलाई जाती।',
+  'status.reason.routingLive': 'रूट सर्वर-साइड रूटिंग सेवा से आते हैं।',
+  'status.reason.mapTiles':
+    'टाइलें सार्वजनिक OpenStreetMap सर्वर से लोड होती हैं। मानचित्र ऑफ़लाइन उपलब्ध नहीं है।',
+  'status.reason.officialPublishing':
+    'इस संस्करण में कोई प्रकाशन सेवा नहीं है। डेवलपमेंट बिल्ड ?mock= से जवाब नकल कर सकते हैं, जो बैकएंड नहीं है।',
+  'status.channel.syncing': 'सिंक जारी है',
+  'status.channel.deviceOffline': 'डिवाइस ऑफ़लाइन है, कुछ भेजा नहीं जा सकता',
+  'status.channel.noSyncYet': 'इस डिवाइस पर अभी तक कोई सिंक नहीं चला',
+  'status.channel.lastRunComplete': 'अंतिम सिंक पूरा हुआ',
+  'status.channel.lastRunNothing': 'अंतिम सिंक में भेजने को कुछ नहीं था',
+  'status.channel.lastRunError': 'अंतिम सिंक विफल रहा',
+  'status.channel.lastRunSignedOut': 'अंतिम सिंक रुका: साइन-इन नहीं है',
+  'status.channel.lastRunOffline': 'अंतिम सिंक रुका: डिवाइस ऑफ़लाइन था',
+  'status.channel.lastRunNotConfigured': 'अंतिम सिंक रुका: सेवा कॉन्फ़िगर नहीं है',
+  'status.channel.sessionSignedIn': 'साइन-इन है',
+  'status.channel.sessionSignedOut': 'साइन-आउट है',
+  'status.channel.sessionLoading': 'सत्र जाँचा जा रहा है',
+  'status.channel.tilesOnline': 'डिवाइस ऑनलाइन है। टाइलों का लोड होना केवल मानचित्र पर पुष्ट होता है।',
+  'status.channel.tilesOffline': 'डिवाइस ऑफ़लाइन है, टाइलें लोड नहीं हो सकतीं',
+  'status.channel.tilesChecking': 'कनेक्शन जाँचा जा रहा है',
+  'status.channel.seededData': 'साथ में दिया नमूना डेटा, लाइव फ़ीड नहीं',
+  'status.disclaimer':
+    'यह पृष्ठ कॉन्फ़िगरेशन और इस डिवाइस पर दिखे अंतिम परिणाम बताता है। यह किसी सेवा को जाँचता नहीं, और कनेक्शन से रिपोर्ट भेजे जाने की पुष्टि नहीं होती।',
   'nav.homeLabel': 'राहप्रहरी — होम',
   'nav.footer': 'फ़ुटर',
 };

@@ -12,7 +12,7 @@ type Phase = "idle" | "confirming" | "submitting";
 interface Props {
   draft: NoticeDraft;
   onRequestSignIn?: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (noticeId: string) => void;
 }
 
 export function PublishFlow({ draft, onRequestSignIn, onSuccess }: Props) {
@@ -23,7 +23,7 @@ export function PublishFlow({ draft, onRequestSignIn, onSuccess }: Props) {
     setPhase("submitting");
     const r = await publishNotice(draft);
     setResult(r);
-    if (r.kind === "success" && onSuccess) onSuccess();
+    if (r.kind === "success" && onSuccess) onSuccess(r.noticeId);
     setPhase("idle"); // dialog band, result banner dikhega
   }
 

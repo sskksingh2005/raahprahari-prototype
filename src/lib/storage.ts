@@ -61,4 +61,6 @@ export const STORAGE_KEYS = {
   reportDraft: 'rp.reportDraft',
   localReports: 'rp.localReports',
   lastLocalReport: 'rp.lastLocalReport',
+  contribSettings: 'rp.contribSettings',
+  contribAppeals: 'rp.contribAppeals',
 } as const

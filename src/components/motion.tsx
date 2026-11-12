@@ -52,7 +52,15 @@ export function PageTransition() {
  */
 export function RevealObserver() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const initialPath = useRef(pathname)
+  const navigated = useRef(false)
   useEffect(() => {
+    // The first page is server-rendered and its lazy route content may still be
+    // hydrating when this root effect runs. Adding attributes then makes React
+    // report a hydration mismatch, so reveals start only after a client
+    // navigation. A ref flag (not a run counter) keeps this StrictMode-safe.
+    if (pathname !== initialPath.current) navigated.current = true
+    if (!navigated.current) return
     if (prefersReducedMotion() || typeof IntersectionObserver === 'undefined') return
     const observer = new IntersectionObserver(
       (entries) => {

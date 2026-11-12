@@ -101,13 +101,13 @@ describe('shared site navigation', () => {
       const bottom = screen.getByRole('navigation', { name: 'Quick navigation' })
       expect(linkPairs(bottom)).toEqual(BOTTOM.map(([label, href]) => [label, href]))
 
-      // Right-hand controls, in order: language, theme, Community Login, Report Hazard.
+      // Right-hand controls, in order: language, theme, Report Hazard. Login is deferred (VA-16).
       const controls = [
         within(header).getByRole('group', { name: 'Language' }),
         within(header).getByRole('button', { name: /theme/i }),
-        within(header).getByRole('button', { name: 'Community Login' }),
         within(header).getAllByRole('link', { name: 'Report Hazard' })[0],
       ]
+      expect(within(header).queryByRole('button', { name: /login/i })).toBeNull()
       for (let i = 1; i < controls.length; i++) {
         expect(
           controls[i - 1].compareDocumentPosition(controls[i]) & Node.DOCUMENT_POSITION_FOLLOWING,
