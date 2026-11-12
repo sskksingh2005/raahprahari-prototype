@@ -878,6 +878,89 @@ export const en = {
     'Network problem. Check your connection and try again. The notice was not published.',
   'official.result.server':
     'The service returned an error ({status}). The notice was not published.',
+  'audit.title': 'Actions by screen',
+  'audit.intro':
+    'For reviewers: what each workspace screen can really do in this build. Each state is worked out from the same checks the screens make, so it changes when the configuration changes.',
+  'audit.summaryLabel': 'Action totals',
+  'audit.state.available': 'Available',
+  'audit.state.device': 'This device only',
+  'audit.state.simulated': 'Simulated',
+  'audit.state.blocked': 'Blocked',
+  'audit.stateHelp.available': 'Works now. Needs no project backend.',
+  'audit.stateHelp.device': 'Works, but the result stays in this browser. Nothing is sent.',
+  'audit.stateHelp.simulated': 'Returns made-up results from sample data, a stub or a mock.',
+  'audit.stateHelp.blocked': 'Needs a backend that this build does not have.',
+  'audit.openScreen': 'Open {screen}',
+  'audit.dialogScreen': 'Opens from Community Login in the header.',
+  'audit.screen.roads': 'Road search and maps',
+  'audit.screen.report': 'Report a hazard',
+  'audit.screen.myReports': 'My Reports',
+  'audit.screen.account': 'Account sign-in',
+  'audit.screen.official': 'Official notice',
+  'audit.screen.contributions': 'Points and reputation',
+  'audit.screen.contact': 'Contact',
+  'audit.action.searchRoutes': 'Search roads and routes',
+  'audit.action.readAdvisories': 'Read road advisories',
+  'audit.action.useLocation': 'Use my location',
+  'audit.action.mapTiles': 'Load the map',
+  'audit.action.saveRoad': 'Save a road',
+  'audit.action.saveDraft': 'Save a draft and photo',
+  'audit.action.submitReport': 'Submit a report',
+  'audit.action.sendReport': 'Send reports to the server (Sync now)',
+  'audit.action.retryPhoto': 'Retry a photo upload',
+  'audit.action.viewMyReports': 'See my saved reports',
+  'audit.action.signIn': 'Sign in',
+  'audit.action.signUp': 'Create an account',
+  'audit.action.resetPassword': 'Reset a password',
+  'audit.action.checkNotice': 'Check a notice draft',
+  'audit.action.publishNotice': 'Publish a notice',
+  'audit.action.viewPoints': 'See points, reputation and the leaderboard',
+  'audit.action.privacySettings': 'Change privacy settings',
+  'audit.action.saveAppeal': 'Save an appeal',
+  'audit.action.sendMessage': 'Send a message',
+  'audit.reason.seededRoutes':
+    'Routes come from 14 sample corridors in the browser. No routing service is called.',
+  'audit.reason.seededAdvisories':
+    'Advisories are worked out from synthetic sample reports and restrictions.',
+  'audit.reason.browserLocation':
+    'Uses the browser location after permission. Manual entry remains if it is refused.',
+  'audit.reason.tilesOnline': 'Tiles load from the public OpenStreetMap server.',
+  'audit.reason.tilesOffline':
+    'The device is offline, so map tiles cannot load. The road list still works.',
+  'audit.reason.savedRoads': 'Saved in this browser only. No screen lists saved roads yet.',
+  'audit.reason.indexedDb': 'Kept in this browser (IndexedDB) until the report is sent.',
+  'audit.reason.submitQueuesOnly':
+    'Submitting queues the report on this device. It does not send it.',
+  'audit.reason.noReportService':
+    'No report service is configured (VITE_REPORTS_API_BASE is not set), so nothing can be sent. The Sync now button is hidden.',
+  'audit.reason.devReceiptStub':
+    'A development stub returns receipts. No real server receives the report.',
+  'audit.reason.noSignInForDelivery':
+    'A report service is set, but sending needs a signed-in account and no sign-in is configured.',
+  'audit.reason.reportService':
+    'Sent to the configured report service once you are signed in and online.',
+  'audit.reason.myReportsSignedIn': 'Lists the reports saved under your account on this device.',
+  'audit.reason.myReportsAfterSignIn':
+    'Needs a signed-in account. The link appears in the menu once you sign in.',
+  'audit.reason.myReportsNoSignIn':
+    'Needs a signed-in account, and no sign-in is configured. The page only asks you to sign in.',
+  'audit.reason.supabase': 'Uses the configured Supabase project.',
+  'audit.reason.supabaseEmail': 'Uses the configured Supabase project. Supabase sends the email.',
+  'audit.reason.devSignIn':
+    'The development stub signs in through a browser helper, not a real account service.',
+  'audit.reason.noSupabase':
+    'Supabase is not configured (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are not set). The form opens, then says sign-in is not configured.',
+  'audit.reason.checkNotice': 'The form checks the draft in the browser.',
+  'audit.reason.publishMock':
+    'This development build can fake a result with ?mock=. No publishing service exists, so a real publish fails.',
+  'audit.reason.noPublishService':
+    'No publishing service exists. The request to /api/official/notices has no backend.',
+  'audit.reason.syntheticContributions':
+    'Points, reputation and the leaderboard use made-up contributors.',
+  'audit.reason.contribSettings': 'Stored in this browser only.',
+  'audit.reason.appealsLocal': 'Saved in this browser only. Nobody receives or reviews it.',
+  'audit.reason.noMessageService':
+    'The form checks the fields, then says the message was not sent. No message service is connected.',
   'footer.status': 'System status',
   'status.eyebrow': 'SYSTEM STATUS',
   'status.title': 'System status',
@@ -1827,6 +1910,89 @@ export const hi: Record<TranslationKey, string> = {
     'नेटवर्क की समस्या। कनेक्शन जाँचकर फिर कोशिश करें। सूचना प्रकाशित नहीं हुई।',
   'official.result.server':
     'सेवा ने त्रुटि ({status}) लौटाई। सूचना प्रकाशित नहीं हुई।',
+  'audit.title': 'हर स्क्रीन पर उपलब्ध काम',
+  'audit.intro':
+    'समीक्षकों के लिए: इस संस्करण में हर स्क्रीन असल में क्या कर सकती है। हर स्थिति उन्हीं जाँचों से तय होती है जो स्क्रीनें करती हैं, इसलिए कॉन्फ़िगरेशन बदलने पर यह भी बदलती है।',
+  'audit.summaryLabel': 'कामों का योग',
+  'audit.state.available': 'उपलब्ध',
+  'audit.state.device': 'केवल इस डिवाइस पर',
+  'audit.state.simulated': 'सिमुलेटेड',
+  'audit.state.blocked': 'रुका हुआ',
+  'audit.stateHelp.available': 'अभी काम करता है। प्रोजेक्ट बैकएंड की ज़रूरत नहीं।',
+  'audit.stateHelp.device': 'काम करता है, पर नतीजा इसी ब्राउज़र में रहता है। कुछ भेजा नहीं जाता।',
+  'audit.stateHelp.simulated': 'नमूना डेटा, स्टब या मॉक से गढ़े नतीजे देता है।',
+  'audit.stateHelp.blocked': 'ऐसे बैकएंड की ज़रूरत है जो इस संस्करण में नहीं है।',
+  'audit.openScreen': '{screen} खोलें',
+  'audit.dialogScreen': 'हेडर में समुदाय लॉगिन से खुलता है।',
+  'audit.screen.roads': 'सड़क खोज और मानचित्र',
+  'audit.screen.report': 'ख़तरा बताएँ',
+  'audit.screen.myReports': 'मेरी रिपोर्टें',
+  'audit.screen.account': 'खाता साइन-इन',
+  'audit.screen.official': 'आधिकारिक सूचना',
+  'audit.screen.contributions': 'अंक और प्रतिष्ठा',
+  'audit.screen.contact': 'संपर्क',
+  'audit.action.searchRoutes': 'सड़कें और रूट खोजें',
+  'audit.action.readAdvisories': 'सड़क परामर्श पढ़ें',
+  'audit.action.useLocation': 'मेरा स्थान उपयोग करें',
+  'audit.action.mapTiles': 'मानचित्र लोड करें',
+  'audit.action.saveRoad': 'सड़क सहेजें',
+  'audit.action.saveDraft': 'ड्राफ़्ट और फ़ोटो सहेजें',
+  'audit.action.submitReport': 'रिपोर्ट जमा करें',
+  'audit.action.sendReport': 'रिपोर्टें सर्वर पर भेजें (अभी सिंक करें)',
+  'audit.action.retryPhoto': 'फ़ोटो अपलोड फिर से करें',
+  'audit.action.viewMyReports': 'मेरी सहेजी रिपोर्टें देखें',
+  'audit.action.signIn': 'साइन इन करें',
+  'audit.action.signUp': 'खाता बनाएँ',
+  'audit.action.resetPassword': 'पासवर्ड रीसेट करें',
+  'audit.action.checkNotice': 'सूचना का मसौदा जाँचें',
+  'audit.action.publishNotice': 'सूचना प्रकाशित करें',
+  'audit.action.viewPoints': 'अंक, प्रतिष्ठा और लीडरबोर्ड देखें',
+  'audit.action.privacySettings': 'गोपनीयता सेटिंग बदलें',
+  'audit.action.saveAppeal': 'अपील सहेजें',
+  'audit.action.sendMessage': 'संदेश भेजें',
+  'audit.reason.seededRoutes':
+    'रूट ब्राउज़र में 14 नमूना गलियारों से आते हैं। कोई रूटिंग सेवा नहीं बुलाई जाती।',
+  'audit.reason.seededAdvisories':
+    'परामर्श कृत्रिम नमूना रिपोर्टों और प्रतिबंधों से तय होते हैं।',
+  'audit.reason.browserLocation':
+    'अनुमति के बाद ब्राउज़र का स्थान उपयोग होता है। मना करने पर हाथ से भरने का विकल्प रहता है।',
+  'audit.reason.tilesOnline': 'टाइलें सार्वजनिक OpenStreetMap सर्वर से लोड होती हैं।',
+  'audit.reason.tilesOffline':
+    'डिवाइस ऑफ़लाइन है, इसलिए मानचित्र टाइलें लोड नहीं हो सकतीं। सड़कों की सूची फिर भी काम करती है।',
+  'audit.reason.savedRoads': 'केवल इसी ब्राउज़र में सहेजा जाता है। अभी कोई स्क्रीन सहेजी सड़कें नहीं दिखाती।',
+  'audit.reason.indexedDb': 'रिपोर्ट भेजे जाने तक इसी ब्राउज़र (IndexedDB) में रहता है।',
+  'audit.reason.submitQueuesOnly':
+    'जमा करने पर रिपोर्ट इसी डिवाइस पर कतार में लगती है। यह भेजी नहीं जाती।',
+  'audit.reason.noReportService':
+    'कोई रिपोर्ट सेवा कॉन्फ़िगर नहीं है (VITE_REPORTS_API_BASE सेट नहीं है), इसलिए कुछ भेजा नहीं जा सकता। अभी सिंक करें बटन छिपा रहता है।',
+  'audit.reason.devReceiptStub':
+    'विकास के लिए बना स्टब रसीदें लौटाता है। कोई असली सर्वर रिपोर्ट प्राप्त नहीं करता।',
+  'audit.reason.noSignInForDelivery':
+    'रिपोर्ट सेवा सेट है, पर भेजने के लिए साइन-इन खाता चाहिए और कोई साइन-इन कॉन्फ़िगर नहीं है।',
+  'audit.reason.reportService':
+    'साइन इन और ऑनलाइन होने पर कॉन्फ़िगर की गई रिपोर्ट सेवा पर भेजी जाती है।',
+  'audit.reason.myReportsSignedIn': 'इस डिवाइस पर आपके खाते में सहेजी रिपोर्टें दिखाता है।',
+  'audit.reason.myReportsAfterSignIn':
+    'साइन-इन खाता चाहिए। साइन इन करने पर मेनू में लिंक दिखता है।',
+  'audit.reason.myReportsNoSignIn':
+    'साइन-इन खाता चाहिए, और कोई साइन-इन कॉन्फ़िगर नहीं है। पृष्ठ केवल साइन इन करने को कहता है।',
+  'audit.reason.supabase': 'कॉन्फ़िगर किए गए Supabase प्रोजेक्ट का उपयोग करता है।',
+  'audit.reason.supabaseEmail': 'कॉन्फ़िगर किए गए Supabase प्रोजेक्ट का उपयोग करता है। ईमेल Supabase भेजता है।',
+  'audit.reason.devSignIn':
+    'विकास स्टब ब्राउज़र के एक सहायक से साइन इन करता है, असली खाता सेवा से नहीं।',
+  'audit.reason.noSupabase':
+    'Supabase कॉन्फ़िगर नहीं है (VITE_SUPABASE_URL और VITE_SUPABASE_ANON_KEY सेट नहीं हैं)। फ़ॉर्म खुलता है, फिर बताता है कि साइन-इन कॉन्फ़िगर नहीं है।',
+  'audit.reason.checkNotice': 'फ़ॉर्म मसौदे को ब्राउज़र में जाँचता है।',
+  'audit.reason.publishMock':
+    'यह डेवलपमेंट बिल्ड ?mock= से नकली नतीजा दे सकता है। कोई प्रकाशन सेवा नहीं है, इसलिए असली प्रकाशन विफल होता है।',
+  'audit.reason.noPublishService':
+    'कोई प्रकाशन सेवा नहीं है। /api/official/notices के अनुरोध के पीछे कोई बैकएंड नहीं है।',
+  'audit.reason.syntheticContributions':
+    'अंक, प्रतिष्ठा और लीडरबोर्ड काल्पनिक योगदानकर्ताओं का उपयोग करते हैं।',
+  'audit.reason.contribSettings': 'केवल इसी ब्राउज़र में रखा जाता है।',
+  'audit.reason.appealsLocal': 'केवल इसी ब्राउज़र में सहेजा जाता है। कोई इसे प्राप्त या समीक्षा नहीं करता।',
+  'audit.reason.noMessageService':
+    'फ़ॉर्म फ़ील्ड जाँचता है, फिर बताता है कि संदेश भेजा नहीं गया। कोई संदेश सेवा जुड़ी नहीं है।',
   'footer.status': 'सिस्टम की स्थिति',
   'status.eyebrow': 'सिस्टम की स्थिति',
   'status.title': 'सिस्टम की स्थिति',

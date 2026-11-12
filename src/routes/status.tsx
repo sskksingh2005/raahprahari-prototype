@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageBanner } from "@/components/page-banner";
 import { SystemStatus } from "@/components/system-status";
+import { WorkspaceActions } from "@/components/workspace-actions";
 import { usePrefs } from "@/i18n/preferences";
 
 export const Route = createFileRoute("/status")({
@@ -19,6 +20,7 @@ function StatusPage() {
       />
       <div className="rp-info-container rp-info-content">
         <SystemStatus />
+        <WorkspaceActions />
       </div>
     </div>
   );
