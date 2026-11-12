@@ -80,7 +80,7 @@ describe("header breakpoints", () => {
     const right = lang.parentElement!;
     expect(classes(row)).toEqual(expect.arrayContaining(["flex", "items-center", "gap-3", "min-w-0"]));
     expect(classes(right)).toContain("ml-auto");
-    expect(Array.from(right.children).slice(0, 4).map((el) => el.textContent || el.getAttribute("aria-label"))).toEqual([
+    expect(Array.from(right.children).map((el) => el.textContent || el.getAttribute("aria-label"))).toEqual([
       "ENहिन्दी",
       expect.stringMatching(/theme|system|light|dark/i),
       "Community Login",

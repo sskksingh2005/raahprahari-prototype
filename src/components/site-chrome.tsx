@@ -94,6 +94,14 @@ function ThemeSwitch() {
   )
 }
 
+// Navigation availability (VA-16). Items are hidden, not faked, until they work:
+// - Community Login: opens the real Supabase sign-in form (login-dialog.tsx).
+//   The header shows "Account" only once Supabase returns a session.
+// - Official (/official): the publishing service it posts to does not exist
+//   (see /status). The route stays reachable directly for development.
+// - My Reports (/reports): it needs a signed-in account, so it is listed only
+//   while a session exists.
+
 export const PRIMARY_NAV = [
   { to: '/', label: 'nav.home' },
   { to: '/traveller', label: 'nav.traveller' },
@@ -137,8 +145,15 @@ export function activeNavTarget(pathname: string, view?: string): NavTarget | nu
   return null
 }
 
+/** Secondary links available now. My Reports appears only with a session. */
+function useSecondaryNav() {
+  const signedIn = useAccountSession().status === 'authenticated'
+  return SECONDARY_NAV.filter(({ to }) => to !== '/reports' || signedIn)
+}
+
 export function SiteHeader() {
   const { t } = usePrefs()
+  const secondaryNav = useSecondaryNav()
   const [loginOpen, setLoginOpen] = useState(false)
   // Show "Account" only when the provider has returned a real session.
   const accountLabel =
@@ -189,12 +204,12 @@ export function SiteHeader() {
                   variant="ghost"
                   className={cn(
                     'min-h-11 gap-1 px-2.5 text-sm font-medium',
-                    SECONDARY_NAV.some(({ to }) => active === to)
+                    secondaryNav.some(({ to }) => active === to)
                       ? 'text-foreground'
                       : 'text-muted-foreground',
                   )}
                   aria-current={
-                    SECONDARY_NAV.some(({ to }) => active === to) ? 'page' : undefined
+                    secondaryNav.some(({ to }) => active === to) ? 'page' : undefined
                   }
                 >
                   {t('nav.more')}
@@ -202,7 +217,7 @@ export function SiteHeader() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {SECONDARY_NAV.map(({ to, label }) => (
+                {secondaryNav.map(({ to, label }) => (
                   <DropdownMenuItem key={to} asChild>
                     <Link to={to} aria-current={current(to)}>
                       {t(label)}
@@ -298,7 +313,7 @@ export function SiteHeader() {
                   aria-label={t('nav.more')}
                   className="mt-2 flex flex-col gap-1 border-t border-border px-4 pt-3"
                 >
-                  {SECONDARY_NAV.map(({ to, label }) => (
+                  {secondaryNav.map(({ to, label }) => (
                     <SheetClose key={to} asChild>
                       <Link
                         to={to}
@@ -393,16 +408,21 @@ export function SiteHeader() {
   )
 }
 
+const FOOTER_LINKS = [
+  ['footer.about', '/about', undefined],
+  ['footer.privacy', '/about', 'privacy'],
+  ['footer.terms', '/about', 'terms'],
+  ['footer.accessibility', '/about', 'accessibility'],
+  ['footer.contact', '/contact', undefined],
+  ['nav.myReports', '/reports', undefined],
+  ['footer.contributions', '/contributions', undefined],
+  ['footer.status', '/status', undefined],
+] as const
+
 export function SiteFooter() {
   const { t } = usePrefs()
-  const items = [
-    ['footer.about', '/about', undefined],
-    ['footer.privacy', '/about', 'privacy'],
-    ['footer.terms', '/about', 'terms'],
-    ['footer.accessibility', '/about', 'accessibility'],
-    ['footer.contact', '/contact', undefined],
-    ['nav.myReports', '/reports', undefined],
-  ] as const
+  const signedIn = useAccountSession().status === 'authenticated'
+  const items = FOOTER_LINKS.filter(([, to]) => to !== '/reports' || signedIn)
   return (
     <footer data-reveal className="border-t border-border bg-card/40">
       <div className="rp-container flex flex-col gap-6 py-10 md:flex-row md:items-start md:justify-between">

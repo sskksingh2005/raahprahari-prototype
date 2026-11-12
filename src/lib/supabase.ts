@@ -13,6 +13,14 @@ export class SupabaseConfigError extends Error {
 
 let client: SupabaseClient | null = null;
 
+/** True when the public Supabase config is present. Does not contact the service. */
+export function isSupabaseConfigured(): boolean {
+  return Boolean(
+    import.meta.env.VITE_SUPABASE_URL?.trim() &&
+      import.meta.env.VITE_SUPABASE_ANON_KEY?.trim(),
+  );
+}
+
 /**
  * Returns the browser Supabase client. Only the public URL and anon key are
  * read here; role checks must still be enforced by the backend (RLS).

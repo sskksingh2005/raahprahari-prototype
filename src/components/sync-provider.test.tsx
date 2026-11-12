@@ -14,12 +14,20 @@ import { setAccountSession } from "@/lib/account-session";
 import { localDb } from "@/lib/local-db";
 import { setSyncState } from "@/lib/sync/sync-state";
 
-const { syncNowMock } = vi.hoisted(() => ({ syncNowMock: vi.fn() }));
+const { syncNowMock, transportSource } = vi.hoisted(() => ({
+  syncNowMock: vi.fn(),
+  transportSource: { current: "http" as "http" | "none" },
+}));
 
 vi.mock("@/lib/sync/sync-engine", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("@/lib/sync/sync-engine")>();
-  return { ...actual, syncNow: syncNowMock, getLastSyncAt: () => null };
+  return {
+    ...actual,
+    syncNow: syncNowMock,
+    getLastSyncAt: () => null,
+    getTransportSource: () => transportSource.current,
+  };
 });
 
 beforeEach(async () => {
@@ -40,6 +48,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  transportSource.current = "http";
   setAccountSession({ status: "signed_out", userId: null });
   Object.defineProperty(navigator, "serviceWorker", {
     configurable: true,
@@ -159,5 +168,11 @@ describe("SyncProvider triggers", () => {
         .map(({ id }) => id),
     ).toEqual([]);
     act(() => setSyncState({ running: false }));
+  });
+
+  it("hides Sync now when no report transport exists", () => {
+    transportSource.current = "none";
+    render(<SyncNowButton />);
+    expect(screen.queryByRole("button", { name: /sync now/i })).toBeNull();
   });
 });

@@ -32,6 +32,8 @@ const routePaths = [
   "/report/photo",
   "/report/review",
   "/report/received",
+  "/contributions",
+  "/status",
 ] as const;
 
 const originalGeolocation = Object.getOwnPropertyDescriptor(

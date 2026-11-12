@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { OfficialNoticeFormData, OfficialNoticeFormErrors } from './officialNotice.types';
 import { PublishFlow } from './PublishFlow';
+import { OfficialSegmentStatus } from './OfficialSegmentStatus';
+import { SEGMENTS } from '@/data/fixtures';
+
 export const OfficialNoticeForm: React.FC = () => {
   const [formData, setFormData] = useState<OfficialNoticeFormData>({
     sourceReference: '',
@@ -15,6 +18,7 @@ export const OfficialNoticeForm: React.FC = () => {
   const [errors, setErrors] = useState<OfficialNoticeFormErrors>({});
   const [submittedData, setSubmittedData] = useState<OfficialNoticeFormData | null>(null);
   const [draft, setDraft] = useState<OfficialNoticeFormData | null>(null);
+  const [published, setPublished] = useState<{ noticeId: string; segment: string } | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -167,11 +171,24 @@ export const OfficialNoticeForm: React.FC = () => {
             value={formData.segment}
             onChange={handleChange}
             placeholder="e.g., NH-74 Bypass (Km 42-48)"
+            list="official-segment-ids"
             className={`w-full p-2 bg-background border rounded text-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
               errors.segment ? 'border-destructive' : 'border-input'
             }`}
           />
+          <datalist id="official-segment-ids">
+            {SEGMENTS.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.code} · km {s.kmStart}–{s.kmEnd}
+              </option>
+            ))}
+          </datalist>
           {errors.segment && <p className="text-xs text-destructive mt-1">{errors.segment}</p>}
+          <OfficialSegmentStatus
+            segmentText={formData.segment}
+            heading="Current public status for this segment"
+          />
+
         </div>
 
         {/* 5. Restriction Type */}
@@ -225,9 +242,24 @@ export const OfficialNoticeForm: React.FC = () => {
           <h3 className="text-lg font-semibold mb-3">Ready to Publish</h3>
           <PublishFlow
             draft={draft}
-            onSuccess={() => {
+            onSuccess={(noticeId) => {
+              setPublished({ noticeId, segment: draft.segment });
+              setSubmittedData(null);
               setDraft(null);
             }}
+          />
+        </div>
+      )}
+
+      {published && (
+        <div className="mt-6 p-4 border border-border rounded-lg bg-card shadow-sm">
+          <p role="status" className="official-banner ok">
+            Notice published. ID: {published.noticeId}
+          </p>
+          <OfficialSegmentStatus
+            segmentText={published.segment}
+            heading="Public status for this segment"
+            note="Prototype: this card shows the seeded advisory. The new notice is not reflected until real persistence is connected."
           />
         </div>
       )}

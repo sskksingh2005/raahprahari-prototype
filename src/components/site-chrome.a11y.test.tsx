@@ -98,10 +98,10 @@ describe("mobile navigation keyboard accessibility", () => {
     ).toEqual([
       ["About", "/about"],
       ["Contact", "/contact"],
-      ["My Reports", "/reports"],
     ]);
     expect(within(menuNav).getByRole("link", { name: "Help" })).toHaveAttribute("aria-current", "page");
-    // The rest of the header controls are reachable from the menu too.
+    // The rest of the header controls are reachable from the menu too. My Reports
+    // needs a session, so it is not offered when signed out; sign-in is.
     expect(within(dialog).getByRole("button", { name: "Community Login" })).toBeInTheDocument();
     expect(within(dialog).getByRole("link", { name: "Report Hazard" })).toHaveAttribute("href", "/report");
 
@@ -119,6 +119,8 @@ describe("community login dialog", () => {
     location.pathname = "/";
     const user = userEvent.setup();
     render(header());
+    // No dialog is open until the user asks to sign in.
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     const trigger = screen.getAllByRole("button", { name: "Community Login" })[0];
     await user.click(trigger);

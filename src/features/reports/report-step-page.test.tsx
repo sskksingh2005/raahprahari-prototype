@@ -259,9 +259,10 @@ describe("report step flow", () => {
     expect(
       await screen.findByText("Saved locally — not delivered"),
     ).toBeInTheDocument();
+    // No report service is configured, so there is no Sync now button to press.
     expect(
-      screen.getByRole("button", { name: "Sync now" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Sync now" }),
+    ).toBeNull();
     expect(await screen.findByText("Not delivered yet")).toBeInTheDocument();
     expect(screen.getByText(new RegExp(reportId!))).toBeInTheDocument();
     expect(screen.getByText(/Observed:/)).toBeInTheDocument();

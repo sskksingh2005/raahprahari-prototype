@@ -2,7 +2,7 @@ import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePrefs } from "@/i18n/preferences";
-import { syncNow } from "@/lib/sync/sync-engine";
+import { getTransportSource, syncNow } from "@/lib/sync/sync-engine";
 import { useSyncState, type SyncRunSummary } from "@/lib/sync/sync-state";
 
 function resultMessage(
@@ -26,7 +26,17 @@ function resultMessage(
   return t("sync.sending");
 }
 
+/**
+ * Hidden when no transport exists: pressing it could only ever report "not
+ * configured", so it would be a button that does nothing. The delivery badge
+ * next to it already says the report is saved on this device.
+ */
 export function SyncNowButton() {
+  if (getTransportSource() === "none") return null;
+  return <SyncNowControl />;
+}
+
+function SyncNowControl() {
   const { t } = usePrefs();
   const { running } = useSyncState();
   const [result, setResult] = useState<SyncRunSummary | null>(null);

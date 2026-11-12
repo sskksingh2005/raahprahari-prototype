@@ -134,7 +134,7 @@ describe("header and bottom navigation", () => {
     await waitFor(() => expect(hi).toHaveAttribute("aria-pressed", "true"));
     expect(en).toHaveAttribute("aria-pressed", "false");
     expect(
-      within(header()).getByRole("button", { name: "समुदाय लॉगिन" }),
+      within(header()).getAllByRole("link", { name: "ख़तरा बताएँ" })[0],
     ).toBeVisible();
     fireEvent.click(en);
     await waitFor(() => expect(en).toHaveAttribute("aria-pressed", "true"));
@@ -190,6 +190,14 @@ describe("header and bottom navigation", () => {
     await waitFor(() => expect(trigger).toHaveFocus());
   }, 30_000);
 
+  it("hides controls for features that are not available yet", async () => {
+    await mountAt("/");
+    // The official portal is deferred (VA-16), so no control pretends to offer it.
+    expect(
+      within(header()).queryByRole("link", { name: "Official" }),
+    ).toBeNull();
+  }, 30_000);
+
   it("mobile menu opens, its links navigate and it closes", async () => {
     const router = await mountAt("/");
     fireEvent.click(
@@ -220,6 +228,7 @@ describe("header and bottom navigation", () => {
       return dialogs[0];
     });
     expect(within(login).queryByRole("navigation")).toBeNull();
+    expect(within(login).getByLabelText("Email")).toBeInTheDocument();
     fireEvent.click(
       within(login).getAllByRole("button", { name: /close/i })[0],
     );
