@@ -24,10 +24,22 @@ code {
   --space-unit: 0.25rem;
   --content-width: 75rem;
   --reading-width: 42rem;
+  /* The one z-index scale. Every layer reads a token from here; nothing else
+     picks a number. Leaflet's own panes (400-800) are contained by
+     `isolation: isolate` on the map containers, so they never compete. */
   --z-base: 0;
-  --z-header: 40;
-  --z-dialog: 50;
-  --z-toast: 60;
+  --z-content: 10;
+  --z-header: 20;
+  --z-map: 30;
+  --z-map-controls: 31;
+  --z-map-legend: 32;
+  --z-map-panel: 33;
+  --z-bottom-nav: 40;
+  --z-overlay: 100;
+  --z-sheet: 110;
+  --z-popover: 115;
+  --z-toast: 120;
+  --z-dialog: var(--z-sheet);
   --elevation-raised: 0 1px 2px rgb(17 23 25 / 8%);
 
   /* Motion tokens. Shared components read these; pages never copy them.
@@ -54,22 +66,39 @@ code {
   --rise-distance: 8px;
   --stagger-step: 40ms;
   --shadow-1: 0 1px 2px rgb(17 23 25 / 10%);
-  --shadow-2: 0 4px 10px -2px rgb(17 23 25 / 18%);
-  --shadow-3: 0 10px 22px -6px rgb(17 23 25 / 26%);
+  --shadow-2: 0 4px 12px -2px rgb(17 23 25 / 30%);
+  --shadow-3: 0 12px 26px -6px rgb(17 23 25 / 40%);
   --shadow-header: 0 6px 16px -8px rgb(17 23 25 / 30%);
   --glow-focus: 0 0 0 3px color-mix(in oklab, var(--ring) 40%, transparent);
-  --primary-hover: #2b6cb0;
-  --secondary-hover: #fffdf7;
+  --primary-hover: #1a4a7d;
+  --secondary-hover: #d6d3c7;
   --report: #eb5b38;
   --report-foreground: #111719;
   --report-hover: #f26a49;
   --counter-warn: #8a3a00;
 
+  --scrim: rgb(17 23 25 / 45%);
+  /* Photo overlays (light theme): a warm ivory gradient, strongest on the text
+     side (~70%) and fading to ~12% on the far side. The photo is never blurred,
+     faded or flat-veiled. Text on photos uses charcoal tokens. */
+  --photo-scrim-a: rgb(250 247 238 / 72%);
+  --photo-scrim-b: rgb(250 247 238 / 52%);
+  --photo-scrim-c: rgb(250 247 238 / 10%);
+  --photo-scrim-flat: rgb(250 247 238 / 10%);
+  --photo-text: #1b2326;
+  --photo-text-shadow-soft: none;
+  --photo-text-shadow-tone: none;
+  --photo-text-muted: #2a3438;
+  --photo-card-bg: rgb(250 247 238 / 90%);
+  --photo-card-fg: #111719;
+  --photo-card-border: rgb(17 23 25 / 28%);
+  --hero-scrim-a: var(--photo-scrim-a);
+  --hero-scrim-b: var(--photo-scrim-b);
   /* Light theme */
   --background: #e6e4dc;
-  --foreground: #111719;
+  --foreground: #1b2326;
   --card: #f8f6ef;
-  --card-foreground: #111719;
+  --card-foreground: #1b2326;
   --surface: var(--background);
   --surface-raised: var(--card);
   --text: var(--foreground);
@@ -83,22 +112,22 @@ code {
   --secondary: #f8f6ef;
   --secondary-foreground: #111719;
   --muted: #dcd9cf;
-  --muted-foreground: #4b5558;
-  --accent: #efece3;
-  --accent-foreground: #111719;
+  --muted-foreground: #3b4548;
+  --accent: #d3d0c4;
+  --accent-foreground: #1b2326;
   --destructive: #b83232;
   --destructive-foreground: #ffffff;
-  --border: #757d7b;
-  --input: #687578;
+  --border: #5b6564;
+  --input: #4f5d62;
   --ring: #245c98;
   --link: #245c98;
   --brand-orange: #eb5b38;
   --brand-blue: #347ccb;
-  --text-on-charcoal: #e6e4dc;
+  --text-on-charcoal: #111719;
   --text-on-ivory: #111719;
-  --orange-on-dark: #ff8766;
+  --orange-on-dark: #7a2610;
   --orange-on-light: #b23a1f;
-  --blue-on-dark: #92c5ff;
+  --blue-on-dark: #1a4574;
   --blue-on-light: #245c98;
   --action-info: var(--blue-on-light);
   --action-caution: #a44200;
@@ -130,7 +159,10 @@ code {
   --sidebar-ring: var(--ring);
 }
 
+/* .photo-surface: a section drawn over a photo. It follows the active theme; only the
+   overlay tokens (--photo-scrim-*, --photo-text*) differ per theme. */
 .dark {
+  --scrim: rgb(0 0 0 / 55%);
   --background: #07151f;
   --foreground: #e6e4dc;
   --card: #0e202b;
@@ -206,9 +238,9 @@ code {
   --breakpoint-360: 22.5rem;
   --breakpoint-390: 24.375rem;
   --breakpoint-768: 48rem;
-  --breakpoint-1440: 90rem;
   --shadow-rp-raised: var(--elevation-raised);
   --color-raised: var(--raised);
+  --color-scrim: var(--scrim);
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
   --color-text: var(--text);
@@ -342,7 +374,7 @@ code {
   }
 }
 
-/* Subtle technical grid used behind cards — static, no animation */
+/* Subtle technical grid used behind cards: static, no animation */
 .rp-grid-bg {
   background-image:
     linear-gradient(to right, color-mix(in oklab, var(--border) 35%, transparent) 1px, transparent 1px),
@@ -810,43 +842,297 @@ html.rp-theme-fade *::after {
   }
 }
 
-/* Fixed dark-surface palette for the home and traveller pages. These pages are
-   always dark, so the tones do not change with the theme. Pages reference the
-   tokens; raw hex values live only here. */
+/* Colour tokens for the home, traveller, map and help pages. The dark values
+   are the original palette. Light values are the lightness-inverted pair, so
+   every page flips with the theme. Raw colour literals live only here. */
 :root {
+  --tone-shadow: #111719;
   --tone-mask-opaque: #000;
+  --tone-0069a6: #7ab9de;
+  --tone-00c98b: #5ed7b2;
+  --tone-020c12: #eff7fb;
+  --tone-020d14: #edf5fb;
+  --tone-020f16: #ecf5fa;
+  --tone-02111a: #e9f3f9;
+  --tone-030d13: #edf6fb;
+  --tone-030f16: #ebf4fa;
+  --tone-031018: #e9f3fa;
+  --tone-031119: #e9f3f9;
+  --tone-03111a: #e8f2f9;
+  --tone-03121b: #e7f2f9;
+  --tone-03131c: #e6f2f9;
+  --tone-03141d: #e5f2f9;
+  --tone-041119: #e8f3f9;
+  --tone-04111a: #e7f2f9;
+  --tone-04131b: #e6f2f9;
+  --tone-041822: #e1f0f7;
+  --tone-05141d: #e4f1f8;
+  --tone-051721: #e1eff7;
+  --tone-051822: #e0eff7;
+  --tone-06141d: #e3f0f8;
+  --tone-061821: #e0eff7;
+  --tone-061822: #dfeef7;
+  --tone-07151f: #e1eef7;
+  --tone-071b25: #dcedf6;
+  --tone-071c26: #dbedf6;
+  --tone-081b25: #dbedf6;
+  --tone-081e29: #d8ebf5;
+  --tone-086caa: #71b3db;
+  --tone-087ccb: #56a2d5;
+  --tone-09202b: #d5ebf5;
+  --tone-0a1e29: #d6eaf5;
+  --tone-0a202b: #d5eaf4;
+  --tone-0a2f3e: #c5e4f1;
+  --tone-0a91e9: #3d95ce;
+  --tone-0b2531: #cfe8f3;
+  --tone-0b2c3b: #c7e4f1;
+  --tone-0b5cad: #6ca3da;
+  --tone-0b6db4: #66a9d9;
+  --tone-0c202c: #d3e7f3;
+  --tone-0d2532: #cde5f2;
+  --tone-0d2734: #cbe5f2;
+  --tone-111719: #e6ecee;
+  --tone-122e3c: #c3dfed;
+  --tone-1592e9: #348ecc;
+  --tone-168de0: #3a91ce;
+  --tone-168de1: #3990ce;
+  --tone-168fe0: #3a93ce;
+  --tone-17313e: #c1dbe8;
+  --tone-1796ff: #2e7bba;
+  --tone-18aaff: #2e86b9;
+  --tone-19313e: #c1d9e6;
+  --tone-193644: #bbd8e6;
+  --tone-194459: #a6d1e6;
+  --tone-19475e: #a1cfe6;
+  --tone-1a4357: #a8d1e5;
+  --tone-1b4559: #a6d0e4;
+  --tone-1d9bf0: #3087c1;
+  --tone-1e3c4a: #b5d3e1;
+  --tone-203946: #b9d2df;
+  --tone-203c4a: #b5d1df;
+  --tone-21495c: #a3cbde;
+  --tone-23536d: #92c2dc;
+  --tone-239eff: #2c76b0;
+  --tone-244253: #accadb;
+  --tone-244554: #abccdb;
+  --tone-254b5f: #a0c6da;
+  --tone-264c5e: #a1c7d9;
+  --tone-2767ab: #5794d5;
+  --tone-294451: #aec9d6;
+  --tone-294c5b: #a4c7d6;
+  --tone-29566d: #92bfd6;
+  --tone-2a5367: #98c1d5;
+  --tone-2b5366: #99c1d4;
+  --tone-2c5568: #97c0d3;
+  --tone-31a8ff: #2971a5;
+  --tone-338df2: #2b69ae;
+  --tone-36adff: #2870a1;
+  --tone-392816: #e9d8c6;
+  --tone-416981: #7ea6be;
+  --tone-426170: #8faebd;
+  --tone-426477: #88aabd;
+  --tone-429bd0: #2f88bd;
+  --tone-4381a1: #5e9cbc;
+  --tone-47b8ff: #256993;
+  --tone-54baff: #225f89;
+  --tone-597786: #7997a6;
+  --tone-63baff: #1f537d;
+  --tone-678999: #668898;
+  --tone-73caff: #1c5070;
+  --tone-78a7c7: #386787;
+  --tone-7ea0b2: #4d6f81;
+  --tone-84bddd: #225b7b;
+  --tone-86caff: #184161;
+  --tone-899da7: #586c76;
+  --tone-8bd1ff: #17415d;
+  --tone-91a5b0: #4f636e;
+  --tone-91a6b1: #4e636e;
+  --tone-91aebd: #425f6e;
+  --tone-93a6b1: #4e616c;
+  --tone-97a5ae: #515f68;
+  --tone-98aab5: #4a5c67;
+  --tone-9aaeb9: #465a65;
+  --tone-9c83ff: #281963;
+  --tone-9db2bd: #425762;
+  --tone-9eb2be: #415561;
+  --tone-9eb4be: #415761;
+  --tone-9eb4bf: #405661;
+  --tone-9ed5ff: #13344e;
+  --tone-9fb3bd: #425660;
+  --tone-a64d19: #d99066;
+  --tone-a6ddff: #123347;
+  --tone-a7bac5: #3a4d58;
+  --tone-a8bac3: #3c4e57;
+  --tone-a8bdc7: #384d57;
+  --tone-a9bac2: #3d4e56;
+  --tone-a9bac4: #3b4c56;
+  --tone-a9bbc4: #3b4d56;
+  --tone-a9c5d5: #2a4656;
+  --tone-aebfc8: #374851;
+  --tone-b5c3cc: #33414a;
+  --tone-b7c1c8: #374148;
+  --tone-b7c5cc: #334148;
+  --tone-b7c8d0: #2f4048;
+  --tone-b7c8d2: #2d3e48;
+  --tone-b8c5cc: #334047;
+  --tone-b9c9cf: #304046;
+  --tone-becbd1: #2e3b41;
+  --tone-bed0d8: #273941;
+  --tone-bfccd3: #2c3940;
+  --tone-c1cbd0: #2f393e;
+  --tone-c1cdd4: #2b373e;
+  --tone-c1d0d6: #29383e;
+  --tone-c1d0d8: #27363e;
+  --tone-c1d1d8: #27373e;
+  --tone-c2cdd2: #2d383d;
+  --tone-c2ced3: #2c383d;
+  --tone-c3d0d6: #29363c;
+  --tone-c5dbe6: #192f3a;
+  --tone-c8e3f0: #0f2a37;
+  --tone-d1dce2: #1d282e;
+  --tone-d4e0e5: #1a262b;
+  --tone-d5e0e5: #1a252a;
+  --tone-d7dce0: #1f2428;
+  --tone-d7e0e4: #1b2428;
+  --tone-d7e2e7: #182328;
+  --tone-d7e8f4: #0b1c28;
+  --tone-d7ecff: #081520;
+  --tone-d8e7ed: #122127;
+  --tone-dce5e8: #172023;
+  --tone-dce5eb: #141d23;
+  --tone-e0e7e9: #161d1f;
+  --tone-e0e8eb: #141c1f;
+  --tone-e0e8ed: #121a1f;
+  --tone-e1e6e7: #181d1e;
+  --tone-e1e6e9: #161b1e;
+  --tone-e1e9ed: #121a1e;
+  --tone-e45b31: #ba4f2f;
+  --tone-e6e4dc: #232119;
+  --tone-e6e9e9: #161919;
+  --tone-e6edf1: #0e1519;
+  --tone-e8ecec: #131717;
+  --tone-eb5b38: #af452c;
+  --tone-ed5350: #9a2927;
+  --tone-f07a00: #cf883f;
+  --tone-f0e2d3: #2c1e0f;
+  --tone-f0eee8: #17150f;
+  --tone-f0f1ef: #0f100e;
+  --tone-f0f3f5: #0a0d0f;
+  --tone-f1f3f3: #0c0e0e;
+  --tone-f26464: #862222;
+  --tone-f2a22f: #b17a2c;
+  --tone-f2efe7: #18150d;
+  --tone-f2f5f5: #0a0d0d;
+  --tone-f3f1e9: #16140c;
+  --tone-f5f2e9: #16130a;
+  --tone-ff6a30: #a64c29;
+  --tone-ff8a43: #965026;
+  --tone-ffad9a: #512014;
+  --tone-ffae35: #a27128;
+  --tone-ffbd55: #886022;
+  --tone-ffdfa8: #463211;
+  --tone-fff1e8: #120a05;
+  --tone-ffffff: #000000;
+}
+
+.dark {
+  /* Photo overlays (dark theme): deep navy gradient, ivory text. */
+  --photo-scrim-a: rgb(3 15 22 / 92%);
+  --photo-scrim-b: rgb(3 15 22 / 74%);
+  --photo-scrim-c: rgb(3 15 22 / 40%);
+  --photo-scrim-flat: rgb(3 15 22 / 55%);
+  --photo-text: #f6f4ec;
+  --photo-text-shadow-soft: 0 1px 5px color-mix(in srgb, var(--tone-shadow) 40%, transparent);
+  --photo-text-shadow-tone: 0 1px 5px var(--tone-07151f);
+  --photo-text-muted: #d8e0e4;
+  --photo-card-bg: rgb(5 20 29 / 88%);
+  --photo-card-fg: #f6f4ec;
+  --photo-card-border: rgb(246 244 236 / 28%);
+
+  --tone-shadow: #000;
+  --tone-mask-opaque: #000;
+  --tone-0069a6: #0069a6;
+  --tone-00c98b: #00c98b;
+  --tone-020c12: #020c12;
+  --tone-020d14: #020d14;
+  --tone-020f16: #020f16;
+  --tone-02111a: #02111a;
+  --tone-030d13: #030d13;
+  --tone-030f16: #030f16;
+  --tone-031018: #031018;
   --tone-031119: #031119;
+  --tone-03111a: #03111a;
+  --tone-03121b: #03121b;
+  --tone-03131c: #03131c;
+  --tone-03141d: #03141d;
+  --tone-041119: #041119;
+  --tone-04111a: #04111a;
   --tone-04131b: #04131b;
+  --tone-041822: #041822;
+  --tone-05141d: #05141d;
+  --tone-051721: #051721;
+  --tone-051822: #051822;
+  --tone-06141d: #06141d;
   --tone-061821: #061821;
   --tone-061822: #061822;
   --tone-07151f: #07151f;
   --tone-071b25: #071b25;
   --tone-071c26: #071c26;
+  --tone-081b25: #081b25;
   --tone-081e29: #081e29;
   --tone-086caa: #086caa;
   --tone-087ccb: #087ccb;
+  --tone-09202b: #09202b;
+  --tone-0a1e29: #0a1e29;
   --tone-0a202b: #0a202b;
+  --tone-0a2f3e: #0a2f3e;
+  --tone-0a91e9: #0a91e9;
   --tone-0b2531: #0b2531;
   --tone-0b2c3b: #0b2c3b;
+  --tone-0b5cad: #0b5cad;
+  --tone-0b6db4: #0b6db4;
+  --tone-0c202c: #0c202c;
+  --tone-0d2532: #0d2532;
+  --tone-0d2734: #0d2734;
+  --tone-111719: #111719;
   --tone-122e3c: #122e3c;
   --tone-1592e9: #1592e9;
   --tone-168de0: #168de0;
+  --tone-168de1: #168de1;
+  --tone-168fe0: #168fe0;
+  --tone-17313e: #17313e;
+  --tone-1796ff: #1796ff;
+  --tone-18aaff: #18aaff;
+  --tone-19313e: #19313e;
   --tone-193644: #193644;
   --tone-194459: #194459;
   --tone-19475e: #19475e;
   --tone-1a4357: #1a4357;
   --tone-1b4559: #1b4559;
+  --tone-1d9bf0: #1d9bf0;
+  --tone-1e3c4a: #1e3c4a;
+  --tone-203946: #203946;
+  --tone-203c4a: #203c4a;
   --tone-21495c: #21495c;
   --tone-23536d: #23536d;
+  --tone-239eff: #239eff;
+  --tone-244253: #244253;
+  --tone-244554: #244554;
   --tone-254b5f: #254b5f;
+  --tone-264c5e: #264c5e;
   --tone-2767ab: #2767ab;
+  --tone-294451: #294451;
   --tone-294c5b: #294c5b;
   --tone-29566d: #29566d;
+  --tone-2a5367: #2a5367;
   --tone-2b5366: #2b5366;
+  --tone-2c5568: #2c5568;
   --tone-31a8ff: #31a8ff;
   --tone-338df2: #338df2;
   --tone-36adff: #36adff;
+  --tone-392816: #392816;
   --tone-416981: #416981;
+  --tone-426170: #426170;
   --tone-426477: #426477;
   --tone-429bd0: #429bd0;
   --tone-4381a1: #4381a1;
@@ -854,13 +1140,25 @@ html.rp-theme-fade *::after {
   --tone-54baff: #54baff;
   --tone-597786: #597786;
   --tone-63baff: #63baff;
+  --tone-678999: #678999;
+  --tone-73caff: #73caff;
   --tone-78a7c7: #78a7c7;
+  --tone-7ea0b2: #7ea0b2;
+  --tone-84bddd: #84bddd;
   --tone-86caff: #86caff;
   --tone-899da7: #899da7;
   --tone-8bd1ff: #8bd1ff;
   --tone-91a5b0: #91a5b0;
+  --tone-91a6b1: #91a6b1;
+  --tone-91aebd: #91aebd;
+  --tone-93a6b1: #93a6b1;
   --tone-97a5ae: #97a5ae;
+  --tone-98aab5: #98aab5;
+  --tone-9aaeb9: #9aaeb9;
+  --tone-9c83ff: #9c83ff;
   --tone-9db2bd: #9db2bd;
+  --tone-9eb2be: #9eb2be;
+  --tone-9eb4be: #9eb4be;
   --tone-9eb4bf: #9eb4bf;
   --tone-9ed5ff: #9ed5ff;
   --tone-9fb3bd: #9fb3bd;
@@ -870,39 +1168,244 @@ html.rp-theme-fade *::after {
   --tone-a8bac3: #a8bac3;
   --tone-a8bdc7: #a8bdc7;
   --tone-a9bac2: #a9bac2;
+  --tone-a9bac4: #a9bac4;
   --tone-a9bbc4: #a9bbc4;
+  --tone-a9c5d5: #a9c5d5;
+  --tone-aebfc8: #aebfc8;
+  --tone-b5c3cc: #b5c3cc;
   --tone-b7c1c8: #b7c1c8;
+  --tone-b7c5cc: #b7c5cc;
   --tone-b7c8d0: #b7c8d0;
+  --tone-b7c8d2: #b7c8d2;
+  --tone-b8c5cc: #b8c5cc;
   --tone-b9c9cf: #b9c9cf;
   --tone-becbd1: #becbd1;
   --tone-bed0d8: #bed0d8;
+  --tone-bfccd3: #bfccd3;
   --tone-c1cbd0: #c1cbd0;
+  --tone-c1cdd4: #c1cdd4;
   --tone-c1d0d6: #c1d0d6;
+  --tone-c1d0d8: #c1d0d8;
   --tone-c1d1d8: #c1d1d8;
   --tone-c2cdd2: #c2cdd2;
   --tone-c2ced3: #c2ced3;
   --tone-c3d0d6: #c3d0d6;
+  --tone-c5dbe6: #c5dbe6;
+  --tone-c8e3f0: #c8e3f0;
+  --tone-d1dce2: #d1dce2;
   --tone-d4e0e5: #d4e0e5;
+  --tone-d5e0e5: #d5e0e5;
   --tone-d7dce0: #d7dce0;
   --tone-d7e0e4: #d7e0e4;
   --tone-d7e2e7: #d7e2e7;
   --tone-d7e8f4: #d7e8f4;
+  --tone-d7ecff: #d7ecff;
   --tone-d8e7ed: #d8e7ed;
   --tone-dce5e8: #dce5e8;
+  --tone-dce5eb: #dce5eb;
   --tone-e0e7e9: #e0e7e9;
   --tone-e0e8eb: #e0e8eb;
+  --tone-e0e8ed: #e0e8ed;
+  --tone-e1e6e7: #e1e6e7;
   --tone-e1e6e9: #e1e6e9;
+  --tone-e1e9ed: #e1e9ed;
   --tone-e45b31: #e45b31;
+  --tone-e6e4dc: #e6e4dc;
   --tone-e6e9e9: #e6e9e9;
+  --tone-e6edf1: #e6edf1;
   --tone-e8ecec: #e8ecec;
+  --tone-eb5b38: #eb5b38;
   --tone-ed5350: #ed5350;
+  --tone-f07a00: #f07a00;
+  --tone-f0e2d3: #f0e2d3;
+  --tone-f0eee8: #f0eee8;
   --tone-f0f1ef: #f0f1ef;
+  --tone-f0f3f5: #f0f3f5;
   --tone-f1f3f3: #f1f3f3;
+  --tone-f26464: #f26464;
   --tone-f2a22f: #f2a22f;
   --tone-f2efe7: #f2efe7;
   --tone-f2f5f5: #f2f5f5;
   --tone-f3f1e9: #f3f1e9;
   --tone-f5f2e9: #f5f2e9;
+  --tone-ff6a30: #ff6a30;
   --tone-ff8a43: #ff8a43;
+  --tone-ffad9a: #ffad9a;
+  --tone-ffae35: #ffae35;
+  --tone-ffbd55: #ffbd55;
+  --tone-ffdfa8: #ffdfa8;
   --tone-fff1e8: #fff1e8;
+  --tone-ffffff: #ffffff;
+}
+
+/* Hero text follows the theme: ivory on the dark overlay, charcoal on the light one. */
+.photo-surface {
+  color: var(--photo-text);
+}
+
+/* ---------------------------------------------------------------------
+   Light theme quality pass. Token-driven; dark theme is untouched.
+   --------------------------------------------------------------------- */
+:root:not(.dark) {
+  --rp-hover-bg: color-mix(in oklab, var(--foreground) 12%, transparent);
+  --rp-selected-ring: var(--primary);
+}
+
+/* Crisp content: no frosted glass, no soft-focus text in light mode. */
+:root:not(.dark) [class*='backdrop-blur'],
+:root:not(.dark) .rp-header {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+:root:not(.dark) .rp-header {
+  background-color: var(--background);
+}
+:root:not(.dark) body {
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+}
+
+/* Placeholders keep at least 4.5:1 in both themes. */
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
+/* Visible hover, press, focus and selected states in light mode. */
+:root:not(.dark) a:not([class*='bg-']):hover,
+:root:not(.dark) button:not([class*='bg-']):not(:disabled):hover {
+  background-color: var(--rp-hover-bg);
+}
+:root:not(.dark) [role='tab'][aria-selected='true'],
+:root:not(.dark) [role='tab'][data-state='active'],
+:root:not(.dark) button[aria-pressed='true'],
+:root:not(.dark) a[aria-current='page'].rp-press {
+  box-shadow: inset 0 0 0 2px var(--rp-selected-ring);
+  font-weight: 600;
+}
+:root:not(.dark) .rp-card {
+  box-shadow: var(--shadow-1);
+}
+:root:not(.dark) .rp-interactive:not(:disabled):active,
+:root:not(.dark) .rp-press:not(:disabled):active {
+  background-color: color-mix(in oklab, var(--foreground) 20%, transparent);
+}
+:root:not(.dark) :focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px color-mix(in oklab, var(--brand-orange) 55%, transparent);
+}
+
+.rp-header .rp-container {
+  max-width: 90rem;
+}
+
+/* Language switch: the focus ring follows the pill and sits inside it, so it
+   never spills over the neighbouring links or becomes a circle over the label. */
+.rp-lang .rp-lang-btn:focus-visible,
+:root:not(.dark) .rp-lang .rp-lang-btn:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
+  box-shadow: none;
+}
+
+/* Toasts sit on the scale, not at sonner's built-in huge value. */
+[data-sonner-toaster] {
+  z-index: var(--z-toast) !important;
+}
+
+/* Map containers form their own stacking context: Leaflet panes, controls,
+   legend and the detail panel can never rise above the header, bottom nav,
+   sheet or dialog. */
+.rp-lmap,
+.rp-map-page,
+.rp-map-main,
+:has(> .traveller-map-toggle) {
+  isolation: isolate;
+}
+
+/* Start screen: in the server HTML, revealed only if loading takes over 300ms. */
+.rp-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: var(--background);
+  color: var(--foreground);
+  opacity: 0;
+  visibility: hidden;
+  animation: rp-boot-reveal 0s linear 300ms forwards;
+}
+.rp-boot[data-state='error'] {
+  opacity: 1;
+  visibility: visible;
+  animation: none;
+}
+.rp-boot-body {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  width: min(16rem, 100%);
+  text-align: center;
+}
+.rp-boot-error {
+  width: min(24rem, 100%);
+}
+.rp-boot-logo {
+  animation: rp-boot-pulse 1.8s ease-in-out infinite;
+}
+.rp-boot-title {
+  font-weight: 600;
+}
+.rp-boot-reload {
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+}
+@keyframes rp-boot-reveal {
+  to {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+@keyframes rp-boot-pulse {
+  50% {
+    opacity: 0.6;
+    transform: scale(0.97);
+  }
+}
+.rp-route-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9998;
+  height: 3px;
+  background: var(--brand-orange);
+  transform-origin: left;
+  animation: rp-route-progress 1.2s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rp-route-progress {
+  from {
+    transform: scaleX(0.05);
+  }
+  to {
+    transform: scaleX(0.9);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rp-boot-logo {
+    animation: none;
+  }
+  .rp-route-progress {
+    animation: none;
+    transform: none;
+  }
 }

@@ -53,7 +53,7 @@ function AdvisoriesPage() {
 
   return (
     <div className="advisories-list-page pb-8">
-      <header className="advisories-list-banner">
+      <header className="advisories-list-banner photo-surface">
         <div className="rp-container py-8 md:py-12">
           <p className="mb-2 inline-flex items-center gap-2 text-sm font-semibold tracking-widest text-blue-on-dark uppercase">
             <span aria-hidden className="h-0.5 w-7 bg-brand-orange" />

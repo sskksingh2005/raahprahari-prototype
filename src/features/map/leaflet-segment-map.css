@@ -12,7 +12,7 @@
 
 .rp-lmap {
   overflow: hidden;
-  background: #0b2531;
+  background: var(--tone-0b2531);
 }
 
 /* Fill the nearest positioned parent. Plain CSS on purpose: unlayered styles
@@ -28,8 +28,8 @@
 .rp-lmap-canvas {
   position: absolute;
   inset: 0;
-  z-index: 0;
-  background: #0b2531;
+  z-index: var(--z-map);
+  background: var(--tone-0b2531);
   font: inherit;
 }
 
@@ -52,7 +52,7 @@
 .rp-lmap-line.level-do_not_travel { stroke: var(--status-dnt); }
 .rp-lmap-line.level-unknown { stroke: var(--status-unknown); }
 .rp-lmap-line.is-dim { stroke-opacity: 0.35; }
-.rp-lmap-line.is-selected { stroke-opacity: 1; filter: drop-shadow(0 0 3px #fff); }
+.rp-lmap-line.is-selected { stroke-opacity: 1; filter: drop-shadow(0 0 3px var(--tone-ffffff)); }
 .rp-lmap-line.is-closure { stroke-opacity: 1; }
 
 /* Markers */
@@ -70,10 +70,10 @@
   width: 28px;
   height: 28px;
   place-items: center;
-  border: 2px solid #fff;
+  border: 2px solid var(--tone-ffffff);
   border-radius: 999px;
-  background: #111719;
-  box-shadow: 0 1px 4px rgb(0 0 0 / 45%);
+  background: var(--tone-111719);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--tone-shadow) 45%, transparent);
   cursor: pointer;
 }
 
@@ -98,16 +98,16 @@
 }
 
 .rp-lmap-you {
-  fill: #1d9bf0;
+  fill: var(--tone-1d9bf0);
   fill-opacity: 0.9;
-  stroke: #fff;
+  stroke: var(--tone-ffffff);
   stroke-width: 3;
 }
 
 /* Overlay controls */
 .rp-lmap-tools {
   position: absolute;
-  z-index: 500;
+  z-index: var(--z-map-controls);
   top: 10px;
   right: 10px;
   display: grid;
@@ -119,36 +119,36 @@
   width: 44px;
   height: 44px;
   place-items: center;
-  border: 1px solid #2c5568;
+  border: 1px solid var(--tone-2c5568);
   border-radius: 8px;
-  color: #e6e4dc;
-  background: rgb(7 21 31 / 92%);
+  color: var(--tone-e6e4dc);
+  background: color-mix(in srgb, var(--tone-07151f) 92%, transparent);
   cursor: pointer;
 }
 
-.rp-lmap-tools button:hover:not(:disabled) { background: #17313e; }
+.rp-lmap-tools button:hover:not(:disabled) { background: var(--tone-17313e); }
 .rp-lmap-tools button:disabled { cursor: not-allowed; opacity: 0.5; }
 .rp-lmap-tools button:focus-visible { outline: 3px solid var(--ring); outline-offset: 1px; }
 .rp-lmap-tools svg { width: 18px; height: 18px; }
 
 .rp-lmap-status {
   position: absolute;
-  z-index: 500;
+  z-index: var(--z-map-controls);
   bottom: 28px;
   left: 8px;
   max-width: min(22rem, calc(100% - 80px));
   margin: 0;
   padding: 6px 10px;
   border-radius: 8px;
-  color: #e6e4dc;
-  background: rgb(7 21 31 / 92%);
+  color: var(--tone-e6e4dc);
+  background: color-mix(in srgb, var(--tone-07151f) 92%, transparent);
   font-size: 12px;
 }
 
 /* Below the top-left Map/List toggle that most pages place over the map. */
 .rp-lmap-labels {
   position: absolute;
-  z-index: 500;
+  z-index: var(--z-map-controls);
   top: 3.4rem;
   left: 8px;
   display: flex;
@@ -162,27 +162,27 @@
 .rp-lmap-note {
   padding: 2px 8px;
   border-radius: 999px;
-  color: #e6e4dc;
-  background: rgb(7 21 31 / 88%);
+  color: var(--tone-e6e4dc);
+  background: color-mix(in srgb, var(--tone-07151f) 88%, transparent);
   font-size: 11px;
 }
 
 /* Leaflet chrome on the dark theme */
 .rp-lmap .leaflet-control-attribution {
-  color: #111719;
-  background: rgb(255 255 255 / 85%);
+  color: var(--tone-111719);
+  background: color-mix(in srgb, var(--tone-ffffff) 85%, transparent);
   font-size: 11px;
 }
 
-.rp-lmap .leaflet-control-attribution a { color: #0b5cad; }
+.rp-lmap .leaflet-control-attribution a { color: var(--tone-0b5cad); }
 
 /* Legend */
 .rp-lmap-legend {
   padding: 10px 12px;
-  border: 1px solid rgb(126 160 178 / 30%);
+  border: 1px solid color-mix(in srgb, var(--tone-7ea0b2) 30%, transparent);
   border-radius: 10px;
-  color: #e6e4dc;
-  background: rgb(7 21 31 / 94%);
+  color: var(--tone-e6e4dc);
+  background: color-mix(in srgb, var(--tone-07151f) 94%, transparent);
   font-size: 12px;
 }
 

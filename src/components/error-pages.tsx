@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { Logo } from "@/components/logo";
 import { PageBanner } from "@/components/page-banner";
 import { Button } from "@/components/ui/button";
 import { PrototypeRibbon } from "@/components/prototype-ribbon";
@@ -21,6 +22,7 @@ export function NotFoundPage() {
         title="This page could not be found"
       />
       <div className="rp-info-container rp-info-content">
+        <Logo variant="full" className="mb-5 max-w-[11rem]" />
         <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
           The address may be incorrect or the page may have moved. Choose one of
           these routes to continue.

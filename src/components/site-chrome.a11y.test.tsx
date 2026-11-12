@@ -55,7 +55,8 @@ describe("mobile navigation keyboard accessibility", () => {
     await user.keyboard("{Enter}");
 
     const dialog = await screen.findByRole("dialog");
-    const firstLink = within(dialog).getByRole("link", { name: "Home" });
+    // The menu now starts with the logo link, so it is the first tab stop.
+    const firstLink = within(dialog).getByRole("link", { name: "RaahPrahari home" });
     const closeButton = within(dialog).getByRole("button", { name: "Close" });
     await waitFor(() =>
       expect(dialog).toContainElement(document.activeElement as HTMLElement),

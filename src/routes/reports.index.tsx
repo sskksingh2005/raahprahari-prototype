@@ -45,7 +45,7 @@ function ReportsIndexPage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-12">
         <h1 className="font-display text-3xl">My Reports</h1>
-        <p className="mt-3 text-red-400">{error}</p>
+        <p className="mt-3 text-destructive">{error}</p>
       </div>
     );
   }

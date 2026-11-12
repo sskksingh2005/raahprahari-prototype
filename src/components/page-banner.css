@@ -8,7 +8,7 @@
 
 .dark .rp-info-page {
   background:
-    radial-gradient(ellipse at 82% 55%, rgb(10 47 62 / 28%), transparent 42%),
+    radial-gradient(ellipse at 82% 55%, color-mix(in srgb, var(--tone-0a2f3e) 28%, transparent), transparent 42%),
     var(--background);
 }
 
@@ -21,14 +21,9 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-bottom: 1px solid rgb(145 174 189 / 20%);
+  border-bottom: 1px solid color-mix(in srgb, var(--tone-91aebd) 20%, transparent);
   background:
-    linear-gradient(
-      90deg,
-      rgb(2 15 22 / 96%),
-      rgb(2 17 26 / 83%) 58%,
-      rgb(2 17 26 / 56%)
-    ),
+    linear-gradient(90deg, var(--photo-scrim-a), var(--photo-scrim-b) 58%, var(--photo-scrim-c)),
     url("/img/banner-strip.png") center 53% / cover;
 }
 
@@ -45,7 +40,7 @@
   align-items: center;
   gap: 0.55rem;
   margin: 0 0 0.65rem;
-  color: #d7ecff;
+  color: var(--tone-d7ecff);
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.13em;
@@ -55,13 +50,13 @@
 .rp-info-eyebrow span {
   width: 1.75rem;
   height: 2px;
-  background: #eb5b38;
+  background: var(--tone-eb5b38);
 }
 
 .rp-info-banner h1 {
   max-width: 44rem;
   margin: 0;
-  color: #f0eee8;
+  color: var(--tone-f0eee8);
   font-family: var(--font-heading);
   font-size: clamp(2rem, 4vw, 2.85rem);
   font-style: italic;
@@ -72,7 +67,7 @@
 .rp-info-banner-description {
   max-width: 48rem;
   margin: 0.75rem 0 0;
-  color: #d1dce2;
+  color: var(--tone-d1dce2);
   font-size: 0.95rem;
   line-height: 1.55;
 }
@@ -182,7 +177,7 @@
 }
 
 .dark .rp-contact-error {
-  color: #ffad9a;
+  color: var(--tone-ffad9a);
 }
 
 .rp-contact-notice,

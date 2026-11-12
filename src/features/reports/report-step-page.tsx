@@ -636,10 +636,10 @@ export function ReportStepPage({
   return (
     <div className="min-h-full overflow-x-clip">
       <section
-        className="relative border-b border-border bg-card bg-cover bg-center"
+        className="photo-surface relative border-b border-border bg-card bg-cover bg-center"
         style={{
           backgroundImage:
-            "linear-gradient(90deg, rgb(7 21 31 / 94%), rgb(7 21 31 / 65%)), url('/img/banner-strip.png')",
+            "linear-gradient(90deg, var(--photo-scrim-a), var(--photo-scrim-b) 60%, var(--photo-scrim-c)), url('/img/banner-strip.png')",
         }}
       >
         <div className="rp-container relative py-6 sm:py-8">
@@ -670,7 +670,7 @@ export function ReportStepPage({
                     <span
                       className={`flex size-8 items-center justify-center rounded-full border text-xs font-semibold ${
                         active
-                          ? "border-brand-orange bg-brand-orange text-[#111719]"
+                          ? "border-brand-orange bg-brand-orange text-report-foreground"
                           : complete
                             ? "border-brand-orange text-brand-orange"
                             : "border-border text-muted-foreground"
@@ -1169,7 +1169,7 @@ export function ReportStepPage({
                     <ul
                       role="listbox"
                       aria-label="Matching places and roads"
-                      className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-border bg-popover p-1 shadow-lg"
+                      className="absolute z-(--z-content) mt-1 max-h-60 w-full overflow-auto rounded-xl border border-border bg-popover p-1 shadow-lg"
                     >
                       {matchingOptions.map((option) => (
                         <li
@@ -1215,7 +1215,7 @@ export function ReportStepPage({
                       />
                       <div
                         aria-hidden
-                        className="absolute inset-0 bg-slate-950/25"
+                        className="absolute inset-0 bg-scrim/50"
                       />
                       <button
                         type="button"
@@ -1637,10 +1637,10 @@ function ReceivedReport({
 
   return (
     <div
-      className="relative flex min-h-[70svh] items-center justify-center overflow-hidden bg-cover bg-center px-4 py-10"
+      className="photo-surface relative flex min-h-[70svh] items-center justify-center overflow-hidden bg-cover bg-center px-4 py-10"
       style={{
         backgroundImage:
-          "linear-gradient(90deg, rgb(7 21 31 / 90%), rgb(7 21 31 / 60%)), url('/img/hero-mountain.png')",
+          "linear-gradient(90deg, var(--photo-scrim-a), var(--photo-scrim-b) 60%, var(--photo-scrim-c)), url('/img/hero-mountain.png')",
       }}
     >
       <section

@@ -107,7 +107,7 @@ export function PlaceInput({
           id={listId}
           role="listbox"
           aria-label={label}
-          className="absolute z-30 mt-1.5 max-h-72 w-full overflow-auto rounded-xl border border-border bg-popover p-1 shadow-xl"
+          className="absolute z-(--z-content) mt-1.5 max-h-72 w-full overflow-auto rounded-xl border border-border bg-popover p-1 shadow-xl"
         >
           {matches.length === 0 ? (
             <li className="px-3 py-3 text-sm text-muted-foreground">{t('search.noMatch')}</li>

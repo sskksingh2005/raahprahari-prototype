@@ -490,11 +490,14 @@ describe("item 4: web app manifest, no service worker", () => {
       unknown
     >;
 
-  it("has the required fields and uses the existing favicon", () => {
+  it("has the required fields and uses the PNG app icons", () => {
     const m = manifest();
     expect(m.name).toBe("RaahPrahari");
     expect(m.display).toBe("standalone");
-    expect(m.icons).toEqual([expect.objectContaining({ src: "/favicon.ico" })]);
+    expect(m.icons).toEqual([
+      expect.objectContaining({ src: "/icon-192.png", sizes: "192x192" }),
+      expect.objectContaining({ src: "/icon-512.png", sizes: "512x512" }),
+    ]);
   });
 
   it("takes its theme and background colours from the dark background token", () => {

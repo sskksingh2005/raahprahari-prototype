@@ -121,7 +121,7 @@ export function BackToTop() {
       tabIndex={visible ? 0 : -1}
       aria-hidden={visible ? undefined : true}
       data-visible={visible}
-      className="rp-fab fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-3 z-40 rounded-full border border-border shadow-lg xl:bottom-4"
+      className="rp-fab fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-3 z-(--z-bottom-nav) rounded-full border border-border shadow-lg xl:bottom-4"
       onClick={() => window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })}
     >
       <ArrowUp />

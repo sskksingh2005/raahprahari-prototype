@@ -113,10 +113,10 @@ export function Banner({
   const { place } = usePrefs()
   return (
     <header
-      className="relative isolate overflow-hidden border-b border-border bg-[#07151f] text-text-on-charcoal"
+      className="photo-surface relative isolate overflow-hidden border-b border-border bg-card text-foreground"
       style={{
         backgroundImage:
-          "linear-gradient(90deg, rgb(5 18 27 / 88%), rgb(5 18 27 / 44%)), url('/img/banner-strip.png')",
+          "linear-gradient(90deg, var(--photo-scrim-a), var(--photo-scrim-b) 60%, var(--photo-scrim-c)), url('/img/banner-strip.png')",
         backgroundPosition: 'center',
         backgroundSize: 'cover',
       }}
@@ -124,7 +124,7 @@ export function Banner({
       <div className="rp-container py-5 sm:py-7">
         <Link
           to="/advisories"
-          className="mb-3 inline-flex min-h-11 w-fit items-center gap-2 text-sm text-blue-on-dark hover:text-white focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring sm:mb-4"
+          className="mb-3 inline-flex min-h-11 w-fit items-center gap-2 text-sm text-blue-on-dark hover:text-foreground focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring sm:mb-4"
         >
           <ArrowLeft aria-hidden className="size-4" />
           Back to search
@@ -152,7 +152,7 @@ function RouteSummary({ segment }: { segment: Segment }) {
   const { duration } = usePrefs()
   return (
     <div>
-      <dl className="mt-5 grid grid-cols-1 gap-y-2 border-t border-white/15 pt-3 text-xs sm:grid-cols-3 sm:text-sm">
+      <dl className="mt-5 grid grid-cols-1 gap-y-2 border-t border-border pt-3 text-xs sm:grid-cols-3 sm:text-sm">
         <SummaryItem icon={RouteIcon} label={`${segment.distanceKm} km`} />
         <SummaryItem
           icon={Clock3}
@@ -175,7 +175,7 @@ function SummaryItem({
   label: string
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-2 sm:border-r sm:border-white/20 sm:px-3 sm:first:pl-0 sm:last:border-0 sm:last:pr-0">
+    <div className="flex min-w-0 items-center gap-2 sm:border-r sm:border-border sm:px-3 sm:first:pl-0 sm:last:border-0 sm:last:pr-0">
       <Icon aria-hidden className="size-4 shrink-0 text-blue-on-dark" />
       <dt className="sr-only">Illustrative route estimate</dt>
       <dd>
@@ -337,7 +337,7 @@ function SegmentOverview({ segment }: { segment: Segment }) {
                 </Button>
                 <Button
                   asChild
-                  className="bg-brand-orange text-[#111719] hover:bg-brand-orange/90"
+                  className="bg-brand-orange text-report-foreground hover:bg-brand-orange/90"
                 >
                   <Link to="/report" search={{ segment: segment.id }}>
                     <TriangleAlert aria-hidden />
@@ -530,7 +530,7 @@ function TerrainPanel({
       className="min-w-0 lg:sticky lg:top-20 lg:self-start"
       aria-label="Route map and community reports"
     >
-      <div className="relative min-h-[360px] overflow-hidden rounded-xl border border-border bg-[#0b2531] sm:min-h-[440px] lg:min-h-[510px]">
+      <div className="relative isolate min-h-[360px] overflow-hidden rounded-xl border border-border bg-muted sm:min-h-[440px] lg:min-h-[510px]">
         {view === 'map' ? (
           <LeafletSegmentMap
             segments={corridorSegments}
@@ -549,7 +549,7 @@ function TerrainPanel({
             className="rp-lmap-fill"
           />
         ) : (
-          <div className="relative z-10 h-full min-h-[360px] overflow-y-auto bg-background/95 p-4 pt-14 sm:min-h-[440px] lg:min-h-[510px]">
+          <div className="relative z-(--z-map) h-full min-h-[360px] overflow-y-auto bg-background/95 p-4 pt-14 sm:min-h-[440px] lg:min-h-[510px]">
             {mapUnavailable && (
               <p role="status" className="mb-3 rounded-lg border border-status-caution/60 bg-status-caution/10 p-2 text-xs">
                 The map tiles could not be loaded. Showing the community reports list instead.
@@ -588,7 +588,7 @@ function TerrainPanel({
           </div>
         )}
 
-        <div ref={toggleRef} className="rp-segmented absolute top-3 left-3 z-[600] inline-flex rounded-lg border border-white/20 bg-[#07151f]/85 p-1">
+        <div ref={toggleRef} className="rp-segmented absolute top-3 left-3 z-(--z-map-controls) inline-flex rounded-lg border border-border bg-card/90 p-1">
           <button
             type="button"
             aria-pressed={view === 'map'}
@@ -598,7 +598,7 @@ function TerrainPanel({
               'inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs disabled:opacity-50',
               view === 'map'
                 ? 'bg-primary text-primary-foreground'
-                : 'text-white/75 hover:text-white',
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
             <MapIcon aria-hidden className="size-3.5" /> Map
@@ -611,7 +611,7 @@ function TerrainPanel({
               'inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs',
               view === 'list'
                 ? 'bg-primary text-primary-foreground'
-                : 'text-white/75 hover:text-white',
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
             <List aria-hidden className="size-3.5" /> List
@@ -713,7 +713,7 @@ function HazardDetail({
             </Button>
             <Button
               asChild
-              className="bg-brand-orange text-[#111719] hover:bg-brand-orange/90"
+              className="bg-brand-orange text-report-foreground hover:bg-brand-orange/90"
             >
               <Link to="/report" search={{ segment: segment.id }}>
                 <TriangleAlert aria-hidden /> Report an update

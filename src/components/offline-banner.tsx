@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, Info, Wifi, WifiOff } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, Info, Wifi, WifiOff, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -123,72 +123,87 @@ export function OfflineBannerView({
   const infoText =
     "Information shown here may be old or incomplete. Always check official sources before travelling.";
 
+  const [expanded, setExpanded] = useState(false);
+  const detailsId = "offline-banner-details";
   const banner = (
     <div
       className={cn(
-        "border-b border-border/80",
+        "border-b border-border text-foreground",
         tone === "warning"
-          ? "bg-amber-100/60 text-amber-950 dark:bg-amber-500/10 dark:text-amber-100"
-          : "bg-blue-100/70 text-blue-950 dark:bg-blue-500/10 dark:text-blue-100",
+          ? "bg-action-caution/15"
+          : "bg-action-info/10",
       )}
       aria-live="polite"
     >
-      <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="mt-0.5 shrink-0">
-            {tone === "warning" ? (
-              <AlertTriangle aria-hidden className="size-4" />
-            ) : (
-              <Info aria-hidden className="size-4" />
-            )}
-          </div>
-          <div className="min-w-0 space-y-1">
-            <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
-              {online === "offline" ? (
-                <WifiOff aria-hidden className="size-4" />
-              ) : online === "unknown" ? (
-                <Wifi aria-hidden className="size-4" />
-              ) : (
-                <CheckCircle2 aria-hidden className="size-4" />
-              )}
-              <span>{networkLabel}</span>
-              <span className="text-xs font-normal opacity-80">{lastSyncText}</span>
-            </div>
-            <div className="text-sm opacity-90">
-              <span>{t("offline.lastSync")}</span>: {lastSuccessfulSyncAt === null ? t("offline.notSynced") : stamp(lastSuccessfulSyncAt)}
-            </div>
-            <div className="text-sm opacity-90">
+      <div className="mx-auto max-w-7xl px-4 py-1 sm:px-6">
+        <div className="flex min-h-8 items-center gap-2 text-xs">
+          {tone === "warning" ? (
+            <AlertTriangle aria-hidden className="size-3.5 shrink-0" />
+          ) : (
+            <Info aria-hidden className="size-3.5 shrink-0" />
+          )}
+          {online === "offline" ? (
+            <WifiOff aria-hidden className="size-3.5 shrink-0" />
+          ) : online === "unknown" ? (
+            <Wifi aria-hidden className="size-3.5 shrink-0" />
+          ) : (
+            <CheckCircle2 aria-hidden className="size-3.5 shrink-0" />
+          )}
+          <p className="min-w-0 flex-1 truncate">
+            <span className="font-medium">{networkLabel}</span>
+            <span className="text-muted-foreground"> · {lastSyncText} · </span>
+            <span>
               {t("offline.pending")}: {totalPending}
-            </div>
-            <p className="text-sm opacity-90">{infoText}</p>
-            {!appCached ? <p className="text-xs opacity-80">{t("offline.cachedWarning")}</p> : null}
-            {totalPending > 0 ? (
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <Link to="/reports" className="text-sm font-medium underline underline-offset-4">
-                  {t("offline.viewReports")}
-                </Link>
-                <Button asChild size="sm" variant="secondary" className="h-8 rounded-full">
-                  <Link to="/reports">{t("sync.now")}</Link>
-                </Button>
-              </div>
-            ) : null}
-          </div>
-        </div>
-        {onDismiss && tone === "info" ? (
+            </span>
+          </p>
           <button
             type="button"
-            className="self-start rounded-md border border-current/20 px-2 py-1 text-xs font-medium"
-            onClick={onDismiss}
-            aria-label="Dismiss banner"
+            className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-md px-2 font-medium underline-offset-4 hover:underline"
+            aria-expanded={expanded}
+            aria-controls={detailsId}
+            onClick={() => setExpanded((v) => !v)}
           >
-            Dismiss
+            {expanded ? (
+              <ChevronUp aria-hidden className="size-3.5" />
+            ) : (
+              <ChevronDown aria-hidden className="size-3.5" />
+            )}
+            {expanded ? "Hide details" : "Details"}
           </button>
-        ) : null}
+          {onDismiss ? (
+            <button
+              type="button"
+              className="inline-flex size-8 shrink-0 items-center justify-center rounded-md hover:bg-accent"
+              onClick={onDismiss}
+              aria-label="Dismiss banner"
+            >
+              <X aria-hidden className="size-4" />
+            </button>
+          ) : null}
+        </div>
+        <div id={detailsId} hidden={!expanded} className="space-y-1 pb-2 pl-6 text-sm">
+          <div>
+            <span>{t("offline.lastSync")}</span>: {lastSuccessfulSyncAt === null ? t("offline.notSynced") : stamp(lastSuccessfulSyncAt)}
+          </div>
+          <div>
+            {t("offline.pending")}: {totalPending}
+          </div>
+          <p>{infoText}</p>
+          {!appCached ? <p className="text-xs text-muted-foreground">{t("offline.cachedWarning")}</p> : null}
+          {totalPending > 0 ? (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Link to="/reports" className="text-sm font-medium underline underline-offset-4">
+                {t("offline.viewReports")}
+              </Link>
+              <Button asChild size="sm" variant="secondary" className="h-8 rounded-full">
+                <Link to="/reports">{t("sync.now")}</Link>
+              </Button>
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
-  );
-
-  return banner;
+  );  return banner;
 }
 
 export function OfflineBanner() {
@@ -196,17 +211,11 @@ export function OfflineBanner() {
   const syncState = useSyncState();
   const { appCached } = useOfflineReadiness();
   const { pending, failed } = useUnsyncedCounts();
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissedKey, setDismissedKey] = useState<string | null>(null);
   const lastSuccessfulSyncAt = syncState.lastSuccessfulSyncAt;
 
-  if (
-    dismissed &&
-    online === "online" &&
-    pending + failed === 0 &&
-    !syncState.lastResult
-  ) {
-    return null;
-  }
+  const situationKey = `${online}:${pending + failed}:${syncState.lastResult?.message ?? ""}`;
+  if (dismissedKey === situationKey) return null;
 
   const shouldShow =
     online !== "online" ||
@@ -227,11 +236,7 @@ export function OfflineBanner() {
       failedCount={failed}
       appCached={appCached}
       syncResultMessage={syncState.lastResult?.message}
-      onDismiss={
-        pending + failed === 0 && syncState.lastResult === null
-          ? () => setDismissed(true)
-          : undefined
-      }
+      onDismiss={() => setDismissedKey(situationKey)}
     />
   );
 }

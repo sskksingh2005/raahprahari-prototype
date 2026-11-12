@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useMemo } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef } from 'react'
 import { en, hi, type TranslationKey } from '@/i18n/dictionary'
 import { placeById } from '@/data/fixtures'
-import { STORAGE_KEYS } from '@/lib/storage'
+import { readLocal, STORAGE_KEYS } from '@/lib/storage'
 import { AppStoreProvider, useAppStore, type Lang, type Theme } from '@/lib/app-store'
 const DEMO_NOW = Date.UTC(2026, 9, 15, 7, 0, 0)
 export type { Lang, Theme }
@@ -40,20 +40,29 @@ function PreferencesBridge({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = lang
   }, [lang])
 
+  const hydrated = useRef(false)
   useEffect(() => {
     const media =
       typeof window.matchMedia === 'function'
         ? window.matchMedia('(prefers-color-scheme: dark)')
         : null
+    // The store starts on its default before it has read this device, so the first pass
+    // reads the saved value directly. That keeps the theme the boot script already set.
+    let effective: Theme = theme
+    if (!hydrated.current) {
+      hydrated.current = true
+      const saved = readLocal<unknown>(STORAGE_KEYS.theme, theme)
+      if (saved === 'dark' || saved === 'light' || saved === 'system') effective = saved
+    }
     const applyTheme = () => {
       const dark =
-        theme === 'system' ? (media?.matches ?? false) : theme === 'dark'
+        effective === 'system' ? (media?.matches ?? false) : effective === 'dark'
       document.documentElement.classList.toggle('dark', dark)
       document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
     }
 
     applyTheme()
-    if (theme !== 'system' || !media) return
+    if (effective !== 'system' || !media) return
 
     media.addEventListener('change', applyTheme)
     return () => media.removeEventListener('change', applyTheme)

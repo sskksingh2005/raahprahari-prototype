@@ -365,7 +365,7 @@ function TravellerPage() {
 
   return (
     <div className="traveller-page traveller-results-page">
-      <section className="traveller-results-banner">
+      <section className="traveller-results-banner photo-surface">
         <div className="traveller-results-heading">
           <div>
             <button type="button" className="traveller-back-link" onClick={clearSearch}>

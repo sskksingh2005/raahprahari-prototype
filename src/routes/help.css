@@ -9,7 +9,7 @@
 .dark .help-page,
 .dark .help-detail-page {
   background:
-    radial-gradient(ellipse at 82% 55%, rgb(10 47 62 / 28%), transparent 42%),
+    radial-gradient(ellipse at 82% 55%, color-mix(in srgb, var(--tone-0a2f3e) 28%, transparent), transparent 42%),
     var(--background);
 }
 
@@ -28,14 +28,9 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-bottom: 1px solid rgb(145 174 189 / 20%);
+  border-bottom: 1px solid color-mix(in srgb, var(--tone-91aebd) 20%, transparent);
   background:
-    linear-gradient(
-      90deg,
-      rgb(2 15 22 / 96%),
-      rgb(2 17 26 / 83%) 58%,
-      rgb(2 17 26 / 56%)
-    ),
+    linear-gradient(90deg, var(--photo-scrim-a), var(--photo-scrim-b) 58%, var(--photo-scrim-c)),
     url("/img/banner-strip.png") center 53% / cover;
 }
 
@@ -52,7 +47,7 @@
   align-items: center;
   gap: 0.55rem;
   margin: 0 0 0.65rem;
-  color: #d7ecff;
+  color: var(--tone-d7ecff);
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.13em;
@@ -62,13 +57,13 @@
 .help-eyebrow span {
   width: 1.75rem;
   height: 2px;
-  background: #eb5b38;
+  background: var(--tone-eb5b38);
 }
 
 .help-banner h1 {
   max-width: 44rem;
   margin: 0;
-  color: #f0eee8;
+  color: var(--tone-f0eee8);
   font-family: var(--font-heading);
   font-size: clamp(2rem, 4vw, 2.85rem);
   font-style: italic;
@@ -78,7 +73,7 @@
 
 .help-banner-description {
   margin: 0.75rem 0 0;
-  color: #d1dce2;
+  color: var(--tone-d1dce2);
   font-size: 0.95rem;
 }
 
@@ -171,7 +166,7 @@
   border: 1px solid currentColor;
   border-radius: 50%;
   background: color-mix(in srgb, currentColor 14%, transparent);
-  color: #ff6a30;
+  color: var(--tone-ff6a30);
 }
 
 .help-topic-icon svg {
@@ -182,15 +177,15 @@
 
 .help-topic-icon-status,
 .help-topic-icon-map-offline {
-  color: #18aaff;
+  color: var(--tone-18aaff);
 }
 
 .help-topic-icon-freshness {
-  color: #00c98b;
+  color: var(--tone-00c98b);
 }
 
 .help-topic-icon-privacy {
-  color: #9c83ff;
+  color: var(--tone-9c83ff);
 }
 
 .help-topic-copy {
@@ -251,14 +246,14 @@
   position: relative;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid #194459;
+  border: 1px solid var(--tone-194459);
   border-radius: 0.8rem;
   background:
     linear-gradient(
       180deg,
-      rgb(4 19 27 / 54%),
-      rgb(4 19 27 / 94%) 58%,
-      #04131b
+      color-mix(in srgb, var(--tone-04131b) 54%, transparent),
+      color-mix(in srgb, var(--tone-04131b) 94%, transparent) 58%,
+      var(--tone-04131b)
     ),
     url("/img/hero-mountain.png") center 34% / cover;
 }
@@ -276,7 +271,7 @@
   align-items: center;
   gap: 0.6rem;
   margin: 0 0 0.85rem;
-  color: #ff6a30;
+  color: var(--tone-ff6a30);
   font-size: 0.67rem;
   font-weight: 700;
   letter-spacing: 0.13em;
@@ -291,7 +286,7 @@
 .help-reminder h2 {
   max-width: 20rem;
   margin: 0;
-  color: #f0eee8;
+  color: var(--tone-f0eee8);
   font-family: var(--font-heading);
   font-size: 1.15rem;
   font-style: italic;
@@ -301,7 +296,7 @@
 
 .help-reminder-body {
   margin: 0.7rem 0 0;
-  color: #e1e6e7;
+  color: var(--tone-e1e6e7);
   font-size: 0.77rem;
   line-height: 1.55;
 }
@@ -310,7 +305,7 @@
   width: 2.1rem;
   height: 2px;
   margin-top: 0.75rem;
-  background: #eb5b38;
+  background: var(--tone-eb5b38);
 }
 
 .help-reminder-items {
@@ -318,7 +313,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
   margin: auto 0 0;
-  border-top: 1px solid rgb(145 174 189 / 20%);
+  border-top: 1px solid color-mix(in srgb, var(--tone-91aebd) 20%, transparent);
   padding: 1rem 0 0;
   list-style: none;
 }
@@ -330,14 +325,14 @@
   align-items: center;
   gap: 0.45rem;
   padding-inline: 0.45rem;
-  color: #d5e0e5;
+  color: var(--tone-d5e0e5);
   font-size: 0.67rem;
   line-height: 1.35;
   text-align: center;
 }
 
 .help-reminder-items li + li {
-  border-left: 1px solid rgb(145 174 189 / 15%);
+  border-left: 1px solid color-mix(in srgb, var(--tone-91aebd) 15%, transparent);
 }
 
 .help-reminder-items svg {
@@ -438,7 +433,7 @@
 
 .help-detail-card .help-detail-caution {
   margin: 1.5rem 0 0;
-  border-left: 2px solid #eb5b38;
+  border-left: 2px solid var(--tone-eb5b38);
   padding-left: 0.9rem;
   color: var(--foreground);
 }

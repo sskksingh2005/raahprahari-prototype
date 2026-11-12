@@ -100,7 +100,7 @@ export function AdvisoryCard({
       advisory.evidence.find((r) => r.kind === "hazard") ?? report;
 
     return (
-      <article className={cn("home-advisory", className)}>
+      <article className={cn("home-advisory photo-surface", className)}>
         <Link
           to="/advisories/$segmentId"
           params={{ segmentId: segment.id }}

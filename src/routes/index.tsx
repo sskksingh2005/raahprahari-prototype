@@ -35,7 +35,7 @@ function Home() {
 
   return (
     <div className="home-page">
-      <section aria-labelledby="hero-title" className="home-hero">
+      <section aria-labelledby="hero-title" className="home-hero photo-surface">
         <img
           src="/img/hero-mountain.png"
           alt=""
