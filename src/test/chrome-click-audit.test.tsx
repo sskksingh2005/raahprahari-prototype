@@ -160,18 +160,34 @@ describe("header and bottom navigation", () => {
     expect(seen.size).toBeGreaterThan(1);
   }, 30_000);
 
-  it("Community Login opens an honest dialog and Close dismisses it", async () => {
+  it("Community Login opens the sign-in dialog and Close dismisses it", async () => {
     await mountAt("/");
-    fireEvent.click(
-      within(header()).getByRole("button", { name: "Community Login" }),
-    );
+    const trigger = within(header()).getByRole("button", {
+      name: "Community Login",
+    });
+    trigger.focus();
+    fireEvent.click(trigger);
     const dialog = await openDialog();
-    // Login is not built yet; the dialog says so instead of pretending to sign in.
-    expect(dialog).toHaveTextContent("Community login");
-    fireEvent.click(within(dialog).getByRole("button", { name: "Got it" }));
+    expect(dialog).toHaveAccessibleName("Community login");
+    expect(dialog).toHaveAccessibleDescription(
+      /Sign in with your RaahPrahari account email and password/,
+    );
+    const email = within(dialog).getByLabelText("Email");
+    const password = within(dialog).getByLabelText("Password");
+    expect(email).toHaveAttribute("type", "email");
+    expect(email).toHaveAttribute("autocomplete", "email");
+    expect(password).toHaveAttribute("type", "password");
+    expect(password).toHaveAttribute("autocomplete", "current-password");
+    expect(
+      within(dialog).getByRole("button", { name: "Sign in" }),
+    ).toHaveAttribute("type", "submit");
+    // No signed-in state is shown before Supabase returns a session.
+    expect(dialog).not.toHaveTextContent("You are signed in.");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
     await waitFor(() =>
       expect(document.querySelector('[role="dialog"]')).toBeNull(),
     );
+    await waitFor(() => expect(trigger).toHaveFocus());
   }, 30_000);
 
   it("mobile menu opens, its links navigate and it closes", async () => {
