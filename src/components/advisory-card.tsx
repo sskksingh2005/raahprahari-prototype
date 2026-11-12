@@ -78,7 +78,7 @@ export function AdvisoryCard({
             {ago(communityReport.observedAt)}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <FreshnessChip sourceTimestamp={communityReport.observedAt} />
+            <FreshnessChip observationTimestamp={communityReport.observedAt} />
             <CacheTimeLabel timestamp={cacheTimestamp} />
             <span className="text-xs text-blue-on-dark">
               Community report, not an official closure
@@ -188,7 +188,7 @@ export function AdvisoryCard({
         )}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <FreshnessChip
-            sourceTimestamp={getAdvisorySourceTimestamp(advisory)}
+            observationTimestamp={advisory.latestObservationAt}
           />
           <CacheTimeLabel timestamp={cacheTimestamp} />
           {advisory.restriction && (

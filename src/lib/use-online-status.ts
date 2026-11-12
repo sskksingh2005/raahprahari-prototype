@@ -3,10 +3,7 @@ import { useEffect, useState } from "react";
 export type OnlineStatus = "unknown" | "online" | "offline";
 
 export function useOnlineStatus(): OnlineStatus {
-  const [status, setStatus] = useState<OnlineStatus>(() => {
-    if (typeof navigator === "undefined") return "unknown";
-    return navigator.onLine ? "online" : "offline";
-  });
+  const [status, setStatus] = useState<OnlineStatus>("unknown");
 
   useEffect(() => {
     if (typeof window === "undefined") return;

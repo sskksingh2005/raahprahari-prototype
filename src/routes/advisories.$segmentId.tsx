@@ -37,29 +37,29 @@ import { useAppStore } from '@/lib/app-store'
 import type { CommunityReport, Segment } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-export const Route = createFileRoute('/advisories/$segmentId')({
+export const Route = createFileRoute("/advisories/$segmentId")({
   loader: ({ params }) => {
-    const report = reportByRef(params.segmentId)
+    const report = reportByRef(params.segmentId);
     if (report) {
-      const segment = segmentById(report.segmentId)
+      const segment = segmentById(report.segmentId);
       if (!segment)
         throw new Error(
           `Missing segment "${report.segmentId}" for report "${report.ref}"`,
-        )
-      return { kind: 'report' as const, report, segment }
+        );
+      return { kind: "report" as const, report, segment };
     }
 
-    const segment = segmentById(params.segmentId)
-    if (!segment) throw notFound()
-    return { kind: 'segment' as const, segment }
+    const segment = segmentById(params.segmentId);
+    if (!segment) throw notFound();
+    return { kind: "segment" as const, segment };
   },
   head: ({ loaderData }) => ({
     meta: [
       {
         title:
-          loaderData?.kind === 'report'
+          loaderData?.kind === "report"
             ? `${loaderData.report.ref} · RaahPrahari`
-            : `${loaderData?.segment.code ?? 'Road details'} · RaahPrahari`,
+            : `${loaderData?.segment.code ?? "Road details"} · RaahPrahari`,
       },
     ],
   }),
@@ -69,7 +69,7 @@ export const Route = createFileRoute('/advisories/$segmentId')({
   errorComponent: RouteErrorPage,
   notFoundComponent: DetailNotFound,
   component: SegmentPage,
-})
+});
 
 function DetailNotFound() {
   return (
@@ -90,15 +90,15 @@ function DetailNotFound() {
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
 function SegmentPage() {
-  const data = Route.useLoaderData()
-  if (data.kind === 'report') {
-    return <HazardDetail report={data.report} segment={data.segment} />
+  const data = Route.useLoaderData();
+  if (data.kind === "report") {
+    return <HazardDetail report={data.report} segment={data.segment} />;
   }
-  return <SegmentOverview segment={data.segment} />
+  return <SegmentOverview segment={data.segment} />;
 }
 
 export function Banner({
@@ -106,53 +106,45 @@ export function Banner({
   title,
   reportRef,
 }: {
-  segment: Segment
-  title: string
-  reportRef?: string
+  segment: Segment;
+  title: string;
+  reportRef?: string;
 }) {
-  const { place } = usePrefs()
+  const { place } = usePrefs();
   return (
-    <header
-      className="relative isolate overflow-hidden border-b border-border bg-[#07151f] text-text-on-charcoal"
-      style={{
-        backgroundImage:
-          "linear-gradient(90deg, rgb(5 18 27 / 88%), rgb(5 18 27 / 44%)), url('/img/banner-strip.png')",
-        backgroundPosition: 'center',
-        backgroundSize: 'cover',
-      }}
-    >
-      <div className="rp-container py-5 sm:py-7">
+    <header className="border-b border-border bg-card text-foreground">
+      <div className="rp-container py-4 sm:py-5">
         <Link
           to="/advisories"
-          className="mb-3 inline-flex min-h-11 w-fit items-center gap-2 text-sm text-blue-on-dark hover:text-white focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring sm:mb-4"
+          className="mb-2 inline-flex min-h-11 w-fit items-center gap-2 text-sm text-link hover:text-foreground focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring sm:mb-3"
         >
           <ArrowLeft aria-hidden className="size-4" />
           Back to search
         </Link>
-        <p className="mb-1.5 flex items-center gap-2 text-xs font-semibold tracking-[0.16em] text-blue-on-dark">
+        <p className="mb-1 flex items-center gap-2 text-xs font-semibold tracking-[0.16em] text-link">
           <RouteIcon aria-hidden className="size-4" />
           MOUNTAIN ROAD
           {reportRef && (
             <span className="font-mono tracking-normal">· {reportRef}</span>
           )}
         </p>
-        <h1 className="rp-wrap-anywhere max-w-4xl font-display text-3xl leading-tight font-bold sm:text-4xl md:text-5xl">
+        <h1 className="rp-wrap-anywhere max-w-4xl font-display text-2xl leading-tight font-bold sm:text-3xl">
           {title}
         </h1>
-        <p className="mt-2 text-sm text-text-on-charcoal/85 sm:text-base">
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           {place(segment.from)} → {place(segment.to)}
         </p>
         {!reportRef && <RouteSummary segment={segment} />}
       </div>
     </header>
-  )
+  );
 }
 
 function RouteSummary({ segment }: { segment: Segment }) {
-  const { duration } = usePrefs()
+  const { duration } = usePrefs();
   return (
     <div>
-      <dl className="mt-5 grid grid-cols-1 gap-y-2 border-t border-white/15 pt-3 text-xs sm:grid-cols-3 sm:text-sm">
+      <dl className="mt-4 grid grid-cols-1 gap-y-2 border-t border-border pt-3 text-xs sm:grid-cols-3 sm:text-sm">
         <SummaryItem icon={RouteIcon} label={`${segment.distanceKm} km`} />
         <SummaryItem
           icon={Clock3}
@@ -160,29 +152,29 @@ function RouteSummary({ segment }: { segment: Segment }) {
         />
         <SummaryItem icon={MapPin} label="Elevation unavailable" />
       </dl>
-      <p className="basis-full text-[11px] text-text-on-charcoal/70">
+      <p className="basis-full text-[11px] text-muted-foreground">
         All route estimates are illustrative.
       </p>
     </div>
-  )
+  );
 }
 
 function SummaryItem({
   icon: Icon,
   label,
 }: {
-  icon: LucideIcon
-  label: string
+  icon: LucideIcon;
+  label: string;
 }) {
   return (
     <div className="flex min-w-0 items-center gap-2 sm:border-r sm:border-white/20 sm:px-3 sm:first:pl-0 sm:last:border-0 sm:last:pr-0">
-      <Icon aria-hidden className="size-4 shrink-0 text-blue-on-dark" />
+      <Icon aria-hidden className="size-4 shrink-0 text-link" />
       <dt className="sr-only">Illustrative route estimate</dt>
       <dd>
-        {label} <span className="text-text-on-charcoal/65">(illustrative)</span>
+        {label} <span className="text-muted-foreground">(illustrative)</span>
       </dd>
     </div>
-  )
+  );
 }
 
 function SegmentOverview({ segment }: { segment: Segment }) {
@@ -205,7 +197,7 @@ function SegmentOverview({ segment }: { segment: Segment }) {
     <div className="pb-8">
       <Banner
         segment={segment}
-        title={`${segment.code.split(' · ')[0]} — ${place(segment.from)} to ${place(segment.to)}`}
+        title={`${segment.code.split(" · ")[0]} — ${place(segment.from)} to ${place(segment.to)}`}
       />
       <div className="rp-container grid gap-5 py-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(19rem,0.8fr)] lg:py-6">
         <div className="min-w-0">
@@ -254,12 +246,12 @@ function SegmentOverview({ segment }: { segment: Segment }) {
                   icon={Clock3}
                   className="sm:col-span-2"
                 >
-                  <FreshnessChip sourceTimestamp={sourceTimestamp} />
+                  <FreshnessChip observationTimestamp={advisory.latestObservationAt} />
                   <dl className="mt-3 space-y-2 text-xs">
                     <Fact
                       label="Last updated"
                       value={
-                        sourceTimestamp ? stamp(sourceTimestamp) : 'Unknown'
+                        sourceTimestamp ? stamp(sourceTimestamp) : "Unknown"
                       }
                       icon={Link2}
                     />
@@ -281,13 +273,13 @@ function SegmentOverview({ segment }: { segment: Segment }) {
                       count={hazards.length}
                       label="Hazards reported"
                       icon={TriangleAlert}
-                      onClick={() => setTab('hazards')}
+                      onClick={() => setTab("hazards")}
                     />
                     <CountLink
                       count={reports_for_segment.length}
                       label="Total reports"
                       icon={FileText}
-                      onClick={() => setTab('hazards')}
+                      onClick={() => setTab("hazards")}
                     />
                   </div>
                 </InfoCard>
@@ -311,7 +303,7 @@ function SegmentOverview({ segment }: { segment: Segment }) {
                     <Fact
                       label="Last updated"
                       value={
-                        sourceTimestamp ? stamp(sourceTimestamp) : 'Unknown'
+                        sourceTimestamp ? stamp(sourceTimestamp) : "Unknown"
                       }
                       icon={Clock3}
                     />
@@ -367,7 +359,7 @@ function SegmentOverview({ segment }: { segment: Segment }) {
 
             <TabsContent value="conditions" className="space-y-3 pt-4">
               <InfoCard title="Information freshness" icon={Clock3}>
-                <FreshnessChip sourceTimestamp={sourceTimestamp} />
+                <FreshnessChip observationTimestamp={advisory.latestObservationAt} />
                 <p className="mt-3 text-sm text-muted-foreground">
                   Freshness reflects the age of the most recent available source
                   timestamp, not a road-safety assessment.
@@ -387,7 +379,7 @@ function SegmentOverview({ segment }: { segment: Segment }) {
         <TerrainPanel segment={segment} reports={hazards} />
       </div>
     </div>
-  )
+  );
 }
 
 function InfoCard({
@@ -396,15 +388,15 @@ function InfoCard({
   className,
   children,
 }: {
-  title: string
-  icon: LucideIcon
-  className?: string
-  children: React.ReactNode
+  title: string;
+  icon: LucideIcon;
+  className?: string;
+  children: React.ReactNode;
 }) {
   return (
     <section
       className={cn(
-        'rounded-lg border border-border bg-card p-3 sm:p-4',
+        "rounded-lg border border-border bg-card p-3 sm:p-4",
         className,
       )}
     >
@@ -414,7 +406,7 @@ function InfoCard({
       </h2>
       {children}
     </section>
-  )
+  );
 }
 
 function Fact({
@@ -422,9 +414,9 @@ function Fact({
   value,
   icon: Icon,
 }: {
-  label: string
-  value: string
-  icon: LucideIcon
+  label: string;
+  value: string;
+  icon: LucideIcon;
 }) {
   return (
     <div className="grid min-w-0 grid-cols-[auto_1fr] items-start gap-x-2">
@@ -435,7 +427,7 @@ function Fact({
       <dt className="text-[11px] text-muted-foreground">{label}</dt>
       <dd className="rp-wrap-anywhere text-xs font-medium">{value}</dd>
     </div>
-  )
+  );
 }
 
 function CountLink({
@@ -444,10 +436,10 @@ function CountLink({
   icon: Icon,
   onClick,
 }: {
-  count: number
-  label: string
-  icon: LucideIcon
-  onClick: () => void
+  count: number;
+  label: string;
+  icon: LucideIcon;
+  onClick: () => void;
 }) {
   return (
     <button
@@ -463,15 +455,15 @@ function CountLink({
         className="ml-auto size-4 text-muted-foreground"
       />
     </button>
-  )
+  );
 }
 
 function OfficialRestrictionCard({
   segmentId,
   className,
 }: {
-  segmentId: string
-  className?: string
+  segmentId: string;
+  className?: string;
 }) {
   const { advisories } = useAppStore()
   const advisory = advisories.get(segmentId)
@@ -479,7 +471,7 @@ function OfficialRestrictionCard({
   return (
     <section
       className={cn(
-        'rounded-lg border border-border bg-card p-3 sm:p-4',
+        "rounded-lg border border-border bg-card p-3 sm:p-4",
         className,
       )}
     >
@@ -507,15 +499,15 @@ function OfficialRestrictionCard({
         </p>
       )}
     </section>
-  )
+  );
 }
 
 function TerrainPanel({
   segment,
   reports,
 }: {
-  segment: Segment
-  reports: CommunityReport[]
+  segment: Segment;
+  reports: CommunityReport[];
 }) {
   const { t, place } = usePrefs()
   const { segments } = useAppStore()
@@ -605,13 +597,13 @@ function TerrainPanel({
           </button>
           <button
             type="button"
-            aria-pressed={view === 'list'}
-            onClick={() => setView('list')}
+            aria-pressed={view === "list"}
+            onClick={() => setView("list")}
             className={cn(
-              'inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs',
-              view === 'list'
-                ? 'bg-primary text-primary-foreground'
-                : 'text-white/75 hover:text-white',
+              "inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs",
+              view === "list"
+                ? "bg-primary text-primary-foreground"
+                : "text-white/75 hover:text-white",
             )}
           >
             <List aria-hidden className="size-3.5" /> List
@@ -620,18 +612,18 @@ function TerrainPanel({
       </div>
       <LeafletMapLegend className="mt-3" />
     </aside>
-  )
+  );
 }
 
 function HazardDetail({
   report,
   segment,
 }: {
-  report: CommunityReport
-  segment: Segment
+  report: CommunityReport;
+  segment: Segment;
 }) {
-  const { t, place, stamp, ago } = usePrefs()
-  const level: AdvisoryLevel = report.severity === 'high' ? 'avoid' : 'caution'
+  const { t, place, stamp, ago } = usePrefs();
+  const level: AdvisoryLevel = report.severity === "high" ? "avoid" : "caution";
 
   return (
     <div className="pb-8">
@@ -695,7 +687,7 @@ function HazardDetail({
                   Information freshness
                 </dt>
                 <dd>
-                  <FreshnessChip sourceTimestamp={report.observedAt} />
+                  <FreshnessChip observationTimestamp={report.observedAt} />
                 </dd>
               </div>
             </dl>
@@ -730,7 +722,7 @@ function HazardDetail({
           <OfficialRestrictionCard segmentId={segment.id} />
           <section className="rounded-xl border border-border bg-card p-4">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-              <MapPin aria-hidden className="size-5 text-blue-on-dark" />{' '}
+              <MapPin aria-hidden className="size-5 text-blue-on-dark" />{" "}
               Location
             </h2>
             <p className="text-sm font-medium">{report.landmark}</p>
@@ -753,11 +745,11 @@ function HazardDetail({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function ReportGallery({ report }: { report: CommunityReport }) {
-  const imageCount = Math.min(report.photoCount, 4)
+  const imageCount = Math.min(report.photoCount, 4);
   return (
     <section aria-label="Community report image gallery" className="mt-4">
       {imageCount > 0 ? (
@@ -789,7 +781,7 @@ function ReportGallery({ report }: { report: CommunityReport }) {
         </p>
       )}
     </section>
-  )
+  );
 }
 
 function EmptyPanel({ title, message }: { title: string; message: string }) {
@@ -799,7 +791,7 @@ function EmptyPanel({ title, message }: { title: string; message: string }) {
       <h2 className="mt-2 font-semibold">{title}</h2>
       <p className="mt-1 text-sm text-muted-foreground">{message}</p>
     </div>
-  )
+  );
 }
 
 /** Report location: exact report coordinates are not shared, so the whole road section is shown. */

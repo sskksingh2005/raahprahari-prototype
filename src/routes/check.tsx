@@ -11,7 +11,7 @@ import { findSeededRoutes } from '@/features/routes/routing'
 import { MapLegend, SchematicMap } from '@/features/routes/schematic-map'
 import { SegmentDetail } from '@/features/routes/segment-detail'
 import { usePrefs } from '@/i18n/preferences'
-import { getAdvisorySourceTimestamp, summariseRoute } from '@/lib/advisory'
+import { summariseRoute } from '@/lib/advisory'
 import { useAppStore } from '@/lib/app-store'
 import type { Segment } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -306,7 +306,7 @@ function SegmentRow({ segment, selected, onSelect }: { segment: Segment; selecte
         </div>
         <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
           <ActionBadge level={a.level} />
-          <FreshnessChip sourceTimestamp={getAdvisorySourceTimestamp(a)} />
+          <FreshnessChip observationTimestamp={a.latestObservationAt} />
         </div>
       </button>
     </li>

@@ -11,6 +11,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { routeTree } from "@/routeTree.gen";
 import { NotFoundPage } from "@/components/error-pages";
@@ -78,7 +79,13 @@ describe("header and bottom navigation", () => {
       const primary = within(header()).getByRole("navigation", {
         name: "Primary",
       });
-      fireEvent.click(within(primary).getByRole("link", { name }));
+      if (to === "/about") {
+        const user = userEvent.setup();
+        await user.click(within(header()).getByRole("button", { name: "More" }));
+        await user.click(await screen.findByRole("menuitem", { name }));
+      } else {
+        fireEvent.click(within(primary).getByRole("link", { name }));
+      }
       await waitFor(() => expect(router.state.location.pathname).toBe(to));
     },
     30_000,
@@ -104,9 +111,12 @@ describe("header and bottom navigation", () => {
 
   it("logo returns home and the header Report Hazard button opens /report", async () => {
     const router = await mountAt("/about");
-    fireEvent.click(
-      within(header()).getByRole("link", { name: "Report Hazard" }),
-    );
+    const reportLinks = within(header()).getAllByRole("link", {
+      name: "Report Hazard",
+    });
+    expect(reportLinks).toHaveLength(2);
+    expect(reportLinks.map(pathOf)).toEqual(["/report", "/report"]);
+    fireEvent.click(reportLinks[0]);
     await waitFor(() => expect(router.state.location.pathname).toBe("/report"));
     const logo = within(header())
       .getAllByRole("link")

@@ -168,17 +168,17 @@ describe("change order 2 and 5: freshness comes from the source timestamp and an
     render(
       <AppStoreProvider seed={{ now }}>
         <PreferencesProvider>
-          <FreshnessChip sourceTimestamp={ts} />
+          <FreshnessChip observationTimestamp={ts} />
         </PreferencesProvider>
       </AppStoreProvider>,
     ).getByTestId("freshness-chip");
 
   it('unknown and stale are never styled as fresh or green, and there is no "Recent" chip', () => {
     const unknown = renderChip(undefined);
-    expect(unknown).toHaveTextContent("Freshness unknown");
+    expect(unknown).toHaveTextContent("Observation age unknown");
     cleanup();
     const future = renderChip(DEMO_NOW + HOUR);
-    expect(future).toHaveTextContent("Freshness unknown");
+    expect(future).toHaveTextContent("Observation age unknown");
     cleanup();
     const stale = renderChip(DEMO_NOW - 72 * HOUR);
     expect(stale).toHaveTextContent("Stale information · 3 d ago");
@@ -300,7 +300,7 @@ describe("change order 6: every result row shows action, freshness and source", 
     );
     expect(screen.getByText("Unknown")).toBeInTheDocument();
     expect(screen.getByTestId("freshness-chip")).toHaveTextContent(
-      "Freshness unknown",
+      "Observation age unknown",
     );
     expect(screen.getByText("No reported source")).toBeInTheDocument();
   });

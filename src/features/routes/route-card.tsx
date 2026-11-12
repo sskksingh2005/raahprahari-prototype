@@ -8,7 +8,6 @@ import type { RouteAdvisorySummary } from '@/lib/advisory'
 import type { RouteOption } from '@/features/routes/routing'
 import { routeLabel } from '@/features/routes/routing'
 import { cn } from '@/lib/utils'
-import { getAdvisorySourceTimestamp } from '@/lib/advisory'
 
 function Metric({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
@@ -46,9 +45,9 @@ export function RouteCard({
   const advisoryFor = (id: string) => advisoryMap.get(id)
   const advisories = route.segments.map((segment) => advisoryFor(segment.id)).filter((advisory) => advisory !== undefined)
   const timestamps = advisories
-    .map(getAdvisorySourceTimestamp)
+    .map((advisory) => advisory.latestObservationAt)
     .filter((timestamp): timestamp is number => timestamp !== undefined)
-  const latestSourceAt = timestamps.length ? Math.max(...timestamps) : undefined
+  const latestObservationAt = timestamps.length ? Math.max(...timestamps) : undefined
   const sources = [
     ...(advisories.some((advisory) => advisory.evidence.length > 0) ? [t('source.community')] : []),
     ...(advisories.some((advisory) => !!advisory.restriction) ? [t('source.official')] : []),
@@ -78,7 +77,7 @@ export function RouteCard({
           <ActionBadge level={summary.level} />
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <FreshnessChip sourceTimestamp={latestSourceAt} />
+          <FreshnessChip observationTimestamp={latestObservationAt} />
           <span className="text-xs text-muted-foreground">
             {sources.length ? sources.join(' · ') : t('source.unknown')}
           </span>

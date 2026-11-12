@@ -27,9 +27,11 @@ export const Route = createFileRoute('/map')({
 function MapPage() {
   const { t, place } = usePrefs()
   const { segments: SEGMENTS, corridors, advisories } = useAppStore()
-  const { status, retry } = useScreenState(() => SEGMENTS.every((segment) => advisories.has(segment.id)))
-  const corridorById = (id: string) => corridors.find((c) => c.id === id)
-  const segmentById = (id: string) => SEGMENTS.find((s) => s.id === id)
+  const { status, retry } = useScreenState(() =>
+    SEGMENTS.every((segment) => advisories.has(segment.id)),
+  )
+  const corridorById = (id: string) => corridors.find((corridor) => corridor.id === id)
+  const segmentById = (id: string) => SEGMENTS.find((segment) => segment.id === id)
   const search = Route.useSearch()
   const initialSegment = search.seg && segmentById(search.seg) ? search.seg : 'nh7-06'
   const [selectedSegmentId, setSelectedSegmentId] = useState<string | undefined>(initialSegment)
@@ -39,10 +41,9 @@ function MapPage() {
   const navigate = Route.useNavigate()
   const toggleRef = useSlidingHighlight<HTMLDivElement>(view)
 
-  /** One selection for map, list and detail panel; kept in the URL so it survives reloads. */
   const selectSegment = (id: string | undefined) => {
     setSelectedSegmentId(id)
-    void navigate({ search: (prev) => ({ ...prev, seg: id }), replace: true, resetScroll: false })
+    void navigate({ search: (previous) => ({ ...previous, seg: id }), replace: true, resetScroll: false })
   }
   const onMapUnavailable = () => {
     setMapFailed(true)
@@ -53,7 +54,7 @@ function MapPage() {
     const term = query.trim().toLocaleLowerCase()
     if (!term) return SEGMENTS
     return SEGMENTS.filter((segment) => {
-      const corridor = corridors.find((c) => c.id === segment.corridorId)
+      const corridor = corridors.find((item) => item.id === segment.corridorId)
       return [
         segment.code,
         corridor?.name,
@@ -63,7 +64,6 @@ function MapPage() {
     })
   }, [place, query, SEGMENTS, corridors])
   const selectedSegment = selectedSegmentId ? segmentById(selectedSegmentId) : undefined
-  // Emphasise the selected segment's corridor; the rest stay visible but dimmed.
   const highlightedSegments = selectedSegment
     ? SEGMENTS.filter((segment) => segment.corridorId === selectedSegment.corridorId).map((segment) => segment.id)
     : undefined
@@ -75,7 +75,6 @@ function MapPage() {
 
   return (
     <div className="rp-map-page">
-      {/* Page tools only. Site navigation comes from the shared SiteHeader. */}
       <div className="rp-map-toolbar" role="search" aria-label="Search road segments">
         <label className="rp-map-search">
           <Search aria-hidden className="size-4 shrink-0" />
@@ -150,9 +149,7 @@ function MapPage() {
                 label="Interactive map of road segments"
                 className="rp-map-leaflet"
               />
-
               <LeafletMapLegend className="rp-map-legend" />
-
               <SegmentDetail
                 segmentId={selectedSegmentId}
                 variant="map"

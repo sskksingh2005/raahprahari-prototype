@@ -1,19 +1,26 @@
-/* Fills the viewport below the shared site header (4rem). Below xl the shared
-   bottom navigation (5rem, reserved by <main>) is subtracted as well. */
+/* Keep the map clear of the shared header, conditional sync banner, and mobile
+   bottom navigation. */
 .rp-map-page {
   position: relative;
   display: grid;
-  height: calc(100svh - 4rem);
+  height: calc(100svh - 7rem);
   min-height: 420px;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
-  color: #e6e4dc;
-  background: #06141d;
+  color: var(--foreground);
+  background: var(--background);
 }
 
 @media (max-width: 1279px) {
   .rp-map-page {
-    height: calc(100svh - 9rem - env(safe-area-inset-bottom));
+    height: calc(100svh - 13rem - env(safe-area-inset-bottom));
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 767px) {
+  .rp-map-page {
+    height: calc(100svh - 15rem - env(safe-area-inset-bottom));
   }
 }
 
@@ -792,4 +799,154 @@
   inset: 0;
   overflow: auto;
   padding: 1rem;
+}
+
+.rp-map-toolbar {
+  border-color: var(--border);
+  background: var(--background);
+}
+
+.rp-map-search {
+  border-color: var(--input);
+  color: var(--muted-foreground);
+  background: var(--card);
+}
+
+.rp-map-search input {
+  color: var(--foreground);
+}
+
+.rp-map-search input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.rp-map-clear {
+  color: var(--foreground);
+}
+
+.rp-map-clear:hover {
+  background: var(--accent);
+}
+
+.rp-map-toggle {
+  border-color: var(--border);
+  background: var(--card);
+}
+
+.rp-map-toggle button {
+  color: var(--muted-foreground);
+}
+
+.rp-map-toggle button[aria-pressed='true'] {
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.rp-map-main {
+  background: var(--background);
+}
+
+.rp-map-detail-panel {
+  border-color: var(--border);
+  color: var(--foreground);
+  background: var(--card);
+  scrollbar-color: var(--muted-foreground) transparent;
+}
+
+.rp-map-detail-panel .rp-map-detail-heading,
+.rp-map-detail-panel .rp-map-segment-meta,
+.rp-map-detail-panel .rp-map-segment-meta .font-mono,
+.rp-map-detail-panel .rp-map-observation-grid dt,
+.rp-map-detail-panel .rp-map-observation-grid dd,
+.rp-map-detail-panel .rp-map-observation-grid small,
+.rp-map-detail-panel .rp-map-restriction small,
+.rp-map-detail-panel .rp-map-no-official,
+.rp-map-detail-panel .rp-map-report-copy p,
+.rp-map-detail-panel .rp-map-report-copy small,
+.rp-map-detail-panel .rp-map-detail-footer {
+  color: var(--muted-foreground);
+}
+
+.rp-map-detail-panel .rp-map-mountain-mark,
+.rp-map-detail-panel .rp-map-detail-close,
+.rp-map-detail-panel .rp-map-condition > svg {
+  color: var(--muted-foreground);
+}
+
+.rp-map-detail-panel .rp-map-detail-close:hover {
+  background: var(--accent);
+}
+
+.rp-map-detail-panel .rp-map-segment-title-row h2,
+.rp-map-detail-panel .rp-map-condition strong,
+.rp-map-detail-panel .rp-map-official-heading,
+.rp-map-detail-panel .rp-map-reports h3,
+.rp-map-detail-panel .rp-map-report-title strong {
+  color: var(--foreground);
+}
+
+.rp-map-detail-panel .rp-map-condition,
+.rp-map-detail-panel .rp-map-observation-grid,
+.rp-map-detail-panel .rp-map-observation-grid > div,
+.rp-map-detail-panel .rp-map-official-info,
+.rp-map-detail-panel .rp-map-reports {
+  border-color: var(--border);
+}
+
+.rp-map-detail-panel .rp-map-report-row {
+  border-color: var(--border);
+  background: var(--background);
+}
+
+.rp-map-detail-panel .rp-map-report-icon {
+  border-color: var(--muted-foreground);
+  color: var(--muted-foreground);
+}
+
+.rp-map-page .rp-lmap-legend {
+  border-color: var(--border);
+  color: var(--foreground);
+  background: var(--card);
+}
+
+.rp-map-list-view {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.rp-map-list-heading h1 {
+  color: var(--foreground);
+}
+
+.rp-map-kicker {
+  color: var(--link);
+}
+
+.rp-map-list-heading > span {
+  color: var(--muted-foreground);
+}
+
+.rp-map-list-card {
+  border-color: var(--border);
+  background: var(--card);
+}
+
+.rp-map-list-card.is-selected {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ring) 38%, transparent);
+}
+
+.rp-map-list-select {
+  border-color: var(--border);
+  color: var(--muted-foreground);
+  background: var(--background);
+}
+
+.rp-map-list-select[aria-pressed='true'] {
+  color: var(--link);
+}
+
+.rp-map-no-results {
+  border-color: var(--border);
+  color: var(--muted-foreground);
 }

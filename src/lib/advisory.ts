@@ -37,6 +37,12 @@ export interface SegmentAdvisory {
   reviewedCount: number
 }
 
+export function getObservationTimestamp(
+  advisory: Pick<SegmentAdvisory, 'latestObservationAt'>,
+): number | undefined {
+  return advisory.latestObservationAt
+}
+
 export function getAdvisorySourceTimestamp(
   advisory: Pick<SegmentAdvisory, 'latestObservationAt' | 'restriction'>,
 ): number | undefined {

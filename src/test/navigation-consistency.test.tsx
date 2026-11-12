@@ -15,7 +15,6 @@ const PRIMARY = [
   ['Live Map', '/map'],
   ['Advisories', '/advisories'],
   ['Help', '/help'],
-  ['About', '/about'],
 ] as const
 
 const BOTTOM = [
@@ -35,7 +34,8 @@ const ROUTES: { path: string; active: string | null }[] = [
   { path: '/advisories/nh7-06', active: '/advisories' },
   { path: '/help', active: '/help' },
   { path: '/about', active: '/about' },
-  { path: '/contact', active: null },
+  { path: '/contact', active: '/contact' },
+  { path: '/reports', active: '/reports' },
   { path: '/report', active: '/report' },
   { path: '/no-such-page', active: null },
 ]
@@ -50,7 +50,9 @@ async function mountAt(path: string) {
     scrollRestoration: false,
   })
   await router.load()
-  const rendered = render(<RouterProvider router={router} />)
+  const rendered = render(<RouterProvider router={router} />, {
+    container: document as unknown as HTMLElement,
+  })
   // Wait until the shell is on screen.
   await waitFor(() => siteHeader())
   return { router, ...rendered }
@@ -104,14 +106,16 @@ describe('shared site navigation', () => {
         within(header).getByRole('group', { name: 'Language' }),
         within(header).getByRole('button', { name: /theme/i }),
         within(header).getByRole('button', { name: 'Community Login' }),
-        within(header).getByRole('link', { name: 'Report Hazard' }),
+        within(header).getAllByRole('link', { name: 'Report Hazard' })[0],
       ]
       for (let i = 1; i < controls.length; i++) {
         expect(
           controls[i - 1].compareDocumentPosition(controls[i]) & Node.DOCUMENT_POSITION_FOLLOWING,
         ).toBeTruthy()
       }
-      expect(within(header).getByRole('link', { name: 'Report Hazard' })).toHaveAttribute('href', '/report')
+      const reportLinks = within(header).getAllByRole('link', { name: 'Report Hazard' })
+      expect(reportLinks).toHaveLength(2)
+      expect(reportLinks.map((link) => link.getAttribute('href'))).toEqual(['/report', '/report'])
       expect(within(header).getByRole('button', { name: 'Open menu' })).toBeInTheDocument()
 
       // Active item follows the route.
@@ -130,7 +134,8 @@ describe('shared site navigation', () => {
     expect(activeNavTarget('/report/review')).toBe('/report')
     expect(activeNavTarget('/check', 'list')).toBe('/advisories')
     expect(activeNavTarget('/check')).toBe('/map')
-    expect(activeNavTarget('/contact')).toBeNull()
+    expect(activeNavTarget('/contact')).toBe('/contact')
+    expect(activeNavTarget('/reports')).toBe('/reports')
   })
 
   // The mobile menu's contents, Escape and close-on-route-change are covered on the

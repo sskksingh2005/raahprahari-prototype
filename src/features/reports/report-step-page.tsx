@@ -170,9 +170,11 @@ function makeLocation(
 export function ReportStepPage({
   step,
   navigate,
+  prefillSegmentId,
 }: {
   step: ReportStep;
   navigate: (path: ReportPath) => void;
+  prefillSegmentId?: string;
 }) {
   const { t } = usePrefs();
   const { setSaving, setSaved, setError, ...saveStatus } = useLocalSaveStatus();
@@ -234,6 +236,25 @@ export function ReportStepPage({
           } else {
             // Nothing saved: keep anything entered while this was loading.
             setDraftId(null);
+            const segment = prefillSegmentId
+              ? SEGMENTS.find((item) => item.id === prefillSegmentId)
+              : undefined;
+            if (segment) {
+              const from = placeById(segment.from);
+              const to = placeById(segment.to);
+              const label = `${segment.code} · ${from?.name ?? ''} – ${to?.name ?? ''}`;
+              const location = makeLocation(
+                ((from?.lat ?? 0) + (to?.lat ?? 0)) / 2,
+                ((from?.lon ?? 0) + (to?.lon ?? 0)) / 2,
+                label,
+                label,
+                'manual',
+              );
+              setDraft((current) =>
+                current.location ? current : { ...current, location },
+              );
+              setLocationSearch((current) => current || label);
+            }
           }
         }
       } catch {
@@ -249,7 +270,7 @@ export function ReportStepPage({
     return () => {
       active = false;
     };
-  }, [step, t]);
+  }, [prefillSegmentId, step, t]);
 
   useEffect(() => {
     if (step !== "received" || !submittedReportId) return;

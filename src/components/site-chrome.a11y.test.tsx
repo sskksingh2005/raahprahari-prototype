@@ -90,7 +90,14 @@ describe("mobile navigation keyboard accessibility", () => {
       ["Live Map", "/map"],
       ["Advisories", "/advisories"],
       ["Help", "/help"],
+    ]);
+    const moreNav = within(dialog).getByRole("navigation", { name: "More" });
+    expect(
+      within(moreNav).getAllByRole("link").map((link) => [link.textContent, link.getAttribute("href")]),
+    ).toEqual([
       ["About", "/about"],
+      ["Contact", "/contact"],
+      ["My Reports", "/reports"],
     ]);
     expect(within(menuNav).getByRole("link", { name: "Help" })).toHaveAttribute("aria-current", "page");
     // The rest of the header controls are reachable from the menu too.

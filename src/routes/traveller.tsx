@@ -22,7 +22,6 @@ import { Button } from '@/components/ui/button'
 import { SkeletonList } from '@/components/ui/skeleton'
 import { placeById } from '@/data/fixtures'
 import { getCurrentPosition, inCoverage, nearestPlace } from '@/lib/geo'
-import { getAdvisorySourceTimestamp } from '@/lib/advisory'
 import type { AdvisoryLevel, SegmentAdvisory } from '@/lib/advisory'
 import { useAppStore } from '@/lib/app-store'
 import { LeafletMapLegend, LeafletSegmentMap } from '@/features/map/leaflet-segment-map'
@@ -428,7 +427,7 @@ function TravellerPage() {
                 segment={segment}
                 selected={segment.id === selectedSegmentId}
                 onSelect={() => setSelectedSegmentId(segment.id)}
-                observedAt={getAdvisorySourceTimestamp(advisory)}
+                observedAt={advisory.latestObservationAt}
                 reason={
                   advisory.evidence[0]?.description ??
                   advisory.restriction?.title ??
@@ -549,7 +548,10 @@ export function ResultRow({
       <div className="traveller-row-trailing">
         <span className="traveller-freshness-chip">
           <strong>Freshness:</strong>
-          <FreshnessChip sourceTimestamp={observedAt} className="traveller-inline-freshness" />
+          <FreshnessChip
+            observationTimestamp={observedAt}
+            className="traveller-inline-freshness"
+          />
         </span>
         {onSelect && (
           <Button
