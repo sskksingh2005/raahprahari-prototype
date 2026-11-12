@@ -46,6 +46,11 @@ export interface Segment {
   kmEnd: number
   distanceKm: number
   typicalMinutes: number
+  /**
+   * Polyline as [lat, lon] points from `from` to `to`.
+   * APPROXIMATE, SYNTHETIC DATA: generated between the two places, not a surveyed road alignment.
+   */
+  path: [number, number][]
 }
 
 export type HazardType =

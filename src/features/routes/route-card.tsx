@@ -3,12 +3,11 @@ import { Bookmark, BookmarkCheck, Info, List, Map as MapIcon, TriangleAlert } fr
 import { Button } from '@/components/ui/button'
 import { ActionBadge, FreshnessChip, LEVEL_META } from '@/components/advisory'
 import { usePrefs } from '@/i18n/preferences'
-import { advisoryFor } from '@/lib/data'
+import { useAppStore } from '@/lib/app-store'
 import type { RouteAdvisorySummary } from '@/lib/advisory'
 import type { RouteOption } from '@/features/routes/routing'
 import { routeLabel } from '@/features/routes/routing'
 import { cn } from '@/lib/utils'
-import { getAdvisorySourceTimestamp } from '@/lib/advisory'
 
 function Metric({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
@@ -42,11 +41,13 @@ export function RouteCard({
 }) {
   const { t, lang, ago, duration } = usePrefs()
   const letter = String.fromCharCode(65 + index)
+  const { advisories: advisoryMap } = useAppStore()
+  const advisoryFor = (id: string) => advisoryMap.get(id)
   const advisories = route.segments.map((segment) => advisoryFor(segment.id)).filter((advisory) => advisory !== undefined)
   const timestamps = advisories
-    .map(getAdvisorySourceTimestamp)
+    .map((advisory) => advisory.latestObservationAt)
     .filter((timestamp): timestamp is number => timestamp !== undefined)
-  const latestSourceAt = timestamps.length ? Math.max(...timestamps) : undefined
+  const latestObservationAt = timestamps.length ? Math.max(...timestamps) : undefined
   const sources = [
     ...(advisories.some((advisory) => advisory.evidence.length > 0) ? [t('source.community')] : []),
     ...(advisories.some((advisory) => !!advisory.restriction) ? [t('source.official')] : []),
@@ -54,7 +55,8 @@ export function RouteCard({
   return (
     <article
       className={cn(
-        'flex flex-col rounded-2xl border bg-card p-5 transition-colors',
+        'rp-card rp-enter flex flex-col rounded-2xl border bg-card p-5',
+        selected && 'is-selected',
         selected ? 'border-foreground/60 ring-1 ring-foreground/30' : 'border-border',
       )}
       aria-label={`Route ${letter}`}
@@ -75,7 +77,7 @@ export function RouteCard({
           <ActionBadge level={summary.level} />
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <FreshnessChip sourceTimestamp={latestSourceAt} />
+          <FreshnessChip observationTimestamp={latestObservationAt} />
           <span className="text-xs text-muted-foreground">
             {sources.length ? sources.join(' · ') : t('source.unknown')}
           </span>
@@ -126,7 +128,7 @@ export function RouteCard({
           {t('results.details')}
         </Button>
         <Button variant="outline" className="h-auto min-h-11 rounded-xl py-2 whitespace-normal" onClick={onToggleSave} aria-pressed={saved}>
-          {saved ? <BookmarkCheck /> : <Bookmark />}
+          {saved ? <BookmarkCheck key="saved" className="rp-pop" /> : <Bookmark />}
           {saved ? t('results.saved') : t('results.save')}
         </Button>
         <Button asChild variant="outline" className="h-auto min-h-11 rounded-xl py-2 whitespace-normal">

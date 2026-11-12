@@ -5,6 +5,9 @@ import { describe, expect, it, vi } from "vitest";
 import { PreferencesProvider } from "@/i18n/preferences";
 import { SiteHeader } from "./site-chrome";
 
+// The mocked router reads this, so a test can simulate a route change.
+const location = vi.hoisted(() => ({ pathname: "/", search: {} as Record<string, unknown> }));
+
 vi.mock("@tanstack/react-router", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("@tanstack/react-router")>();
@@ -31,25 +34,29 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
       select: (state: {
         location: { pathname: string; search: Record<string, unknown> };
       }) => unknown;
-    }) => select({ location: { pathname: "/", search: {} } }),
+    }) => select({ location: { ...location } }),
   };
 });
 
+const header = () => (
+  <PreferencesProvider>
+    <SiteHeader />
+  </PreferencesProvider>
+);
+
 describe("mobile navigation keyboard accessibility", () => {
   it("opens from the keyboard, traps focus, closes with Escape, and restores focus", async () => {
+    location.pathname = "/";
     const user = userEvent.setup();
-    render(
-      <PreferencesProvider>
-        <SiteHeader />
-      </PreferencesProvider>,
-    );
+    render(header());
 
     const trigger = screen.getByRole("button", { name: /menu/i });
     trigger.focus();
     await user.keyboard("{Enter}");
 
     const dialog = await screen.findByRole("dialog");
-    const firstLink = within(dialog).getByRole("link", { name: "Home" });
+    // The menu now starts with the logo link, so it is the first tab stop.
+    const firstLink = within(dialog).getByRole("link", { name: "RaahPrahari home" });
     const closeButton = within(dialog).getByRole("button", { name: "Close" });
     await waitFor(() =>
       expect(dialog).toContainElement(document.activeElement as HTMLElement),
@@ -65,6 +72,60 @@ describe("mobile navigation keyboard accessibility", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
+    expect(trigger).toHaveFocus();
+  });
+
+  it("lists the shared links in order, marks the active route and closes on route change", async () => {
+    location.pathname = "/help/freshness";
+    const user = userEvent.setup();
+    const { rerender } = render(header());
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    const dialog = await screen.findByRole("dialog");
+    const menuNav = within(dialog).getByRole("navigation", { name: "Primary" });
+    expect(
+      within(menuNav).getAllByRole("link").map((link) => [link.textContent, link.getAttribute("href")]),
+    ).toEqual([
+      ["Home", "/"],
+      ["Search roads", "/traveller"],
+      ["Live Map", "/map"],
+      ["Advisories", "/advisories"],
+      ["Help", "/help"],
+    ]);
+    const moreNav = within(dialog).getByRole("navigation", { name: "More" });
+    expect(
+      within(moreNav).getAllByRole("link").map((link) => [link.textContent, link.getAttribute("href")]),
+    ).toEqual([
+      ["About", "/about"],
+      ["Contact", "/contact"],
+      ["My Reports", "/reports"],
+    ]);
+    expect(within(menuNav).getByRole("link", { name: "Help" })).toHaveAttribute("aria-current", "page");
+    // The rest of the header controls are reachable from the menu too.
+    expect(within(dialog).getByRole("button", { name: "Community Login" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("link", { name: "Report Hazard" })).toHaveAttribute("href", "/report");
+
+    // A route change that does not come from the menu (e.g. browser back) closes it.
+    location.pathname = "/about";
+    rerender(header());
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+  });
+});
+
+describe("community login dialog", () => {
+  it("opens, explains login is not available, closes and returns focus", async () => {
+    location.pathname = "/";
+    const user = userEvent.setup();
+    render(header());
+
+    const trigger = screen.getAllByRole("button", { name: "Community Login" })[0];
+    await user.click(trigger);
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Community login");
+    await user.click(within(dialog).getByRole("button", { name: "Got it" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(trigger).toHaveFocus();
   });
 });

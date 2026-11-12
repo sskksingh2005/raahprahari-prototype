@@ -1,0 +1,112 @@
+function TerrainPanel({
+  segment,
+  reports,
+}: {
+  segment: Segment
+  reports: CommunityReport[]
+}) {
+  const { t, place } = usePrefs()
+  const { segments } = useAppStore()
+  const navigate = useNavigate()
+  const [view, setView] = useState<'map' | 'list'>('map')
+  const [mapUnavailable, setMapUnavailable] = useState(false)
+  // This segment plus the rest of its corridor for context (closures are always added by the map).
+  const corridorSegments = segments.filter((s) => s.corridorId === segment.corridorId)
+  return (
+    <aside
+      className="min-w-0 lg:sticky lg:top-20 lg:self-start"
+      aria-label="Route map and community reports"
+    >
+      <div className="relative min-h-[360px] overflow-hidden rounded-xl border border-border bg-[#0b2531] sm:min-h-[440px] lg:min-h-[510px]">
+        {view === 'map' ? (
+          <LeafletSegmentMap
+            segments={corridorSegments}
+            highlight={[segment.id]}
+            fitTo={[segment.id]}
+            selectedSegmentId={segment.id}
+            onSelectSegment={(id) => {
+              // Selecting another section opens its detail page.
+              if (id !== segment.id) void navigate({ to: '/advisories/$segmentId', params: { segmentId: id } })
+            }}
+            onUnavailable={() => {
+              setMapUnavailable(true)
+              setView('list')
+            }}
+            label={`Interactive map of ${place(segment.from)} – ${place(segment.to)}`}
+            className="absolute inset-0"
+          />
+        ) : (
+          <div className="relative z-10 h-full min-h-[360px] overflow-y-auto bg-background/95 p-4 pt-14 sm:min-h-[440px] lg:min-h-[510px]">
+            {mapUnavailable && (
+              <p role="status" className="mb-3 rounded-lg border border-status-caution/60 bg-status-caution/10 p-2 text-xs">
+                The map tiles could not be loaded. Showing the community reports list instead.
+              </p>
+            )}
+            <h2 className="mb-3 font-semibold">Community hazard reports</h2>
+            {reports.length ? (
+              <ul className="space-y-2">
+                {reports.map((report) => (
+                  <li key={report.ref}>
+                    <Link
+                      to="/advisories/$segmentId"
+                      params={{ segmentId: report.ref }}
+                      className="block rounded-lg border border-border bg-card p-3 hover:border-blue-on-dark/60 focus-visible:outline-2 focus-visible:outline-ring"
+                    >
+                      <span className="flex items-center gap-2 text-sm font-semibold">
+                        <TriangleAlert
+                          aria-hidden
+                          className="size-4 text-orange-on-dark"
+                        />
+                        {t(`hazard.${report.hazardType}`)}
+                      </span>
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        {report.landmark} · {place(segment.from)}–
+                        {place(segment.to)}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No community hazard reports are available.
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="absolute top-3 left-3 z-[600] inline-flex rounded-lg border border-white/20 bg-[#07151f]/85 p-1">
+          <button
+            type="button"
+            aria-pressed={view === 'map'}
+            disabled={mapUnavailable}
+            onClick={() => setView('map')}
+            className={cn(
+              'inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs disabled:opacity-50',
+              view === 'map'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-white/75 hover:text-white',
+            )}
+          >
+            <MapIcon aria-hidden className="size-3.5" /> Map
+          </button>
+          <button
+            type="button"
+            aria-pressed={view === 'list'}
+            onClick={() => setView('list')}
+            className={cn(
+              'inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs',
+              view === 'list'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-white/75 hover:text-white',
+            )}
+          >
+            <List aria-hidden className="size-3.5" /> List
+          </button>
+        </div>
+      </div>
+      <LeafletMapLegend className="mt-3" />
+    </aside>
+  )
+}
+

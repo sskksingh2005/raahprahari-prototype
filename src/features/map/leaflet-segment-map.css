@@ -1,0 +1,231 @@
+/* Interactive Leaflet map. Line and marker colours come from the status
+   tokens; unknown is grey and dashed, never green. */
+
+/* Layout defaults have zero specificity so callers can position the map
+   with their own classes (including Tailwind utilities). */
+:where(.rp-lmap) {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 18rem;
+}
+
+.rp-lmap {
+  overflow: hidden;
+  background: var(--tone-0b2531);
+}
+
+/* Fill the nearest positioned parent. Plain CSS on purpose: unlayered styles
+   above would otherwise win over layered utility classes such as `absolute`. */
+.rp-lmap.rp-lmap-fill {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  min-height: 0;
+}
+
+.rp-lmap-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-map);
+  background: var(--tone-0b2531);
+  font: inherit;
+}
+
+.rp-lmap-canvas:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
+}
+
+/* Segment lines */
+.rp-lmap-line {
+  stroke: var(--status-unknown);
+  stroke-opacity: 0.95;
+  fill: none;
+  cursor: pointer;
+  transition: stroke-opacity 0.15s;
+}
+
+.rp-lmap-line.level-caution { stroke: var(--status-caution); }
+.rp-lmap-line.level-avoid { stroke: var(--status-avoid); }
+.rp-lmap-line.level-do_not_travel { stroke: var(--status-dnt); }
+.rp-lmap-line.level-unknown { stroke: var(--status-unknown); }
+.rp-lmap-line.is-dim { stroke-opacity: 0.35; }
+.rp-lmap-line.is-selected { stroke-opacity: 1; filter: drop-shadow(0 0 3px var(--tone-ffffff)); }
+.rp-lmap-line.is-closure { stroke-opacity: 1; }
+
+/* Markers */
+.rp-lmap-marker-wrap {
+  background: none;
+  border: 0;
+}
+
+.rp-lmap-marker-wrap:focus-visible {
+  outline: none;
+}
+
+.rp-lmap-marker {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 2px solid var(--tone-ffffff);
+  border-radius: 999px;
+  background: var(--tone-111719);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--tone-shadow) 45%, transparent);
+  cursor: pointer;
+}
+
+.rp-lmap-marker svg {
+  width: 18px;
+  height: 18px;
+}
+
+.rp-lmap-marker.kind-hazard { color: var(--status-caution); }
+.rp-lmap-marker.kind-restriction { color: var(--status-official); }
+.rp-lmap-marker.kind-unknown { color: var(--status-unknown); }
+.rp-lmap-marker.is-dim { opacity: 0.55; }
+.rp-lmap-marker.is-closure { border-color: var(--status-dnt); }
+.rp-lmap-marker.is-selected {
+  outline: 3px solid var(--brand-orange);
+  outline-offset: 1px;
+}
+
+.rp-lmap-marker-wrap:focus-visible .rp-lmap-marker {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.rp-lmap-you {
+  fill: var(--tone-1d9bf0);
+  fill-opacity: 0.9;
+  stroke: var(--tone-ffffff);
+  stroke-width: 3;
+}
+
+/* Overlay controls */
+.rp-lmap-tools {
+  position: absolute;
+  z-index: var(--z-map-controls);
+  top: 10px;
+  right: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.rp-lmap-tools button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--tone-2c5568);
+  border-radius: 8px;
+  color: var(--tone-e6e4dc);
+  background: color-mix(in srgb, var(--tone-07151f) 92%, transparent);
+  cursor: pointer;
+}
+
+.rp-lmap-tools button:hover:not(:disabled) { background: var(--tone-17313e); }
+.rp-lmap-tools button:disabled { cursor: not-allowed; opacity: 0.5; }
+.rp-lmap-tools button:focus-visible { outline: 3px solid var(--ring); outline-offset: 1px; }
+.rp-lmap-tools svg { width: 18px; height: 18px; }
+
+.rp-lmap-status {
+  position: absolute;
+  z-index: var(--z-map-controls);
+  bottom: 28px;
+  left: 8px;
+  max-width: min(22rem, calc(100% - 80px));
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--tone-e6e4dc);
+  background: color-mix(in srgb, var(--tone-07151f) 92%, transparent);
+  font-size: 12px;
+}
+
+/* Below the top-left Map/List toggle that most pages place over the map. */
+.rp-lmap-labels {
+  position: absolute;
+  z-index: var(--z-map-controls);
+  top: 3.4rem;
+  left: 8px;
+  display: flex;
+  max-width: calc(100% - 16px);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.rp-lmap-note {
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--tone-e6e4dc);
+  background: color-mix(in srgb, var(--tone-07151f) 88%, transparent);
+  font-size: 11px;
+}
+
+/* Leaflet chrome on the dark theme */
+.rp-lmap .leaflet-control-attribution {
+  color: var(--tone-111719);
+  background: color-mix(in srgb, var(--tone-ffffff) 85%, transparent);
+  font-size: 11px;
+}
+
+.rp-lmap .leaflet-control-attribution a { color: var(--tone-0b5cad); }
+
+/* Legend */
+.rp-lmap-legend {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--tone-7ea0b2) 30%, transparent);
+  border-radius: 10px;
+  color: var(--tone-e6e4dc);
+  background: color-mix(in srgb, var(--tone-07151f) 94%, transparent);
+  font-size: 12px;
+}
+
+.rp-lmap-legend h2 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rp-lmap-legend ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
+  list-style: none;
+}
+
+.rp-lmap-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rp-lmap-marker.is-legend {
+  width: 22px;
+  height: 22px;
+  cursor: default;
+}
+
+.rp-lmap-marker.is-legend svg { width: 14px; height: 14px; }
+
+.rp-lmap-legend-line {
+  width: 28px;
+  height: 8px;
+  flex: none;
+}
+
+.rp-lmap-legend-line line { stroke-width: 5; stroke-linecap: round; }
+.rp-lmap-legend-line.level-caution line { stroke: var(--status-caution); }
+.rp-lmap-legend-line.level-avoid line { stroke: var(--status-avoid); }
+.rp-lmap-legend-line.level-do_not_travel line { stroke: var(--status-dnt); }
+.rp-lmap-legend-line.level-unknown line { stroke: var(--status-unknown); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-lmap-line { transition: none; }
+}

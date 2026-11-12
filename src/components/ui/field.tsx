@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { AlertCircle } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
@@ -60,7 +61,8 @@ export function Field({
         </p>
       )}
       {error && (
-        <p id={context.errorId} role="alert" className="text-sm text-destructive">
+        <p id={context.errorId} role="alert" className="rp-slide-down flex items-start gap-1.5 text-sm text-destructive">
+          <AlertCircle aria-hidden className="rp-pop mt-0.5 size-4 shrink-0" />
           {error}
         </p>
       )}
@@ -94,4 +96,38 @@ export function useFieldProps<
     'aria-describedby': describedBy || undefined,
     'aria-invalid': context.error ? true : props['aria-invalid'],
   }
+}
+
+/**
+ * Character counter that changes colour near the limit (90%) and at it.
+ * Colour is paired with the numbers, never the only signal.
+ */
+export function CharCounter({
+  length,
+  max,
+  id,
+  className,
+}: {
+  length: number
+  max: number
+  id?: string
+  className?: string
+}) {
+  const state = length >= max ? 'limit' : length >= max * 0.9 ? 'near' : 'ok'
+  return (
+    <span
+      id={id}
+      data-state={state}
+      aria-live="polite"
+      className={cn(
+        'text-xs transition-colors duration-(--motion-base)',
+        state === 'ok' && 'text-muted-foreground',
+        state === 'near' && 'font-medium text-counter-warn',
+        state === 'limit' && 'font-semibold text-destructive',
+        className,
+      )}
+    >
+      {length}/{max}
+    </span>
+  )
 }

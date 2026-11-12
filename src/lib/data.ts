@@ -1,5 +1,15 @@
-// Data-access layer. Components read advisories and reports through these
-// functions only, so the synthetic fixtures can later be replaced by API calls.
+// Data-access layer.
+//
+// In React component trees, components should use useAppStore() / useAdvisoryFor()
+// from @/lib/app-store directly — the store computes advisories once and
+// shares them across all consumers.
+//
+// These module-level functions are kept for:
+//   • TanStack Router loaders (run outside React)
+//   • Legacy call-sites that haven't been migrated yet
+//   • Tests that import this module directly
+//
+// They always read from the fixture data (the prototype has no server state).
 
 import { DEMO_NOW, REPORTS, RESTRICTIONS, SEGMENTS } from '@/data/fixtures'
 import { computeSegmentAdvisory, type SegmentAdvisory } from '@/lib/advisory'

@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { CircleQuestionMark, ShieldCheck, TriangleAlert } from 'lucide-react'
-import { PLACES, QUICK_PICKS, SEGMENTS, placeById } from '@/data/fixtures'
+import { QUICK_PICKS, placeById } from '@/data/fixtures'
 import { LEVEL_META } from '@/components/advisory'
-import { getAdvisories } from '@/lib/data'
+import { useAppStore } from '@/lib/app-store'
 import { usePrefs } from '@/i18n/preferences'
 import type { AdvisoryLevel } from '@/lib/advisory'
 import { cn } from '@/lib/utils'
@@ -42,7 +42,7 @@ export function SchematicMap({
   className?: string
 }) {
   const { t, place } = usePrefs()
-  const advisories = getAdvisories()
+  const { advisories, segments: SEGMENTS, places: PLACES } = useAppStore()
   const highlightSet = useMemo(() => new Set(highlight ?? []), [highlight])
   const hasHighlight = highlightSet.size > 0
 
@@ -126,7 +126,7 @@ export function SchematicMap({
                 strokeLinecap="round"
               />
               {selected && (
-                <line x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke="var(--foreground)" strokeWidth={18} strokeLinecap="round" opacity={0.9} />
+                <line className="rp-fade-pulse-once" x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y} stroke="var(--foreground)" strokeWidth={18} strokeLinecap="round" opacity={0.9} />
               )}
               <line
                 x1={pa.x}
@@ -256,7 +256,7 @@ export function MapLegend({ className }: { className?: string }) {
         </li>
         <li className="flex items-center gap-2">
           <span aria-hidden className="inline-flex size-5 items-center justify-center rounded-full bg-status-official">
-            <ShieldCheck className="size-3 text-white" />
+            <ShieldCheck className="size-3 text-primary-foreground" />
           </span>
           {t('map.restriction')}
         </li>

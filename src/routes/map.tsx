@@ -1,47 +1,19 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
-import {
-  CircleHelp,
-  Crosshair,
-  FileText,
-  House,
-  List,
-  Map as MapIcon,
-  Menu,
-  Minus,
-  Plus,
-  Search,
-  Shield,
-  TriangleAlert,
-  UserRound,
-  X,
-} from 'lucide-react'
+import { List, Map as MapIcon, Search, X } from 'lucide-react'
 import { AdvisoryCard } from '@/components/advisory-card'
-import { Logo } from '@/components/site-chrome'
-import { SegmentMap } from '@/features/routes/schematic-map'
+import { useSlidingHighlight } from '@/components/motion'
+import { LeafletMapLegend, LeafletSegmentMap } from '@/features/map/leaflet-segment-map'
+import { ScreenEmpty, ScreenError, ScreenLoading } from '@/components/screen-states'
 import { SegmentDetail } from '@/features/routes/segment-detail'
-import { corridorById, SEGMENTS, segmentById } from '@/data/fixtures'
 import { usePrefs } from '@/i18n/preferences'
+import { useAppStore } from '@/lib/app-store'
+import { useScreenState } from '@/lib/use-screen-state'
 import { cn } from '@/lib/utils'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import './map.css'
 
 type MapSearch = { seg?: string; view?: 'map' | 'list' }
 type ViewMode = 'map' | 'list'
-
-const navigation = [
-  { label: 'Home', to: '/' as const, icon: House },
-  { label: 'Live Map', to: '/map' as const, icon: MapIcon, active: true },
-  { label: 'Advisories', to: '/advisories' as const, icon: TriangleAlert },
-  { label: 'Reports', to: '/report' as const, icon: FileText },
-]
 
 export const Route = createFileRoute('/map')({
   validateSearch: (search: Record<string, unknown>): MapSearch => ({
@@ -53,21 +25,36 @@ export const Route = createFileRoute('/map')({
 })
 
 function MapPage() {
-  const { place } = usePrefs()
+  const { t, place } = usePrefs()
+  const { segments: SEGMENTS, corridors, advisories } = useAppStore()
+  const { status, retry } = useScreenState(() =>
+    SEGMENTS.every((segment) => advisories.has(segment.id)),
+  )
+  const corridorById = (id: string) => corridors.find((corridor) => corridor.id === id)
+  const segmentById = (id: string) => SEGMENTS.find((segment) => segment.id === id)
   const search = Route.useSearch()
   const initialSegment = search.seg && segmentById(search.seg) ? search.seg : 'nh7-06'
   const [selectedSegmentId, setSelectedSegmentId] = useState<string | undefined>(initialSegment)
   const [view, setView] = useState<ViewMode>(search.view ?? 'map')
   const [query, setQuery] = useState('')
-  const [zoom, setZoom] = useState(1.35)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mapFailed, setMapFailed] = useState(false)
+  const navigate = Route.useNavigate()
+  const toggleRef = useSlidingHighlight<HTMLDivElement>(view)
+
+  const selectSegment = (id: string | undefined) => {
+    setSelectedSegmentId(id)
+    void navigate({ search: (previous) => ({ ...previous, seg: id }), replace: true, resetScroll: false })
+  }
+  const onMapUnavailable = () => {
+    setMapFailed(true)
+    setView('list')
+  }
 
   const filteredSegments = useMemo(() => {
     const term = query.trim().toLocaleLowerCase()
     if (!term) return SEGMENTS
     return SEGMENTS.filter((segment) => {
-      const corridor = corridorById(segment.corridorId)
+      const corridor = corridors.find((item) => item.id === segment.corridorId)
       return [
         segment.code,
         corridor?.name,
@@ -75,19 +62,10 @@ function MapPage() {
         place(segment.to),
       ].some((value) => value?.toLocaleLowerCase().includes(term))
     })
-  }, [place, query])
+  }, [place, query, SEGMENTS, corridors])
   const selectedSegment = selectedSegmentId ? segmentById(selectedSegmentId) : undefined
-  const selectedCorridor = selectedSegment ? corridorById(selectedSegment.corridorId) : undefined
   const highlightedSegments = selectedSegment
     ? SEGMENTS.filter((segment) => segment.corridorId === selectedSegment.corridorId).map((segment) => segment.id)
-    : undefined
-  const routeLabels = selectedCorridor && selectedSegment
-    ? [...new Set([
-        selectedCorridor.stops[0],
-        selectedCorridor.stops[selectedCorridor.stops.length - 1],
-        selectedSegment.from,
-        selectedSegment.to,
-      ])]
     : undefined
 
   const changeView = (nextView: ViewMode) => {
@@ -97,10 +75,7 @@ function MapPage() {
 
   return (
     <div className="rp-map-page">
-      <header className="rp-map-header">
-        <Link to="/" className="rp-map-brand" aria-label="RaahPrahari home">
-          <Logo />
-        </Link>
+      <div className="rp-map-toolbar" role="search" aria-label="Search road segments">
         <label className="rp-map-search">
           <Search aria-hidden className="size-4 shrink-0" />
           <span className="sr-only">Search by road, place, or location</span>
@@ -121,7 +96,7 @@ function MapPage() {
                   place(segment.to),
                 ].some((value) => value?.toLocaleLowerCase().includes(normalized))
               })
-              if (matching) setSelectedSegmentId(matching.id)
+              if (matching) selectSegment(matching.id)
             }}
             placeholder="Search by road, place, or location..."
           />
@@ -131,118 +106,55 @@ function MapPage() {
             </button>
           )}
         </label>
-        <div className="rp-map-header-actions">
-          <div className="rp-map-toggle" role="group" aria-label="Map or list view">
-            {(['map', 'list'] as const).map((nextView) => (
-              <button
-                key={nextView}
-                type="button"
-                aria-pressed={view === nextView}
-                disabled={nextView === 'map' && mapFailed}
-                onClick={() => changeView(nextView)}
-              >
-                {nextView === 'map' ? <MapIcon aria-hidden /> : <List aria-hidden />}
-                {nextView === 'map' ? 'Map' : 'List'}
-              </button>
-            ))}
-          </div>
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <button
-                type="button"
-                className="rp-map-mobile-menu"
-                aria-label="Open navigation menu"
-              >
-                <Menu aria-hidden />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[min(17rem,85vw)]">
-              <SheetHeader>
-                <SheetTitle>Navigation</SheetTitle>
-                <SheetDescription className="sr-only">
-                  Main navigation
-                </SheetDescription>
-              </SheetHeader>
-              <MapNavigation onNavigate={() => setMobileMenuOpen(false)} />
-            </SheetContent>
-          </Sheet>
+        <div ref={toggleRef} className="rp-map-toggle rp-segmented" role="group" aria-label="Map or list view">
+          {(['map', 'list'] as const).map((nextView) => (
+            <button
+              key={nextView}
+              type="button"
+              aria-pressed={view === nextView}
+              disabled={nextView === 'map' && mapFailed}
+              onClick={() => changeView(nextView)}
+            >
+              {nextView === 'map' ? <MapIcon aria-hidden /> : <List aria-hidden />}
+              {nextView === 'map' ? 'Map' : 'List'}
+            </button>
+          ))}
         </div>
-      </header>
+      </div>
 
       <div className="rp-map-layout">
-        <aside className="rp-map-sidebar" aria-label="Main navigation">
-          <MapNavigation />
-          <MapSidebarBanner />
-        </aside>
-
         <div className="rp-map-main">
           {view === 'map' && <h1 className="sr-only">Live road map</h1>}
           {mapFailed && (
             <p className="rp-map-fallback-notice" role="status">
-              The terrain map could not be loaded. Showing the road list instead.
+              The map tiles could not be loaded. Showing the road list instead.
             </p>
           )}
 
-          {view === 'map' ? (
+          {status === 'loading' ? (
+            <div className="rp-map-state"><ScreenLoading /></div>
+          ) : status === 'error' ? (
+            <div className="rp-map-state"><ScreenError onRetry={retry} /></div>
+          ) : !SEGMENTS.length ? (
+            <div className="rp-map-state"><ScreenEmpty title={t('map.emptyTitle')} message={t('map.emptyBody')} /></div>
+          ) : view === 'map' ? (
             <section className="rp-map-canvas" aria-label="Live road map">
-              <div className="rp-map-canvas-layer" style={{ transform: `scale(${zoom})` }}>
-                <img
-                  src="/img/map-terrain.png"
-                  alt=""
-                  className="rp-map-terrain"
-                  onError={() => {
-                    setMapFailed(true)
-                    setView('list')
-                  }}
-                />
-                <div className="rp-map-shade" />
-                <SegmentMap
-                  terrain
-                  highlight={highlightedSegments}
-                  labelPlaces={routeLabels}
-                  selectedSegmentId={selectedSegmentId}
-                  onSelectSegment={setSelectedSegmentId}
-                  className="rp-map-route-overlay"
-                />
-              </div>
-
-              <div className="rp-map-compass" role="img" aria-label="North">
-                <span aria-hidden>N</span>
-                <span aria-hidden className="rp-map-compass-arrow">▲</span>
-              </div>
-
-              <MapLegend />
-
-              <div className="rp-map-controls" aria-label="Map controls">
-                <button
-                  type="button"
-                  aria-label="Zoom in"
-                  onClick={() => setZoom((current) => Math.min(current + 0.15, 1.75))}
-                >
-                  <Plus aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Zoom out"
-                  onClick={() => setZoom((current) => Math.max(current - 0.15, 1))}
-                >
-                  <Minus aria-hidden />
-                </button>
-                <button type="button" aria-label="Recenter map" onClick={() => setZoom(1)}>
-                  <Crosshair aria-hidden />
-                </button>
-              </div>
-
-              <div className="rp-map-scale" aria-label="Approximate map scale">
-                <span>0</span><span>10</span><span>20</span><span>30 km</span>
-                <i aria-hidden />
-              </div>
-
+              <LeafletSegmentMap
+                segments={SEGMENTS}
+                highlight={highlightedSegments}
+                fitTo={SEGMENTS.map((segment) => segment.id)}
+                selectedSegmentId={selectedSegmentId}
+                onSelectSegment={selectSegment}
+                onUnavailable={onMapUnavailable}
+                label="Interactive map of road segments"
+                className="rp-map-leaflet"
+              />
+              <LeafletMapLegend className="rp-map-legend" />
               <SegmentDetail
                 segmentId={selectedSegmentId}
                 variant="map"
                 className="rp-map-detail"
-                onClose={() => setSelectedSegmentId(undefined)}
+                onClose={() => selectSegment(undefined)}
               />
             </section>
           ) : (
@@ -269,7 +181,7 @@ function MapPage() {
                           type="button"
                           className="rp-map-list-select"
                           aria-pressed={segment.id === selectedSegmentId}
-                          onClick={() => setSelectedSegmentId(segment.id)}
+                          onClick={() => selectSegment(segment.id)}
                         >
                           <span>{segment.id === selectedSegmentId ? 'Selected segment' : 'Select segment'}</span>
                           {segment.id === selectedSegmentId && <span aria-hidden>✓</span>}
@@ -286,56 +198,12 @@ function MapPage() {
                 segmentId={selectedSegmentId}
                 variant="map"
                 className="rp-map-list-detail"
-                onClose={() => setSelectedSegmentId(undefined)}
+                onClose={() => selectSegment(undefined)}
               />
             </section>
           )}
         </div>
       </div>
     </div>
-  )
-}
-
-function MapNavigation({ onNavigate }: { onNavigate?: () => void }) {
-  return (
-    <nav className="rp-map-nav">
-      {navigation.map(({ label, to, icon: Icon, active }) => (
-        <Link
-          key={label}
-          to={to}
-          onClick={onNavigate}
-          aria-current={active ? 'page' : undefined}
-          className={cn('rp-map-nav-link', active && 'is-active')}
-        >
-          <Icon aria-hidden />
-          <span>{label}</span>
-        </Link>
-      ))}
-      <button type="button" className="rp-map-nav-link rp-map-profile" disabled>
-        <UserRound aria-hidden />
-        <span>Profile</span>
-        <span className="sr-only">Profile is not available in this prototype.</span>
-      </button>
-    </nav>
-  )
-}
-
-function MapSidebarBanner() {
-  return (
-    <div className="rp-map-sidebar-banner">
-      <img src="/img/banner-strip.png" alt="" />
-      <p>Safer roads<br />Stronger journeys</p>
-    </div>
-  )
-}
-
-function MapLegend() {
-  return (
-    <aside className="rp-map-legend" aria-label="Map legend">
-      <h2>Map legend</h2>
-      <p><TriangleAlert aria-hidden className="reported" /> Reported hazard</p>
-      <p><Shield aria-hidden className="official" /> Official restriction</p>
-      <p><CircleHelp aria-hidden className="unknown" /> Unknown information</p>
-    </aside>
   )
 }

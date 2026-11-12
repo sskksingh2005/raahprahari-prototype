@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { PageBanner } from "@/components/page-banner";
 import { Button } from "@/components/ui/button";
+import { usePrefs } from "@/i18n/preferences";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({ meta: [{ title: "Contact | RaahPrahari" }] }),
@@ -9,19 +10,27 @@ export const Route = createFileRoute("/contact")({
 });
 
 type ContactField = "name" | "email" | "message";
-type ContactErrors = Partial<Record<ContactField, string>>;
+type ErrorKey =
+  | "contactPage.nameError"
+  | "contactPage.emailError"
+  | "contactPage.messageError";
+type ContactErrors = Partial<Record<ContactField, ErrorKey>>;
 
 export function ContactPage() {
+  const { t } = usePrefs();
   const [errors, setErrors] = useState<ContactErrors>({});
   const [notice, setNotice] = useState(false);
 
-  function validateField(field: ContactField, value: string) {
+  function validateField(
+    field: ContactField,
+    value: string,
+  ): ErrorKey | undefined {
     const trimmedValue = value.trim();
-    if (field === "name" && !trimmedValue) return "Enter your name.";
+    if (field === "name" && !trimmedValue) return "contactPage.nameError";
     if (field === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedValue)) {
-      return "Enter a valid email address.";
+      return "contactPage.emailError";
     }
-    if (field === "message" && !trimmedValue) return "Enter a message.";
+    if (field === "message" && !trimmedValue) return "contactPage.messageError";
     return undefined;
   }
 
@@ -69,25 +78,22 @@ export function ContactPage() {
   return (
     <div className="rp-info-page">
       <PageBanner
-        eyebrow="CONTACT"
-        title="Contact"
-        description="This prototype has no message-delivery service. Submissions are not sent."
+        eyebrow={t("contactPage.eyebrow")}
+        title={t("contact.title")}
+        description={t("contactPage.description")}
       />
       <div className="rp-info-container rp-info-content">
         <section
           className="rp-info-card mx-auto max-w-2xl"
           aria-labelledby="contact-form-title"
         >
-          <h2 id="contact-form-title">Send a message</h2>
-          <p className="mb-5">
-            Complete the fields below. The form checks your input locally and
-            does not send or store your message.
-          </p>
+          <h2 id="contact-form-title">{t("contactPage.formTitle")}</h2>
+          <p className="mb-5">{t("contactPage.formIntro")}</p>
           <form className="rp-contact-form" onSubmit={handleSubmit} noValidate>
             <div className="rp-contact-field">
-              <label htmlFor="contact-name">Name</label>
+              <label htmlFor="contact-name">{t("contactPage.name")}</label>
               <p id="contact-name-help" className="rp-contact-help">
-                Enter the name you would like to use.
+                {t("contactPage.nameHelp")}
               </p>
               <input
                 id="contact-name"
@@ -110,15 +116,15 @@ export function ContactPage() {
                   className="rp-contact-error"
                   role="alert"
                 >
-                  {errors.name}
+                  {t(errors.name)}
                 </p>
               )}
             </div>
 
             <div className="rp-contact-field">
-              <label htmlFor="contact-email">Email</label>
+              <label htmlFor="contact-email">{t("contactPage.email")}</label>
               <p id="contact-email-help" className="rp-contact-help">
-                We’ll only use this address to respond.
+                {t("contactPage.emailHelp")}
               </p>
               <input
                 id="contact-email"
@@ -141,15 +147,17 @@ export function ContactPage() {
                   className="rp-contact-error"
                   role="alert"
                 >
-                  {errors.email}
+                  {t(errors.email)}
                 </p>
               )}
             </div>
 
             <div className="rp-contact-field">
-              <label htmlFor="contact-message">Message</label>
+              <label htmlFor="contact-message">
+                {t("contactPage.message")}
+              </label>
               <p id="contact-message-help" className="rp-contact-help">
-                Do not include sensitive or emergency information.
+                {t("contactPage.messageHelp")}
               </p>
               <textarea
                 id="contact-message"
@@ -170,23 +178,21 @@ export function ContactPage() {
                   className="rp-contact-error"
                   role="alert"
                 >
-                  {errors.message}
+                  {t(errors.message)}
                 </p>
               )}
             </div>
 
             {notice && (
               <p className="rp-contact-notice" role="status" aria-live="polite">
-                Not connected in this prototype. Your message was not sent.
+                {t("contactPage.notice")}
               </p>
             )}
             <Button type="submit" className="min-h-11 w-fit rounded-xl">
-              Submit message
+              {t("contactPage.submit")}
             </Button>
           </form>
-          <p className="rp-contact-emergency">
-            In an emergency, contact local emergency services.
-          </p>
+          <p className="rp-contact-emergency">{t("contactPage.emergency")}</p>
         </section>
       </div>
     </div>

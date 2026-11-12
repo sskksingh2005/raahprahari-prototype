@@ -132,8 +132,8 @@ export function DeliveryStepper({
               <div
                 className={[
                   "flex h-full min-h-32 flex-col gap-2 rounded-xl border p-3",
-                  isActive ? "border-blue-500 bg-blue-500/5" : "border-border bg-card/40",
-                  isFailed ? "border-red-500/60 bg-red-500/5" : "",
+                  isActive ? "border-action-info bg-action-info/5" : "border-border bg-card/40",
+                  isFailed ? "border-destructive/60 bg-destructive/5" : "",
                 ].join(" ")}
               >
                 <div className="flex items-center justify-between gap-2">

@@ -4,16 +4,15 @@ import { toast } from 'sonner'
 import { ArrowRight, List, Map as MapIcon, Route as RouteIcon, ShieldCheck, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ActionBadge, FreshnessChip, RoadCode } from '@/components/advisory'
-import { CORRIDORS, SEGMENTS, placeById } from '@/data/fixtures'
+import { placeById } from '@/data/fixtures'
 import { RouteSearchCard } from '@/features/routes/route-search'
 import { RouteCard } from '@/features/routes/route-card'
 import { findSeededRoutes } from '@/features/routes/routing'
 import { MapLegend, SchematicMap } from '@/features/routes/schematic-map'
 import { SegmentDetail } from '@/features/routes/segment-detail'
 import { usePrefs } from '@/i18n/preferences'
-import { getAdvisorySourceTimestamp, summariseRoute } from '@/lib/advisory'
-import { advisoryFor } from '@/lib/data'
-import { STORAGE_KEYS, useLocalState } from '@/lib/storage'
+import { summariseRoute } from '@/lib/advisory'
+import { useAppStore } from '@/lib/app-store'
 import type { Segment } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -38,15 +37,9 @@ export const Route = createFileRoute('/check')({
 type SortKey = 'fastest' | 'shortest' | 'current'
 type Filter = 'all' | 'issues' | 'official' | 'unknown'
 
-interface SavedRoad {
-  id: string
-  from: string
-  to: string
-  savedAt: number
-}
-
 function CheckPage() {
   const { t, place } = usePrefs()
+  const { segments, advisories, savedRoads, setSavedRoads } = useAppStore()
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
   const view = search.view ?? 'map'
@@ -57,7 +50,6 @@ function CheckPage() {
   const [sort, setSort] = useState<SortKey>('fastest')
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
   const [filter, setFilter] = useState<Filter>('all')
-  const [saved, setSaved] = useLocalState<SavedRoad[]>(STORAGE_KEYS.savedRoads, [])
   const explorerRef = useRef<HTMLElement>(null)
   const detailRef = useRef<HTMLDivElement>(null)
 
@@ -65,7 +57,7 @@ function CheckPage() {
     if (!journey) return []
     const list = findSeededRoutes(from, to).map((r) => ({
       route: r,
-      summary: summariseRoute(r.segments, r.segments.map((s) => advisoryFor(s.id)!)),
+      summary: summariseRoute(r.segments, r.segments.map((s) => advisories.get(s.id)!)),
     }))
     return list.sort((a, b) => {
       if (sort === 'shortest') return a.route.distanceKm - b.route.distanceKm
@@ -74,21 +66,21 @@ function CheckPage() {
       }
       return a.route.typicalMinutes - b.route.typicalMinutes
     })
-  }, [journey, from, to, sort])
+  }, [journey, from, to, sort, advisories])
 
   const selected = routes.find((r) => r.route.id === selectedRouteId) ?? routes[0]
 
-  const segments: Segment[] = useMemo(() => {
+  const filteredSegments: Segment[] = useMemo(() => {
     if (journey) return selected?.route.segments ?? []
-    return SEGMENTS.filter((s) => {
-      const a = advisoryFor(s.id)
+    return segments.filter((s) => {
+      const a = advisories.get(s.id)
       if (!a) return false
       if (filter === 'issues') return a.level !== 'clear' && a.level !== 'unknown'
       if (filter === 'official') return !!a.restriction
       if (filter === 'unknown') return a.level === 'unknown'
       return true
     })
-  }, [journey, selected, filter])
+  }, [journey, selected, filter, segments, advisories])
 
   const setView = (v: 'map' | 'list') =>
     void navigate({ search: (prev) => ({ ...prev, view: v }), replace: true, resetScroll: false })
@@ -105,8 +97,8 @@ function CheckPage() {
   }
   const toggleSave = (routeId: string) => {
     if (!from || !to) return
-    const exists = saved.some((s) => s.id === routeId)
-    setSaved((prev) =>
+    const exists = savedRoads.some((s) => s.id === routeId)
+    setSavedRoads((prev) =>
       exists ? prev.filter((s) => s.id !== routeId) : [...prev, { id: routeId, from, to, savedAt: Date.now() }],
     )
     toast(exists ? t('results.save') : t('results.saved'))
@@ -186,7 +178,7 @@ function CheckPage() {
                   summary={summary}
                   index={i}
                   selected={route.id === selected?.route.id}
-                  saved={saved.some((s) => s.id === route.id)}
+                  saved={savedRoads.some((s) => s.id === route.id)}
                   onSelect={() => setSelectedRouteId(route.id)}
                   onCompare={() => goExplorer(route.id, 'map')}
                   onDetails={() => goExplorer(route.id, 'list')}
@@ -255,7 +247,7 @@ function CheckPage() {
                   <MapLegend />
                 </>
               ) : (
-                <SegmentList segments={segments} grouped={!journey} selectedId={search.seg} onSelect={selectSeg} />
+                <SegmentList segments={filteredSegments} grouped={!journey} selectedId={search.seg} onSelect={selectSeg} />
               )}
             </div>
             <div ref={detailRef} className="scroll-mt-24 xl:sticky xl:top-24 xl:self-start">
@@ -270,7 +262,8 @@ function CheckPage() {
 
 function SegmentRow({ segment, selected, onSelect }: { segment: Segment; selected: boolean; onSelect: () => void }) {
   const { t, place } = usePrefs()
-  const a = advisoryFor(segment.id)
+  const { advisories } = useAppStore()
+  const a = advisories.get(segment.id)
   if (!a) throw new Error(`Missing advisory for segment "${segment.id}"`)
   const hazards = a.evidence.filter((r) => r.kind === 'hazard').length
   const sources = [
@@ -313,7 +306,7 @@ function SegmentRow({ segment, selected, onSelect }: { segment: Segment; selecte
         </div>
         <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
           <ActionBadge level={a.level} />
-          <FreshnessChip sourceTimestamp={getAdvisorySourceTimestamp(a)} />
+          <FreshnessChip observationTimestamp={a.latestObservationAt} />
         </div>
       </button>
     </li>
@@ -332,6 +325,7 @@ function SegmentList({
   onSelect: (id: string) => void
 }) {
   const { t } = usePrefs()
+  const { corridors } = useAppStore()
   if (segments.length === 0) {
     return <p className="rounded-2xl border border-dashed border-border p-8 text-center text-muted-foreground">{t('adv.empty')}</p>
   }
@@ -346,7 +340,7 @@ function SegmentList({
   }
   return (
     <div className="space-y-6">
-      {CORRIDORS.map((c) => {
+      {corridors.map((c) => {
         const segs = segments.filter((s) => s.corridorId === c.id)
         if (!segs.length) return null
         return (

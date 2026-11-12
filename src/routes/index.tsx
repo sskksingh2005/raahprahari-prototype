@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowRight, CloudDownload, MapPin, Search, ShieldCheck, TriangleAlert, UsersRound } from 'lucide-react'
 import { AdvisoryCard } from '@/components/advisory-card'
-import { segmentById } from '@/data/fixtures'
+import { PrototypeRibbon } from '@/components/prototype-ribbon'
+import type { TranslationKey } from '@/i18n/dictionary'
+import { useAppStore } from '@/lib/app-store'
 import { usePrefs } from '@/i18n/preferences'
 import './home.css'
 
@@ -9,32 +11,49 @@ export const Route = createFileRoute('/')({
   component: Home,
 })
 
+/** Each feature opens the help topic that explains it (slugs from data/help-topics). */
+const FEATURES = [
+  { topic: 'report', icon: UsersRound, title: 'home.featReportTitle', body: 'home.featReportBody' },
+  { topic: 'freshness', icon: ShieldCheck, title: 'home.featFreshTitle', body: 'home.featFreshBody' },
+  // Offline access is planned, not built: no service worker or saved map content exists yet.
+  { topic: 'map-offline', icon: CloudDownload, title: 'home.featOfflineTitle', body: 'home.featOfflineBody', planned: true },
+] as const satisfies readonly {
+  topic: string
+  icon: unknown
+  title: TranslationKey
+  body: TranslationKey
+  planned?: boolean
+}[]
+/** The featured card shows this seeded segment and links to its detail page. */
+const HOME_SAMPLE_SEGMENT_ID = 'nh107-02'
+
 function Home() {
   const { t } = usePrefs()
-  const sampleSegment = segmentById('nh107-02')
-  if (!sampleSegment) throw new Error('Missing sample segment "nh107-02"')
+  const { segments } = useAppStore()
+  const sampleSegment = segments.find((s) => s.id === HOME_SAMPLE_SEGMENT_ID)
+  if (!sampleSegment) throw new Error(`Missing sample segment "${HOME_SAMPLE_SEGMENT_ID}"`)
 
   return (
     <div className="home-page">
-      <section aria-labelledby="hero-title" className="home-hero">
+      <section aria-labelledby="hero-title" className="home-hero photo-surface">
         <img
           src="/img/hero-mountain.png"
           alt=""
           fetchPriority="high"
-          className="home-hero-image"
+          className="home-hero-image rp-hero-zoom"
         />
         <div aria-hidden className="home-hero-overlay" />
         <div className="home-content">
-          <div className="home-copy">
+          <div className="home-copy rp-hero-stagger">
             <h1 id="hero-title">{t('hero.title')}</h1>
             <p>{t('hero.body')}</p>
             <div className="home-actions">
-              <Link to="/traveller" className="home-action home-action-check">
+              <Link to="/traveller" className="rp-interactive home-action home-action-check">
                 <Search aria-hidden />
                 <span>Check a road</span>
                 <ArrowRight aria-hidden />
               </Link>
-              <Link to="/report" search={{ segment: undefined }} className="home-action home-action-report">
+              <Link to="/report" search={{ segment: undefined }} className="rp-interactive home-action home-action-report">
                 <TriangleAlert aria-hidden />
                 <span>Report a hazard</span>
                 <ArrowRight aria-hidden />
@@ -47,30 +66,26 @@ function Home() {
         </div>
 
         <ul aria-label="RaahPrahari features" className="home-features">
-          <li>
-            <UsersRound aria-hidden />
-            <span>
-              <strong>Community Reporting</strong>
-              <small>Real people. Real observations.</small>
-            </span>
-          </li>
-          <li>
-            <ShieldCheck aria-hidden />
-            <span>
-              <strong>Evidence &amp; Freshness</strong>
-              <small>See what’s current. Know what’s real.</small>
-            </span>
-          </li>
-          <li>
-            <CloudDownload aria-hidden />
-            <span>
-              <strong>Offline-Aware Access</strong>
-              <small>Stay informed, even off the network.</small>
-            </span>
-          </li>
+          {FEATURES.map((feature) => {
+            const { topic, icon: Icon, title, body } = feature
+            return (
+            <li key={topic}>
+              <Link to="/help/$topic" params={{ topic }}>
+                <Icon aria-hidden />
+                <span>
+                  <strong>{t(title)}</strong>
+                  <small>{t(body)}</small>
+                  {'planned' in feature && <small className="home-planned">{t('home.planned')}</small>}
+                </span>
+              </Link>
+            </li>
+            )
+          })}
         </ul>
 
-        <p className="home-prototype-label">PROTOTYPE · SYNTHETIC DEMO DATA</p>
+        <div className="home-prototype-label">
+          <PrototypeRibbon />
+        </div>
       </section>
     </div>
   )

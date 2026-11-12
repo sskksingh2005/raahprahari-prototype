@@ -1,15 +1,32 @@
 import * as React from 'react'
 import { AlertCircle, LoaderCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SkeletonList } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 export function LoadingState({
   label = 'Loading',
+  variant = 'inline',
   className,
 }: {
   label?: string
+  /** cards shows shimmering card placeholders under the label instead of a bare spinner. */
+  variant?: 'inline' | 'cards'
   className?: string
 }) {
+  if (variant === 'cards') {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+        className={cn('grid gap-3', className)}
+      >
+        <span className="sr-only">{label}</span>
+        <SkeletonList count={3} />
+      </div>
+    )
+  }
   return (
     <div
       role="status"
@@ -43,11 +60,11 @@ export function ErrorState({
     <section
       role="alert"
       className={cn(
-        'grid min-h-24 justify-items-center gap-3 rounded-xl border border-status-closed/50 p-6 text-center',
+        'rp-fade-rise grid min-h-24 justify-items-center gap-3 rounded-xl border border-status-closed/50 p-6 text-center',
         className,
       )}
     >
-      <AlertCircle aria-hidden="true" className="size-5 text-action-restricted" />
+      <AlertCircle aria-hidden="true" className="rp-pop size-5 text-action-restricted" />
       <h2 className="text-base font-semibold">{title}</h2>
       <p className="max-w-prose text-sm text-muted-foreground">{message}</p>
       {onRetry && (
@@ -73,7 +90,7 @@ export function EmptyState({
   return (
     <section
       className={cn(
-        'grid min-h-24 justify-items-center gap-3 rounded-xl border border-dashed border-border p-6 text-center',
+        'rp-fade-rise grid min-h-24 justify-items-center gap-3 rounded-xl border border-dashed border-border p-6 text-center',
         className,
       )}
     >

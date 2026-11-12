@@ -20,7 +20,7 @@ import {
   TriangleAlert,
   type LucideIcon,
 } from "lucide-react";
-import { DemoBadge } from "@/components/advisory";
+import { PrototypeRibbon } from "@/components/prototype-ribbon";
 import { Input } from "@/components/ui/input";
 import { usePrefs } from "@/i18n/preferences";
 import { helpTopics } from "@/data/help-topics";
@@ -60,7 +60,7 @@ function HelpPage() {
 
   return (
     <div className="help-page">
-      <header className="help-banner">
+      <header className="help-banner photo-surface">
         <div className="help-container help-banner-content">
           <p className="help-eyebrow">
             <span aria-hidden />
@@ -93,7 +93,7 @@ function HelpPage() {
                   key={slug}
                   to="/help/$topic"
                   params={{ topic: slug }}
-                  className="help-topic-card"
+                  className="rp-card rp-enter help-topic-card"
                 >
                   <span
                     className={`help-topic-icon help-topic-icon-${slug}`}
@@ -114,7 +114,7 @@ function HelpPage() {
                       {t(descriptionKey)}
                     </span>
                   </span>
-                  <ArrowRight aria-hidden className="help-topic-arrow" />
+                  <ArrowRight aria-hidden className="rp-arrow help-topic-arrow" />
                 </Link>
               );
             })}
@@ -126,7 +126,7 @@ function HelpPage() {
           </div>
         </section>
 
-        <aside className="help-reminder" aria-labelledby="help-reminder-title">
+        <aside className="help-reminder photo-surface" aria-labelledby="help-reminder-title">
           <div className="help-reminder-content">
             <p className="help-reminder-label">
               <ShieldAlert aria-hidden />
@@ -159,7 +159,7 @@ function HelpPage() {
             <ArrowLeft aria-hidden />
             {t("help.backHome")}
           </Link>
-          <DemoBadge className="help-demo-badge" />
+          <PrototypeRibbon />
         </div>
       </footer>
     </div>

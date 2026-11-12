@@ -294,3 +294,51 @@ are mapped to the implementation below instead of inventing a second API.
 - **Example:** `<DemoBadge />`
 - **Safety:** Do keep the disclosure visible near synthetic content; don't
   present generated assets or fixtures as real people, logos, or live reports.
+
+## Motion system
+
+All motion tokens live in `src/styles.css` (`:root`, with dark shadow and hover
+overrides under `.dark`). Pages never copy them. Shared components use the
+classes below; behaviour helpers are in `src/components/motion.tsx`.
+
+### Tokens
+
+| Token | Value | Use |
+|---|---|---|
+| `--motion-fast` / `-base` / `-slow` | 120 / 200 / 350ms | press, hover and colour, entrances |
+| `--motion-max` | 480ms | ceiling for any one-shot animation |
+| `--motion-hero` | 14s | home hero zoom only (runs once, max 3%) |
+| `--ease-standard` / `-out` / `-in` / `-spring` | cubic-bezier curves | general, entrances, exits, pops |
+| `--scale-hover` 1.08, `--scale-press` 0.97, `--scale-press-card` 0.985, `--scale-press-gentle` 0.94 | scale | icon hover, button, card, raised Report |
+| `--lift-hover` -1px, `--lift-card` -2px | translate | buttons, cards |
+| `--stagger-step` | 40ms | list stagger (max 8 items) |
+| `--shadow-1` / `-2` / `-3` / `--shadow-header` | shadows | rest, button hover, card hover, scrolled header |
+| `--primary-hover`, `--secondary-hover`, `--report`, `--report-hover` | colours | each button role has its own hover colour |
+
+### Classes and components
+
+- `Button` (`rp-interactive`): hover lift and shadow on hover-capable pointers
+  only, press scale 0.97, `not-allowed` cursor when disabled, and `loading`
+  (spinner inside, label kept invisible so width is stable). Variants:
+  `default` (blue), `report` (orange), `secondary`, and the rest. The focus
+  ring classes stay on every variant.
+- `rp-press` and `rp-press-gentle`: press-only scale (tabs, nav, pills). `rp-ripple`: CSS ripple on the raised Report button.
+- `rp-underline`: nav underline that slides in on hover and stays on the current page.
+- `rp-card`, `rp-arrow`: card lift, stronger border and shadow, and arrow nudge. Add `is-selected` to keep a selection ring.
+- `rp-enter`: fade-and-rise with a 40ms stagger by sibling index; items 9 and later are not animated.
+- `rp-fade-in`, `rp-fade-rise`, `rp-slide-down`, `rp-pop`: badges, empty/error states, validation messages, success icons.
+- `rp-attn`: one attention pulse on AVOID, official closure and official badges.
+- `rp-pulse-once`, `rp-fade-pulse-once`: selected map marker and segment.
+- `rp-segmented` with `useSlidingHighlight`: sliding highlight for the Map/List toggle.
+- `rp-field`: animated border and glow on inputs, selects, checkboxes. `CharCounter` changes colour at 90% and 100%.
+- `Skeleton`, `SkeletonCard`, `SkeletonList`, and `LoadingState variant="cards"`: shimmer placeholders.
+- `PageTransition`, `RevealObserver`, `BackToTop`, `useExitGhosts`, `useFlash`, `crossFadeTheme` in `motion.tsx`.
+- Toasts: top-right, 4s, announced through Sonner's polite live region.
+
+### Rules
+
+- Animate `translate`, `scale`, `rotate` and `opacity` only. Hover effects sit inside `@media (hover: hover) and (pointer: fine)`.
+- The only infinite animations are the skeleton shimmer and spinners. The hero zoom is the only animation over 500ms and runs once.
+- The final `prefers-reduced-motion: reduce` block removes animations, transforms, zoom, stagger, pulses and reveal hiding. Colour changes remain instant.
+- Status colour never changes on hover or animation: unknown and stale stay grey, and nothing turns green.
+- Tests: `src/test/motion.test.tsx`. Overflow checks there are structural; jsdom has no layout, so real widths (360, 390, 768, 1440) still need a browser check.
