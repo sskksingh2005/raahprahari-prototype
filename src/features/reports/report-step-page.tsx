@@ -50,7 +50,7 @@ import {
   readReportDraft,
   toLocalDateTime,
   validateObservation,
-  validatePhoto,
+  photoValidationCode,
   writeReportDraft,
   type ReportDraft,
   type ReportHazard,
@@ -426,34 +426,42 @@ export function ReportStepPage({
   const choosePhoto = async (file?: File) => {
     setPhotoError("");
     if (!file) return;
-    const validationError = validatePhoto(file);
-    if (validationError) {
-      setPhotoError(validationError);
+    // Client-side check before anything is persisted. A rejected file leaves
+    // the existing photo, form values and saved draft untouched.
+    const validationCode = photoValidationCode(file);
+    if (validationCode) {
+      setPhotoError(
+        t(
+          validationCode === "type"
+            ? "report.photoTypeErr"
+            : validationCode === "empty"
+              ? "report.photoEmptyErr"
+              : "report.photoSizeErr",
+        ),
+      );
       return;
     }
     const scope = getActiveAccountScope();
     const nextDraftId = draftId ?? newReportId();
+    // Keep the current photo reference in the saved record until the new
+    // attachment has been stored.
     const persisted = await saveDraftRecord({
       id: nextDraftId,
       accountScope: scope,
       status: "draft",
-      payload: { ...draft, photo: null },
+      payload: draft,
       eventTime: isoFromLocalDate(draft.observedAt),
       observedAtLocal: draft.observedAt,
     });
     if (!persisted.ok) {
       setError(persisted.code);
-      setPhotoError(
-        "Could not save this photo on the device. Try another image or check browser storage.",
-      );
+      setPhotoError(t("report.photoSaveErr"));
       return;
     }
     const location = draft.location;
     const attachmentResult = await saveAttachment(persisted.id, scope, file);
     if (!attachmentResult.ok) {
-      setPhotoError(
-        "Could not save this photo on the device. Try another image or check browser storage.",
-      );
+      setPhotoError(t("report.photoSaveErr"));
       setError(attachmentResult.code);
       return;
     }
@@ -985,7 +993,11 @@ export function ReportStepPage({
                       className="sr-only"
                       aria-label="Take a JPG or PNG photo"
                       aria-describedby="photo-format photo-error"
-                      onChange={(event) => choosePhoto(event.target.files?.[0])}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        event.target.value = "";
+                        void choosePhoto(file);
+                      }}
                     />
                     <input
                       ref={libraryInput}
@@ -994,13 +1006,17 @@ export function ReportStepPage({
                       className="sr-only"
                       aria-label="Choose an existing JPG or PNG photo"
                       aria-describedby="photo-format photo-error"
-                      onChange={(event) => choosePhoto(event.target.files?.[0])}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        event.target.value = "";
+                        void choosePhoto(file);
+                      }}
                     />
                     <p
                       id="photo-format"
                       className="mt-2 text-xs text-muted-foreground"
                     >
-                      JPG or PNG only · maximum 10 MB
+                      {t("report.photosHint")}
                     </p>
                     {photoError && (
                       <p
@@ -1066,6 +1082,9 @@ export function ReportStepPage({
                             Loading saved photo…
                           </div>
                         )}
+                        <p className="text-xs text-muted-foreground">
+                          {t("report.photoLocal")}
+                        </p>
                         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-xs">
                           <dt className="text-muted-foreground">File name</dt>
                           <dd className="break-all">{draft.photo.name}</dd>

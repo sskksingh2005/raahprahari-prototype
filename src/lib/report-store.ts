@@ -82,16 +82,31 @@ export function validateObservation(
   return errors;
 }
 
-export function validatePhoto(file: File): string | null {
+export type PhotoValidationCode = "empty" | "type" | "size";
+
+/** Client-side check only; it does not replace server-side validation. */
+export function photoValidationCode(file: File): PhotoValidationCode | null {
   const extension = file.name.split(".").pop()?.toLowerCase();
   const acceptedType = file.type === "image/jpeg" || file.type === "image/png";
   const acceptedExtension =
     extension === "jpg" || extension === "jpeg" || extension === "png";
-  if (!acceptedType && !(file.type === "" && acceptedExtension)) {
-    return "Choose a JPG or PNG image.";
-  }
-  if (file.size > MAX_PHOTO_BYTES) return "Photo must be 10 MB or smaller.";
+  if (!acceptedType && !(file.type === "" && acceptedExtension)) return "type";
+  if (file.size === 0) return "empty";
+  if (file.size > MAX_PHOTO_BYTES) return "size";
   return null;
+}
+
+export function validatePhoto(file: File): string | null {
+  switch (photoValidationCode(file)) {
+    case "type":
+      return "Choose a JPG or PNG image.";
+    case "empty":
+      return "This photo file is empty.";
+    case "size":
+      return "Photo must be 10 MB or smaller.";
+    default:
+      return null;
+  }
 }
 
 export function readReportDraft(): ReportDraft | null {
