@@ -53,6 +53,51 @@ export const en = {
   "login.signOutError":
     "Could not reach the sign-in service. You are signed out on this device.",
   "nav.account": "Account",
+  "login.forgot": "Forgot password?",
+  "login.toSignup": "New here? Create an account",
+  "login.toLogin": "Back to sign in",
+  "signup.title": "Create an account",
+  "signup.body":
+    "Create a RaahPrahari account with your email. You can still check roads and file reports without one.",
+  "signup.confirmPassword": "Confirm password",
+  "signup.passwordHint": "At least 8 characters.",
+  "signup.passwordTooShort": "Use at least 8 characters.",
+  "signup.passwordMismatch": "The passwords do not match.",
+  "signup.submit": "Create account",
+  "signup.submitting": "Creating account…",
+  "signup.checkEmail":
+    "Check your email for a confirmation link to finish creating your account. If you already have an account, sign in instead.",
+  "signup.signedIn": "Your account is ready and you are signed in.",
+  "forgot.title": "Reset your password",
+  "forgot.body":
+    "Enter your account email and we will send a link to set a new password.",
+  "forgot.submit": "Send reset link",
+  "forgot.submitting": "Sending…",
+  "forgot.sent":
+    "If an account exists for that email, a reset link is on its way. Open it in this browser.",
+  "authErr.userExists":
+    "An account with this email already exists. Sign in instead.",
+  "authErr.weakPassword": "Choose a stronger password.",
+  "authErr.samePassword":
+    "Choose a password that is different from your current one.",
+  "authErr.rateLimited": "Too many attempts. Wait a few minutes and try again.",
+  "authErr.sessionMissing":
+    "Your reset session has expired. Request a new reset link.",
+  "authErr.linkInvalid":
+    "This link is invalid or has expired. Request a new one.",
+  "authErr.missingCode": "Open this page from the link in a RaahPrahari email.",
+  "callback.title": "Confirming your link",
+  "callback.checking": "Confirming your link…",
+  "callback.failedTitle": "The link could not be confirmed",
+  "callback.home": "Go to home",
+  "reset.title": "Set a new password",
+  "reset.body": "Choose a new password for your RaahPrahari account.",
+  "reset.newPassword": "New password",
+  "reset.submit": "Update password",
+  "reset.submitting": "Updating…",
+  "reset.done": "Your password has been updated.",
+  "reset.noSession":
+    "Open the reset link from your email to set a new password. Links expire after a short time.",
 
   "hero.eyebrow": "Uttarakhand road-hazard advisories",
   "hero.title": "Know before you go.",
@@ -904,6 +949,50 @@ export const hi: Record<TranslationKey, string> = {
   "login.signOutError":
     "साइन-इन सेवा से संपर्क नहीं हो सका। इस डिवाइस पर आप साइन आउट हो गए हैं।",
   "nav.account": "खाता",
+  "login.forgot": "पासवर्ड भूल गए?",
+  "login.toSignup": "नए हैं? खाता बनाएँ",
+  "login.toLogin": "साइन इन पर वापस जाएँ",
+  "signup.title": "खाता बनाएँ",
+  "signup.body":
+    "अपने ईमेल से राहप्रहरी खाता बनाएँ। बिना खाते के भी आप सड़कें जाँच सकते हैं और रिपोर्ट भर सकते हैं।",
+  "signup.confirmPassword": "पासवर्ड की पुष्टि करें",
+  "signup.passwordHint": "कम से कम 8 अक्षर।",
+  "signup.passwordTooShort": "कम से कम 8 अक्षर रखें।",
+  "signup.passwordMismatch": "दोनों पासवर्ड मेल नहीं खाते।",
+  "signup.submit": "खाता बनाएँ",
+  "signup.submitting": "खाता बन रहा है…",
+  "signup.checkEmail":
+    "खाता बनाना पूरा करने के लिए अपने ईमेल में पुष्टि लिंक देखें। अगर आपका खाता पहले से है, तो साइन इन करें।",
+  "signup.signedIn": "आपका खाता तैयार है और आप साइन इन हैं।",
+  "forgot.title": "अपना पासवर्ड रीसेट करें",
+  "forgot.body":
+    "अपने खाते का ईमेल दर्ज करें, हम नया पासवर्ड सेट करने का लिंक भेजेंगे।",
+  "forgot.submit": "रीसेट लिंक भेजें",
+  "forgot.submitting": "भेजा जा रहा है…",
+  "forgot.sent":
+    "अगर इस ईमेल का खाता है, तो रीसेट लिंक भेजा जा रहा है। इसे इसी ब्राउज़र में खोलें।",
+  "authErr.userExists":
+    "इस ईमेल से खाता पहले से मौजूद है। साइन इन करें।",
+  "authErr.weakPassword": "कोई मज़बूत पासवर्ड चुनें।",
+  "authErr.samePassword": "मौजूदा पासवर्ड से अलग पासवर्ड चुनें।",
+  "authErr.rateLimited":
+    "बहुत अधिक प्रयास हुए। कुछ मिनट रुककर फिर कोशिश करें।",
+  "authErr.sessionMissing":
+    "आपका रीसेट सत्र समाप्त हो गया है। नया रीसेट लिंक मँगाएँ।",
+  "authErr.linkInvalid": "यह लिंक अमान्य है या समाप्त हो गया है। नया लिंक मँगाएँ।",
+  "authErr.missingCode": "यह पेज राहप्रहरी ईमेल के लिंक से खोलें।",
+  "callback.title": "आपके लिंक की पुष्टि",
+  "callback.checking": "आपके लिंक की पुष्टि हो रही है…",
+  "callback.failedTitle": "लिंक की पुष्टि नहीं हो सकी",
+  "callback.home": "होम पर जाएँ",
+  "reset.title": "नया पासवर्ड सेट करें",
+  "reset.body": "अपने राहप्रहरी खाते के लिए नया पासवर्ड चुनें।",
+  "reset.newPassword": "नया पासवर्ड",
+  "reset.submit": "पासवर्ड अपडेट करें",
+  "reset.submitting": "अपडेट हो रहा है…",
+  "reset.done": "आपका पासवर्ड अपडेट हो गया है।",
+  "reset.noSession":
+    "नया पासवर्ड सेट करने के लिए अपने ईमेल का रीसेट लिंक खोलें। लिंक कुछ समय बाद समाप्त हो जाते हैं।",
 
   "hero.eyebrow": "उत्तराखंड सड़क-ख़तरा परामर्श",
   "hero.title": "सफ़र से पहले सुरक्षा की ख़बर",

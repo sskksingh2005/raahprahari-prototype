@@ -17,7 +17,7 @@ let client: SupabaseClient | null = null;
 export function isSupabaseConfigured(): boolean {
   return Boolean(
     import.meta.env.VITE_SUPABASE_URL?.trim() &&
-      import.meta.env.VITE_SUPABASE_ANON_KEY?.trim(),
+    import.meta.env.VITE_SUPABASE_ANON_KEY?.trim(),
   );
 }
 
@@ -39,7 +39,14 @@ export function getSupabaseClient(): SupabaseClient {
   ].filter((name): name is string => Boolean(name));
   if (!url || !anonKey) throw new SupabaseConfigError(missing);
   client = createClient(url, anonKey, {
-    auth: { persistSession: true, autoRefreshToken: true },
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      // Email links carry a one-time `code`; /auth/callback exchanges it
+      // explicitly, so the client must not also consume it on load.
+      flowType: "pkce",
+      detectSessionInUrl: false,
+    },
   });
   return client;
 }

@@ -28,6 +28,7 @@ import {
   useAccountSession,
 } from "@/lib/account-session";
 import { SupabaseConfigError, getSupabaseClient } from "@/lib/supabase";
+import { ForgotPasswordForm, SignupForm } from "@/components/auth-forms";
 
 export type LoginErrorKind =
   | "invalid_credentials"
@@ -196,6 +197,17 @@ function SignedInPanel() {
   );
 }
 
+type AuthMode = "login" | "signup" | "forgot";
+
+const MODE_COPY: Record<
+  AuthMode,
+  { title: TranslationKey; body: TranslationKey }
+> = {
+  login: { title: "login.title", body: "login.body" },
+  signup: { title: "signup.title", body: "signup.body" },
+  forgot: { title: "forgot.title", body: "forgot.body" },
+};
+
 export function LoginDialog({
   open,
   onOpenChange,
@@ -207,8 +219,22 @@ export function LoginDialog({
 }) {
   const { t } = usePrefs();
   const session = useAccountSession();
+  const [mode, setMode] = useState<AuthMode>("login");
+  const close = () => {
+    setMode("login");
+    onOpenChange(false);
+  };
+  const signedOut = session.status === "signed_out";
+  const copy = MODE_COPY[signedOut ? mode : "login"];
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        // Every new opening starts at sign-in.
+        if (!next) setMode("login");
+        onOpenChange(next);
+      }}
+    >
       <DialogContent
         onCloseAutoFocus={(event) => {
           if (returnFocusRef.current?.isConnected) {
@@ -218,15 +244,52 @@ export function LoginDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle className="font-display">{t("login.title")}</DialogTitle>
-          <DialogDescription>{t("login.body")}</DialogDescription>
+          <DialogTitle className="font-display">{t(copy.title)}</DialogTitle>
+          <DialogDescription>{t(copy.body)}</DialogDescription>
         </DialogHeader>
         {session.status === "loading" ? (
           <p role="status">{t("login.checking")}</p>
         ) : session.status === "authenticated" ? (
           <SignedInPanel />
+        ) : mode === "signup" ? (
+          <SignupForm onSignedIn={close} />
+        ) : mode === "forgot" ? (
+          <ForgotPasswordForm />
         ) : (
-          <LoginForm onSignedIn={() => onOpenChange(false)} />
+          <LoginForm onSignedIn={close} />
+        )}
+        {signedOut && (
+          <div className="flex flex-wrap justify-between gap-x-4">
+            {mode === "login" ? (
+              <>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="px-0"
+                  onClick={() => setMode("forgot")}
+                >
+                  {t("login.forgot")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="px-0"
+                  onClick={() => setMode("signup")}
+                >
+                  {t("login.toSignup")}
+                </Button>
+              </>
+            ) : (
+              <Button
+                type="button"
+                variant="link"
+                className="px-0"
+                onClick={() => setMode("login")}
+              >
+                {t("login.toLogin")}
+              </Button>
+            )}
+          </div>
         )}
       </DialogContent>
     </Dialog>
