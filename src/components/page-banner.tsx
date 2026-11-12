@@ -10,7 +10,7 @@ export function PageBanner({
   description?: string;
 }) {
   return (
-    <header className="rp-info-banner">
+    <header className="rp-info-banner photo-surface">
       <div className="rp-info-container rp-info-banner-content">
         <p className="rp-info-eyebrow">
           <span aria-hidden />

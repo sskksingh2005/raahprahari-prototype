@@ -60,7 +60,7 @@ function HelpPage() {
 
   return (
     <div className="help-page">
-      <header className="help-banner">
+      <header className="help-banner photo-surface">
         <div className="help-container help-banner-content">
           <p className="help-eyebrow">
             <span aria-hidden />
@@ -126,7 +126,7 @@ function HelpPage() {
           </div>
         </section>
 
-        <aside className="help-reminder" aria-labelledby="help-reminder-title">
+        <aside className="help-reminder photo-surface" aria-labelledby="help-reminder-title">
           <div className="help-reminder-content">
             <p className="help-reminder-label">
               <ShieldAlert aria-hidden />

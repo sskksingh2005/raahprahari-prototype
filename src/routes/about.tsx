@@ -9,6 +9,7 @@ import {
   Mail,
   Route as RouteIcon,
 } from "lucide-react";
+import { Logo } from "@/components/logo";
 import { PageBanner } from "@/components/page-banner";
 import { Button } from "@/components/ui/button";
 import { usePrefs } from "@/i18n/preferences";
@@ -28,6 +29,7 @@ function AboutPage() {
         description={t("aboutPage.description")}
       />
       <div className="rp-info-container rp-info-content">
+        <Logo variant="full" className="mb-5 max-w-[11rem]" />
         <div className="grid gap-3 min-[600px]:grid-cols-2 min-[1050px]:grid-cols-3">
           <article className="rp-info-card">
             <Database aria-hidden className="mb-3 size-5 text-brand-orange" />

@@ -6,14 +6,25 @@
   background: var(--background);
 }
 
+.dark .rp-info-page {
+  background:
+    radial-gradient(ellipse at 82% 55%, color-mix(in srgb, var(--tone-0a2f3e) 28%, transparent), transparent 42%),
+    var(--background);
+}
+
 .rp-info-container {
   width: min(100% - 2rem, 76rem);
   margin-inline: auto;
 }
 
 .rp-info-banner {
-  border-bottom: 1px solid var(--border);
-  background: var(--card);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-bottom: 1px solid color-mix(in srgb, var(--tone-91aebd) 20%, transparent);
+  background:
+    linear-gradient(90deg, var(--photo-scrim-a), var(--photo-scrim-b) 58%, var(--photo-scrim-c)),
+    url("/img/banner-strip.png") center 53% / cover;
 }
 
 .rp-info-banner-content {
@@ -29,7 +40,7 @@
   align-items: center;
   gap: 0.55rem;
   margin: 0 0 0.65rem;
-  color: var(--muted-foreground);
+  color: var(--tone-d7ecff);
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.13em;
@@ -39,13 +50,13 @@
 .rp-info-eyebrow span {
   width: 1.75rem;
   height: 2px;
-  background: #eb5b38;
+  background: var(--tone-eb5b38);
 }
 
 .rp-info-banner h1 {
   max-width: 44rem;
   margin: 0;
-  color: var(--foreground);
+  color: var(--tone-f0eee8);
   font-family: var(--font-heading);
   font-size: clamp(2rem, 4vw, 2.85rem);
   font-weight: 700;
@@ -55,7 +66,7 @@
 .rp-info-banner-description {
   max-width: 48rem;
   margin: 0.75rem 0 0;
-  color: var(--muted-foreground);
+  color: var(--tone-d1dce2);
   font-size: 0.95rem;
   line-height: 1.55;
 }
@@ -165,7 +176,7 @@
 }
 
 .dark .rp-contact-error {
-  color: #ffad9a;
+  color: var(--tone-ffad9a);
 }
 
 .rp-contact-notice,
@@ -184,8 +195,8 @@
 
 .rp-contact-emergency {
   margin: 1rem 0 0;
-  border-left-color: var(--status-official);
-  background: var(--muted);
+  border-left-color: var(--brand-orange);
+  background: color-mix(in srgb, var(--brand-orange) 14%, transparent);
 }
 
 .rp-info-page a:focus-visible {

@@ -256,7 +256,7 @@ export function MapLegend({ className }: { className?: string }) {
         </li>
         <li className="flex items-center gap-2">
           <span aria-hidden className="inline-flex size-5 items-center justify-center rounded-full bg-status-official">
-            <ShieldCheck className="size-3 text-white" />
+            <ShieldCheck className="size-3 text-primary-foreground" />
           </span>
           {t('map.restriction')}
         </li>

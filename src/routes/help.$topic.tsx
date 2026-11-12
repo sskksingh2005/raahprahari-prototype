@@ -20,7 +20,7 @@ function HelpTopicPage() {
 
   return (
     <div className="help-detail-page">
-      <header className="help-banner help-detail-banner">
+      <header className="help-banner help-detail-banner photo-surface">
         <div className="help-container help-banner-content">
           <Link to="/help" className="help-detail-back">
             <ArrowLeft aria-hidden />

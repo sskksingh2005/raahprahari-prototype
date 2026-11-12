@@ -40,30 +40,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { Logo } from '@/components/logo'
 import { usePrefs } from '@/i18n/preferences'
 import { cn } from '@/lib/utils'
-
-export function Logo({ className }: { className?: string }) {
-  return (
-    <span className={cn('inline-flex items-center gap-2.5', className)}>
-      <svg viewBox="0 0 32 32" aria-hidden className="size-8 shrink-0">
-        <rect width="32" height="32" rx="8" fill="#111719" />
-        <path d="M4 23 L12 11 L16 16 L20 9 L28 23 Z" fill="#30363A" />
-        <path d="M20 9 L23 13.5 L21 13 L19.5 14.5 L18 12 Z" fill="#E6E4DC" />
-        <path
-          d="M10 28 C13 23 19 22 16 17 C14.5 14.5 18 12.5 20 12"
-          fill="none"
-          stroke="#EB5B38"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-        />
-      </svg>
-      <span className="font-display text-lg font-bold tracking-tight">
-        Raah<span className="text-brand-orange">Prahari</span>
-      </span>
-    </span>
-  )
-}
 
 function LanguageSwitch() {
   const { lang, setLang, t } = usePrefs()
@@ -71,7 +50,7 @@ function LanguageSwitch() {
     <div
       role="group"
       aria-label={t('lang.label')}
-      className="inline-flex h-11 rounded-full border border-border p-0.5 text-sm"
+      className="rp-lang inline-flex h-10 shrink-0 items-center gap-0.5 rounded-full border border-border p-0.5 text-sm whitespace-nowrap"
     >
       {(['en', 'hi'] as const).map((language) => (
         <button
@@ -81,7 +60,7 @@ function LanguageSwitch() {
           onClick={() => setLang(language)}
           lang={language}
           className={cn(
-            'rp-press min-h-11 min-w-11 rounded-full px-2.5 font-medium transition-colors',
+            'rp-press rp-lang-btn inline-flex h-8 min-h-8 min-w-10 items-center justify-center rounded-full px-2.5 text-sm font-medium whitespace-nowrap',
             lang === language
               ? 'bg-raised text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground',
@@ -171,11 +150,11 @@ export const SECONDARY_NAV = [
 ] as const
 
 export const BOTTOM_NAV = [
-  { to: '/', label: 'nav.home', icon: House },
-  { to: '/traveller', label: 'nav.traveller', icon: Search },
-  { to: '/report', label: 'nav.report', icon: TriangleAlert },
-  { to: '/map', label: 'nav.map', icon: Map },
-  { to: '/advisories', label: 'nav.advisories', icon: ListChecks },
+  { to: '/', label: 'nav.home', icon: House, raised: false },
+  { to: '/traveller', label: 'nav.traveller', icon: Search, raised: false },
+  { to: '/report', label: 'nav.report', icon: TriangleAlert, raised: true },
+  { to: '/map', label: 'nav.map', icon: Map, raised: false },
+  { to: '/advisories', label: 'nav.advisories', icon: ListChecks, raised: false },
 ] as const
 
 type NavTarget =
@@ -223,14 +202,12 @@ export function SiteHeader() {
     <>
       <header
         data-scrolled={scrolled}
-        className="rp-header sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-md"
+        className="rp-header sticky top-0 z-(--z-header) border-b border-border/70 bg-background/90 backdrop-blur-md"
       >
         <div className="rp-container flex h-16 min-w-0 items-center gap-3">
-          <Link to="/" className="shrink-0 rounded-md" aria-label={t('nav.homeLabel')}>
-            <Logo />
-          </Link>
+          <Logo />
 
-          <nav aria-label={t('nav.primary')} className="hidden min-w-0 items-center xl:flex">
+          <nav aria-label={t('nav.primary')} className="hidden min-w-0 items-center gap-0.5 xl:flex">
             {PRIMARY_NAV.map(({ to, label }) => (
               <Link
                 key={to}
@@ -274,7 +251,7 @@ export function SiteHeader() {
             </DropdownMenu>
           </nav>
 
-          <div className="ml-auto hidden shrink-0 items-center gap-1.5 xl:flex">
+          <div className="ml-auto hidden min-w-0 shrink-0 items-center gap-3 xl:flex">
             <LanguageSwitch />
             <ThemeSwitch />
             <Button
@@ -321,14 +298,17 @@ export function SiteHeader() {
                   ref={menuTriggerRef}
                   variant="ghost"
                   size="icon-lg"
-                  className="rounded-full"
+                  className="rounded-full xl:hidden"
                   aria-label={t('nav.menu')}
                 >
                   <Menu aria-hidden />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[min(22rem,90vw)] overflow-y-auto">
-                <SheetHeader>
+              <SheetContent
+                side="right"
+                className="max-h-dvh w-[min(22rem,90vw)] overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]"
+              >
+                <SheetHeader className="gap-0 py-3 pr-16 pl-4">
                   <SheetTitle>
                     <Logo />
                   </SheetTitle>
@@ -409,10 +389,10 @@ export function SiteHeader() {
 
       <nav
         aria-label={t('nav.bottom')}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md xl:hidden"
+        className="fixed inset-x-0 bottom-0 z-(--z-bottom-nav) border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md xl:hidden"
       >
         <ul className="mx-auto flex max-w-xl items-end justify-around px-2">
-          {BOTTOM_NAV.map(({ to, label, icon: Icon }) => (
+          {BOTTOM_NAV.map(({ to, label, icon: Icon, raised }) => (
             <li key={to} className="flex-1">
               {to === '/report' ? (
                 <Link
@@ -421,7 +401,7 @@ export function SiteHeader() {
                   aria-current={current(to)}
                   className="rp-press flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium text-foreground"
                 >
-                  <Icon className="size-5 text-brand-orange" />
+                  <Icon className={cn('size-5', raised && 'text-brand-orange')} />
                   {t(label)}
                 </Link>
               ) : (

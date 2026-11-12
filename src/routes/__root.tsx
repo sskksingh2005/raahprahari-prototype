@@ -11,6 +11,7 @@ import { SkipLink } from "@/components/ui/feedback";
 import { NotFoundPage } from "@/components/error-pages";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { BackToTop, PageTransition, RevealObserver } from "@/components/motion";
+import { BootGate, RouteProgress, bootGuardScript } from "@/components/boot-screen";
 import { PrototypeRibbon } from "@/components/prototype-ribbon";
 import { AccountScopeBoundary } from "@/components/account-scope-boundary";
 import { SyncProvider } from "@/components/sync-provider";
@@ -66,11 +67,15 @@ export const Route = createRootRoute({
           name: "twitter:card",
           content: "summary_large_image",
         },
-        { name: "theme-color", content: "#07151f" },
+        { name: "theme-color", content: "#07151f", media: "(prefers-color-scheme: dark)" },
+        { name: "theme-color", content: "#e6e4dc", media: "(prefers-color-scheme: light)" },
       ],
       links: [
         // Web app manifest only. There is no service worker, so nothing is cached for offline use.
         { rel: "manifest", href: "/manifest.webmanifest" },
+        { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
+        { rel: "icon", type: "image/png", href: "/favicon-32.png", sizes: "32x32" },
+        { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
           rel: "preconnect",
@@ -119,17 +124,23 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <BootGate />
+        <script dangerouslySetInnerHTML={{ __html: bootGuardScript }} />
+        <noscript>
+          <style>{"#rp-boot{display:none!important}"}</style>
+        </noscript>
         <PreferencesProvider>
           <TooltipProvider>
             <AccountScopeBoundary>
               <SyncProvider>
                 <SkipLink>Skip to content</SkipLink>
                 <PageTransition />
+                <RouteProgress />
                 <RevealObserver />
                 <BackToTop />
                 <div className="flex min-h-svh flex-col overflow-x-clip pb-[calc(5rem+env(safe-area-inset-bottom))] xl:pb-0">
                   <SiteHeader />
-                  <main id="main" className="min-w-0 flex-1">
+                  <main id="main" aria-busy="true" className="min-w-0 flex-1">
                     {children}
                   </main>
                   {!isHome && !isTraveller && !isMap && !isHelp && <SiteFooter />}
@@ -141,7 +152,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                   !isNotFound &&
                   !isReport &&
                   !isAdvisories && (
-                    <div className="rp-demo-badge-ribbon pointer-events-none fixed right-2 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 xl:bottom-2">
+                    <div className="rp-demo-badge-ribbon pointer-events-none fixed right-2 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-(--z-bottom-nav) xl:bottom-2">
                       <PrototypeRibbon />
                     </div>
                   )}

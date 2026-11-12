@@ -10,9 +10,9 @@ import { SkeletonList } from '@/components/ui/skeleton'
 const css = readFileSync('src/styles.css', 'utf8').replace(/\r\n/g, '\n')
 const rootSource = readFileSync('src/routes/__root.tsx', 'utf8')
 
-/** The last prefers-reduced-motion block in the token file (it must win). */
+/** The global prefers-reduced-motion block (the boot/route-progress block after it is local). */
 function reducedBlock() {
-  const start = css.lastIndexOf('@media (prefers-reduced-motion: reduce)')
+  const start = css.lastIndexOf('@media (prefers-reduced-motion: reduce)', css.indexOf('animation: none !important'))
   expect(start).toBeGreaterThan(-1)
   return css.slice(start)
 }
@@ -60,14 +60,16 @@ describe('motion tokens', () => {
     expect(ms.length).toBe(4)
     expect(Math.max(...ms)).toBeLessThanOrEqual(500)
     const infinite = [...css.matchAll(/animation:[^;]*infinite[^;]*;/g)].map((m) => m[0])
-    expect(infinite).toHaveLength(1)
-    expect(infinite[0]).toContain('rp-shimmer')
+    // Skeleton shimmer and the boot-screen logo pulse (disabled under reduced motion).
+    expect(infinite).toHaveLength(2)
+    expect(infinite.some((a) => a.includes('rp-shimmer'))).toBe(true)
+    expect(infinite.some((a) => a.includes('rp-boot-pulse'))).toBe(true)
   })
 
   it('animates only transform properties and opacity inside keyframes', () => {
     const frames = [...css.matchAll(/@keyframes [\w-]+ \{([\s\S]*?)\n\}/g)].map((m) => m[1])
     expect(frames.length).toBeGreaterThan(8)
-    const allowed = new Set(['opacity', 'translate', 'scale', 'rotate'])
+    const allowed = new Set(['opacity', 'translate', 'scale', 'rotate', 'transform', 'visibility'])
     for (const body of frames) {
       for (const [, prop] of body.matchAll(/^\s+([a-z-]+):/gm)) {
         expect(allowed.has(prop), `keyframe property ${prop}`).toBe(true)

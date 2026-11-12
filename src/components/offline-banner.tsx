@@ -143,7 +143,7 @@ export function OfflineBannerView({
         {pendingCount > 0 ? (
           <Link
             to="/reports"
-            className="inline-flex min-h-11 items-center rounded-md px-2 text-xs font-semibold underline underline-offset-4 hover:bg-black/5 dark:hover:bg-white/10 sm:text-sm"
+            className="inline-flex min-h-11 items-center rounded-md px-2 text-xs font-semibold underline underline-offset-4 hover:bg-accent sm:text-sm"
           >
             {t("offline.viewReports")}
           </Link>
