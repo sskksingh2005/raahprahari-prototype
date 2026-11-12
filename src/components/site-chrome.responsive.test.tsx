@@ -40,7 +40,7 @@ function mount() {
 }
 
 describe("header breakpoints", () => {
-  it("shows the inline links, language, theme and report at xl and up only", () => {
+  it("shows the inline links, language, theme, login and report at xl and up only", () => {
     mount();
     const header = screen.getByRole("banner");
     const nav = within(header).getByRole("navigation", { name: "Primary" });
@@ -55,7 +55,7 @@ describe("header breakpoints", () => {
 
     const right = within(header).getByRole("group", { name: "Language" }).parentElement!;
     expect(classes(right)).toEqual(expect.arrayContaining(["hidden", "xl:flex"]));
-    expect(within(right).queryByRole("button", { name: /login/i })).toBeNull();
+    expect(within(right).getByRole("button", { name: "Community Login" })).toBeInTheDocument();
     expect(within(right).getByRole("link", { name: "Report Hazard" })).toBeInTheDocument();
   });
 
@@ -70,7 +70,7 @@ describe("header breakpoints", () => {
     expect(classes(bottom)).not.toContain("hidden");
   });
 
-  it("keeps DOM order: logo, links, then language, theme, report", () => {
+  it("keeps DOM order: logo, links, then language, theme, login, report", () => {
     mount();
     const header = screen.getByRole("banner");
     const row = header.firstElementChild!;
@@ -83,6 +83,7 @@ describe("header breakpoints", () => {
     expect(Array.from(right.children).map((el) => el.textContent || el.getAttribute("aria-label"))).toEqual([
       "ENहिन्दी",
       expect.stringMatching(/theme|system|light|dark/i),
+      "Community Login",
       "Report Hazard",
     ]);
     const follows = (a: Node, b: Node) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);

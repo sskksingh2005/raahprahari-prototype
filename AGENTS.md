@@ -14,7 +14,8 @@ Architecture:
 - `src/i18n/` holds the EN/HI dictionaries and `usePrefs()` (t, ago, stamp, place, theme). Never inline UI strings.
 - `src/lib/storage.ts`: `useLocalState` (localStorage read after mount, SSR-safe).
 - `src/components/advisory.tsx`: status badges. Status colours always come with an icon and a label.
-- `/report` implements the Phase A hazard-report flow; `/about` remains linked but is not yet created (see PLAN.md).
+- `/report` implements the Phase A hazard-report flow. `src/routes/about.tsx` exists, so `/about` is created; see PLAN.md for remaining scope.
+- Maps: `/map` renders a Leaflet map (`src/features/map/leaflet-segment-map.tsx`, react-leaflet). `/check` still uses the schematic map (`src/features/routes/schematic-map.tsx`). No live routing or data integrations exist.
 
 ### Tech Stack
 
@@ -45,7 +46,7 @@ Architecture:
 │   │   └── utils.ts    # cn() helper for merging Tailwind classes.
 │   ├── routes
 │   │   ├── __root.tsx  # HTML shell, <head> metadata (siteName, siteDescription), the tooltip provider, and the toast container.
-│   │   └── index.tsx   # Home route (/): placeholder page to replace.
+│   │   └── index.tsx   # Home route (/): RaahPrahari landing page (hero, route search, sample advisory).
 │   ├── router.tsx      # Creates the router from the generated route tree.
 │   └── styles.css      # Tailwind import, theme variables for light and dark mode, base styles.
 ├── components.json     # shadcn/ui config, used by `npx shadcn add`.
@@ -67,7 +68,7 @@ Route files in `src/routes/` define pages and endpoints:
 
 - `__root.tsx` wraps every page.
 - `index.tsx` is `/`.
-- `about.tsx` would be `/about`.
+- `about.tsx` is `/about`.
 - `api.*.ts` files are server API endpoints. See the `tanstack-start-api-routes` skill.
 
 ### Theme Variables
@@ -93,7 +94,7 @@ Use Sheet for a mobile menu and DropdownMenu for short action lists. Give Dialog
 
 ### Design Choices
 
-Set the product's palette, heading/body fonts, and layout before building its screens. Use an explicit user design when supplied; otherwise choose defaults that fit the product. Keep Basic's placeholder until you replace it with the requested product.
+Set the product's palette, heading/body fonts, and layout before building its screens. Use an explicit user design when supplied; otherwise choose defaults that fit the product. The Basic placeholder has already been replaced by RaahPrahari; extend the existing design.
 
 - Set `--font-body` and `--font-heading` in `src/styles.css`. Use `font-display` for headings when the product needs a separate heading font.
 - Use `max-w-content` for a page container and `max-w-reading` for long text. Keep consistent horizontal padding, such as `px-4 sm:px-6`, and a small repeated spacing scale, such as `gap-4`, `gap-6`, and `py-12`.
@@ -125,14 +126,16 @@ Pages are rendered on the server first, where `window` and `localStorage` don't 
 Use Node 22.13+ on the Node 22 line, Node 24, or Node 26+. The installed lint and test tools set this minimum alongside the framework.
 
 ```bash
-npm run dev        # Start the Vite dev server on port 3000
-npm run build      # Production build
-npm run typecheck  # Type-check with tsc; the build doesn't
-npm run lint       # Check TypeScript and React Hooks rules
-npm run format:check # Check formatting
-npm run format     # Format project files
-npm test           # Run local form, control, and error page tests
-npm run preview    # Preview the production build
+pnpm dev          # Start the Vite dev server on port 3000
+pnpm build        # Production build
+pnpm typecheck    # Type-check with tsc; the build doesn't
+pnpm lint         # Check TypeScript and React Hooks rules
+pnpm format:check # Check formatting
+pnpm format       # Format project files
+pnpm test         # Run unit and component tests (vitest run)
+pnpm test:e2e     # Run Playwright end-to-end tests
+pnpm verify       # Full gate (script runs typecheck, lint, test, build, e2e)
+pnpm preview      # Preview the production build
 ```
 
 ## Conventions
@@ -151,4 +154,4 @@ Set the product's name and description in `src/routes/__root.tsx`:
 - `siteName` is the page title and the title shown when the link is shared.
 - `siteDescription` is the meta description and the description shown when the link is shared.
 
-Then replace the placeholder heading and text in `src/routes/index.tsx`.
+The home page copy lives in the i18n dictionaries (`hero.*` keys) and renders from `src/routes/index.tsx`.

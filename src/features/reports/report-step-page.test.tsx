@@ -13,6 +13,7 @@ import {
   readReportDraft,
   toLocalDateTime,
   validateObservation,
+  photoValidationCode,
   validatePhoto,
   writeReportDraft,
 } from "@/lib/report-store";
@@ -21,6 +22,7 @@ import { STORAGE_KEYS } from "@/lib/storage";
 const navigate = vi.fn();
 
 afterEach(async () => {
+  vi.unstubAllGlobals();
   window.localStorage.clear();
   navigate.mockClear();
   await localDb.drafts.clear();
@@ -78,6 +80,100 @@ describe("report observation validation", () => {
         }),
       ),
     ).toBe("Photo must be 10 MB or smaller.");
+  });
+
+  it("treats exactly 10 MiB as valid and rejects empty or WebP files", () => {
+    expect(MAX_PHOTO_BYTES).toBe(10 * 1024 * 1024);
+    const exact = new File([new Uint8Array(MAX_PHOTO_BYTES)], "edge.jpg", {
+      type: "image/jpeg",
+    });
+    expect(photoValidationCode(exact)).toBeNull();
+    const over = new File([new Uint8Array(MAX_PHOTO_BYTES + 1)], "edge.jpg", {
+      type: "image/jpeg",
+    });
+    expect(photoValidationCode(over)).toBe("size");
+    expect(
+      photoValidationCode(new File([], "empty.png", { type: "image/png" })),
+    ).toBe("empty");
+    expect(
+      photoValidationCode(new File(["x"], "road.webp", { type: "image/webp" })),
+    ).toBe("type");
+    expect(photoValidationCode(new File(["x"], "road.jpg"))).toBeNull();
+  });
+});
+
+describe("report photo selection", () => {
+  const choose = (file: File) =>
+    fireEvent.change(
+      screen.getByLabelText("Choose an existing JPG or PNG photo"),
+      { target: { files: [file] } },
+    );
+
+  it("keeps the previous photo, form values and saved draft when a replacement is invalid", async () => {
+    // jsdom has no object URLs; stub them so the preview loads without an alert.
+    class PreviewURL extends URL {
+      static createObjectURL = vi.fn(() => "blob:preview");
+      static revokeObjectURL = vi.fn();
+    }
+    vi.stubGlobal("URL", PreviewURL);
+    writeReportDraft({
+      ...createEmptyReportDraft(),
+      hazardType: "landslide",
+      description: "Debris on the road.",
+    });
+    render(<ReportStepPage step="photo" navigate={navigate} />);
+    // Let the restored draft autosave first so the photo attaches to it.
+    await waitFor(async () => expect(await localDb.drafts.count()).toBe(1), {
+      timeout: 3000,
+    });
+
+    choose(new File(["png"], "first.png", { type: "image/png" }));
+    await waitFor(
+      () =>
+        expect(screen.getAllByText("first.png").length).toBeGreaterThan(0),
+      { timeout: 3000 },
+    );
+    expect(screen.getByText(/not uploaded/)).toBeInTheDocument();
+    const photoId = readReportDraft()?.photo?.id;
+    expect(photoId).toBeTruthy();
+    await waitFor(async () =>
+      expect(await localDb.drafts.count()).toBe(1),
+    );
+
+    const rejected: [File, string][] = [
+      [
+        new File(["gif"], "bad.gif", { type: "image/gif" }),
+        "Choose a JPG or PNG image.",
+      ],
+      [
+        new File([], "empty.png", { type: "image/png" }),
+        "This photo file is empty. Choose another image.",
+      ],
+      [
+        new File([new Uint8Array(MAX_PHOTO_BYTES + 1)], "big.jpg", {
+          type: "image/jpeg",
+        }),
+        "Photo must be 10 MB or smaller.",
+      ],
+    ];
+    for (const [file, message] of rejected) {
+      choose(file);
+      expect(await screen.findByRole("alert")).toHaveTextContent(message);
+      expect(screen.getAllByText("first.png").length).toBeGreaterThan(0);
+      expect(readReportDraft()?.photo?.id).toBe(photoId);
+      expect(readReportDraft()?.description).toBe("Debris on the road.");
+      expect(await localDb.attachments.count()).toBe(1);
+    }
+
+    choose(new File(["jpg"], "second.jpg", { type: "image/jpeg" }));
+    await waitFor(() =>
+      expect(screen.getAllByText("second.jpg").length).toBeGreaterThan(0),
+    );
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(readReportDraft()?.photo?.id).not.toBe(photoId);
+    await waitFor(async () =>
+      expect(await localDb.attachments.count()).toBe(1),
+    );
   });
 });
 

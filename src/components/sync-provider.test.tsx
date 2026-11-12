@@ -14,7 +14,10 @@ import { setAccountSession } from "@/lib/account-session";
 import { localDb } from "@/lib/local-db";
 import { setSyncState } from "@/lib/sync/sync-state";
 
-const { syncNowMock } = vi.hoisted(() => ({ syncNowMock: vi.fn() }));
+const { syncNowMock, transportSource } = vi.hoisted(() => ({
+  syncNowMock: vi.fn(),
+  transportSource: { current: "http" as "http" | "none" },
+}));
 
 vi.mock("@/lib/sync/sync-engine", async (importOriginal) => {
   const actual =
@@ -23,9 +26,7 @@ vi.mock("@/lib/sync/sync-engine", async (importOriginal) => {
     ...actual,
     syncNow: syncNowMock,
     getLastSyncAt: () => null,
-    // SyncNowButton hides itself when nothing could send (VA-16); these tests
-    // exercise the visible button, so report a transport as present.
-    getTransportSource: () => "dev_stub" as const,
+    getTransportSource: () => transportSource.current,
   };
 });
 
@@ -47,6 +48,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  transportSource.current = "http";
   setAccountSession({ status: "signed_out", userId: null });
   Object.defineProperty(navigator, "serviceWorker", {
     configurable: true,
@@ -166,5 +168,11 @@ describe("SyncProvider triggers", () => {
         .map(({ id }) => id),
     ).toEqual([]);
     act(() => setSyncState({ running: false }));
+  });
+
+  it("hides Sync now when no report transport exists", () => {
+    transportSource.current = "none";
+    render(<SyncNowButton />);
+    expect(screen.queryByRole("button", { name: /sync now/i })).toBeNull();
   });
 });

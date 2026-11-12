@@ -100,9 +100,9 @@ describe("mobile navigation keyboard accessibility", () => {
       ["Contact", "/contact"],
     ]);
     expect(within(menuNav).getByRole("link", { name: "Help" })).toHaveAttribute("aria-current", "page");
-    // The rest of the header controls are reachable from the menu too. Login is
-    // deferred, and My Reports needs a session, so neither is offered when signed out.
-    expect(within(dialog).queryByRole("button", { name: /login/i })).toBeNull();
+    // The rest of the header controls are reachable from the menu too. My Reports
+    // needs a session, so it is not offered when signed out; sign-in is.
+    expect(within(dialog).getByRole("button", { name: "Community Login" })).toBeInTheDocument();
     expect(within(dialog).getByRole("link", { name: "Report Hazard" })).toHaveAttribute("href", "/report");
 
     // A route change that does not come from the menu (e.g. browser back) closes it.
@@ -114,12 +114,22 @@ describe("mobile navigation keyboard accessibility", () => {
   });
 });
 
-describe("deferred controls", () => {
-  it("offers no login control while sign-in is not available", () => {
+describe("community login dialog", () => {
+  it("opens a labelled sign-in form, closes and returns focus", async () => {
     location.pathname = "/";
+    const user = userEvent.setup();
     render(header());
-    // The old button only opened a "not available yet" dialog, so it is hidden (VA-16).
-    expect(screen.queryByRole("button", { name: /login/i })).toBeNull();
+    // No dialog is open until the user asks to sign in.
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    const trigger = screen.getAllByRole("button", { name: "Community Login" })[0];
+    await user.click(trigger);
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Community login");
+    expect(within(dialog).getByLabelText("Email")).toBeInTheDocument();
+    expect(within(dialog).getByLabelText("Password")).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Close" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(trigger).toHaveFocus();
   });
 });

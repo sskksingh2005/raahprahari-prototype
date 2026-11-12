@@ -14,6 +14,7 @@ import { BackToTop, PageTransition, RevealObserver } from "@/components/motion";
 import { BootGate, RouteProgress, bootGuardScript } from "@/components/boot-screen";
 import { PrototypeRibbon } from "@/components/prototype-ribbon";
 import { AccountScopeBoundary } from "@/components/account-scope-boundary";
+import { AuthSessionBridge } from "@/components/auth-session-bridge";
 import { SyncProvider } from "@/components/sync-provider";
 import { PreferencesProvider, themeBootScript } from "@/i18n/preferences";
 
@@ -131,6 +132,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         </noscript>
         <PreferencesProvider>
           <TooltipProvider>
+            <AuthSessionBridge />
             <AccountScopeBoundary>
               <SyncProvider>
                 <SkipLink>Skip to content</SkipLink>

@@ -9,6 +9,7 @@ import {
 } from "@/lib/sync/sync-engine";
 import { useSyncState } from "@/lib/sync/sync-state";
 import { useOnlineStatus } from "@/lib/use-online-status";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 /** Reads the existing stores and the engine's own detection; it owns no sync logic. */
 export function useSystemStatus(): IntegrationStatus[] {
@@ -39,6 +40,7 @@ export function useSystemStatus(): IntegrationStatus[] {
         transport: getTransportSource(),
         online,
         session: session.status,
+        authProvider: isSupabaseConfigured() ? "supabase" : "none",
         sync: { lastResult, lastSuccessfulSyncAt, nextAttemptAt, running },
         backgroundSync,
         routingMode: seededRoutingProvider.mode,

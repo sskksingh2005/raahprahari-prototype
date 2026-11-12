@@ -30,8 +30,74 @@ export const en = {
     "You are offline. Showing information saved on this device.",
   "login.title": "Community login",
   "login.body":
-    "Accounts for travellers, volunteers, moderators and officials are part of the next milestone. In this prototype you can check roads and file reports without signing in — reports stay on this device.",
-  "login.close": "Got it",
+    "Sign in with your RaahPrahari account email and password. You can still check roads and file reports without signing in.",
+  "login.close": "Close",
+  "login.email": "Email",
+  "login.password": "Password",
+  "login.submit": "Sign in",
+  "login.submitting": "Signing in…",
+  "login.emailInvalid": "Enter a valid email address.",
+  "login.passwordRequired": "Enter your password.",
+  "login.invalidCredentials": "The email or password is incorrect.",
+  "login.networkError":
+    "Could not reach the sign-in service. Check your connection and try again.",
+  "login.notConfigured":
+    "Sign-in is not configured for this build. Contact the site administrator.",
+  "login.genericError": "Sign-in failed. Please try again.",
+  "login.noSession":
+    "Sign-in did not return a session. Your account may need confirmation.",
+  "login.checking": "Checking your sign-in…",
+  "login.signedIn": "You are signed in.",
+  "login.signOut": "Sign out",
+  "login.signingOut": "Signing out…",
+  "login.signOutError":
+    "Could not reach the sign-in service. You are signed out on this device.",
+  "nav.account": "Account",
+  "login.forgot": "Forgot password?",
+  "login.toSignup": "New here? Create an account",
+  "login.toLogin": "Back to sign in",
+  "signup.title": "Create an account",
+  "signup.body":
+    "Create a RaahPrahari account with your email. You can still check roads and file reports without one.",
+  "signup.confirmPassword": "Confirm password",
+  "signup.passwordHint": "At least 8 characters.",
+  "signup.passwordTooShort": "Use at least 8 characters.",
+  "signup.passwordMismatch": "The passwords do not match.",
+  "signup.submit": "Create account",
+  "signup.submitting": "Creating account…",
+  "signup.checkEmail":
+    "Check your email for a confirmation link to finish creating your account. If you already have an account, sign in instead.",
+  "signup.signedIn": "Your account is ready and you are signed in.",
+  "forgot.title": "Reset your password",
+  "forgot.body":
+    "Enter your account email and we will send a link to set a new password.",
+  "forgot.submit": "Send reset link",
+  "forgot.submitting": "Sending…",
+  "forgot.sent":
+    "If an account exists for that email, a reset link is on its way. Open it in this browser.",
+  "authErr.userExists":
+    "An account with this email already exists. Sign in instead.",
+  "authErr.weakPassword": "Choose a stronger password.",
+  "authErr.samePassword":
+    "Choose a password that is different from your current one.",
+  "authErr.rateLimited": "Too many attempts. Wait a few minutes and try again.",
+  "authErr.sessionMissing":
+    "Your reset session has expired. Request a new reset link.",
+  "authErr.linkInvalid":
+    "This link is invalid or has expired. Request a new one.",
+  "authErr.missingCode": "Open this page from the link in a RaahPrahari email.",
+  "callback.title": "Confirming your link",
+  "callback.checking": "Confirming your link…",
+  "callback.failedTitle": "The link could not be confirmed",
+  "callback.home": "Go to home",
+  "reset.title": "Set a new password",
+  "reset.body": "Choose a new password for your RaahPrahari account.",
+  "reset.newPassword": "New password",
+  "reset.submit": "Update password",
+  "reset.submitting": "Updating…",
+  "reset.done": "Your password has been updated.",
+  "reset.noSession":
+    "Open the reset link from your email to set a new password. Links expire after a short time.",
 
   "hero.eyebrow": "Uttarakhand road-hazard advisories",
   "hero.title": "Know before you go.",
@@ -361,20 +427,23 @@ export const en = {
   "report.draftSaved": "Draft saved on this device.",
   "report.draftRestored": "Restored your saved draft.",
   "report.discard": "Discard draft",
-  "report.photosTitle": "Add photos (optional)",
-  "report.photosHint": "Up to 4 images · JPG, PNG or WebP · 10 MB each",
-  "report.addPhotos": "Choose photos",
+  "report.photosTitle": "Add a photo (optional)",
+  "report.photosHint": "One photo · JPG or PNG · up to 10 MB",
+  "report.addPhotos": "Choose photo",
   "report.photosEmpty":
-    "No photos attached. Reports without photos are still reviewed.",
+    "No photo attached. Reports without a photo are still reviewed.",
   "report.photoLocal": "Selected on this device — not uploaded",
   "report.photoRemove": "Remove",
-  "report.photoTypeErr": "is not a JPG, PNG or WebP image.",
-  "report.photoSizeErr": "is larger than 10 MB.",
-  "report.photoMaxErr": "You can attach up to 4 photos.",
+  "report.photoTypeErr": "Choose a JPG or PNG image.",
+  "report.photoSizeErr": "Photo must be 10 MB or smaller.",
+  "report.photoEmptyErr": "This photo file is empty. Choose another image.",
+  "report.photoSaveErr":
+    "Could not save this photo on the device. Your previous photo and details were kept. Try another image or check browser storage.",
+  "report.photoMaxErr": "Only one photo can be attached.",
   "report.photoConsent":
     "In a connected deployment you will be asked to consent before photos are uploaded. Photos are private evidence and are never published at a public address.",
   "report.photoDraftNote":
-    "Photos are not kept in saved drafts; re-attach them when you continue.",
+    "A selected photo is kept in this browser with your saved draft. It is not uploaded.",
   "report.locTitle": "Where was it?",
   "report.locSearch": "Nearest town or landmark",
   "report.locPin": "Or tap the road on the map",
@@ -848,6 +917,8 @@ export const en = {
     'Sign-in uses a development helper, not a real account service.',
   'status.reason.sessionNone':
     'No sign-in provider is connected in this build, so reports cannot be sent.',
+  'status.reason.sessionSignedOut':
+    'Sign-in is configured for this build. You are not signed in on this device.',
   'status.reason.backgroundChecking': 'Checking browser support.',
   'status.reason.backgroundAvailable':
     'This browser can schedule a retry when the connection returns.',
@@ -916,8 +987,73 @@ export const hi: Record<TranslationKey, string> = {
     "आप ऑफ़लाइन हैं। इस डिवाइस पर सहेजी गई जानकारी दिखाई जा रही है।",
   "login.title": "समुदाय लॉगिन",
   "login.body":
-    "यात्रियों, स्वयंसेवकों, मॉडरेटरों और अधिकारियों के खाते अगले चरण में आएँगे। इस प्रोटोटाइप में आप बिना साइन इन किए सड़क जाँच सकते हैं और रिपोर्ट भर सकते हैं — रिपोर्ट इसी डिवाइस पर रहती हैं।",
-  "login.close": "ठीक है",
+    "अपने राहप्रहरी खाते के ईमेल और पासवर्ड से साइन इन करें। बिना साइन इन किए भी आप सड़कें जाँच सकते हैं और रिपोर्ट भर सकते हैं।",
+  "login.close": "बंद करें",
+  "login.email": "ईमेल",
+  "login.password": "पासवर्ड",
+  "login.submit": "साइन इन करें",
+  "login.submitting": "साइन इन हो रहा है…",
+  "login.emailInvalid": "मान्य ईमेल पता दर्ज करें।",
+  "login.passwordRequired": "अपना पासवर्ड दर्ज करें।",
+  "login.invalidCredentials": "ईमेल या पासवर्ड गलत है।",
+  "login.networkError":
+    "साइन-इन सेवा से संपर्क नहीं हो सका। अपना कनेक्शन जाँचें और फिर कोशिश करें।",
+  "login.notConfigured":
+    "इस संस्करण में साइन-इन कॉन्फ़िगर नहीं है। साइट व्यवस्थापक से संपर्क करें।",
+  "login.genericError": "साइन इन नहीं हो सका। कृपया फिर कोशिश करें।",
+  "login.noSession":
+    "साइन-इन से सत्र नहीं मिला। हो सकता है आपके खाते की पुष्टि बाकी हो।",
+  "login.checking": "आपका साइन-इन जाँचा जा रहा है…",
+  "login.signedIn": "आप साइन इन हैं।",
+  "login.signOut": "साइन आउट करें",
+  "login.signingOut": "साइन आउट हो रहा है…",
+  "login.signOutError":
+    "साइन-इन सेवा से संपर्क नहीं हो सका। इस डिवाइस पर आप साइन आउट हो गए हैं।",
+  "nav.account": "खाता",
+  "login.forgot": "पासवर्ड भूल गए?",
+  "login.toSignup": "नए हैं? खाता बनाएँ",
+  "login.toLogin": "साइन इन पर वापस जाएँ",
+  "signup.title": "खाता बनाएँ",
+  "signup.body":
+    "अपने ईमेल से राहप्रहरी खाता बनाएँ। बिना खाते के भी आप सड़कें जाँच सकते हैं और रिपोर्ट भर सकते हैं।",
+  "signup.confirmPassword": "पासवर्ड की पुष्टि करें",
+  "signup.passwordHint": "कम से कम 8 अक्षर।",
+  "signup.passwordTooShort": "कम से कम 8 अक्षर रखें।",
+  "signup.passwordMismatch": "दोनों पासवर्ड मेल नहीं खाते।",
+  "signup.submit": "खाता बनाएँ",
+  "signup.submitting": "खाता बन रहा है…",
+  "signup.checkEmail":
+    "खाता बनाना पूरा करने के लिए अपने ईमेल में पुष्टि लिंक देखें। अगर आपका खाता पहले से है, तो साइन इन करें।",
+  "signup.signedIn": "आपका खाता तैयार है और आप साइन इन हैं।",
+  "forgot.title": "अपना पासवर्ड रीसेट करें",
+  "forgot.body":
+    "अपने खाते का ईमेल दर्ज करें, हम नया पासवर्ड सेट करने का लिंक भेजेंगे।",
+  "forgot.submit": "रीसेट लिंक भेजें",
+  "forgot.submitting": "भेजा जा रहा है…",
+  "forgot.sent":
+    "अगर इस ईमेल का खाता है, तो रीसेट लिंक भेजा जा रहा है। इसे इसी ब्राउज़र में खोलें।",
+  "authErr.userExists":
+    "इस ईमेल से खाता पहले से मौजूद है। साइन इन करें।",
+  "authErr.weakPassword": "कोई मज़बूत पासवर्ड चुनें।",
+  "authErr.samePassword": "मौजूदा पासवर्ड से अलग पासवर्ड चुनें।",
+  "authErr.rateLimited":
+    "बहुत अधिक प्रयास हुए। कुछ मिनट रुककर फिर कोशिश करें।",
+  "authErr.sessionMissing":
+    "आपका रीसेट सत्र समाप्त हो गया है। नया रीसेट लिंक मँगाएँ।",
+  "authErr.linkInvalid": "यह लिंक अमान्य है या समाप्त हो गया है। नया लिंक मँगाएँ।",
+  "authErr.missingCode": "यह पेज राहप्रहरी ईमेल के लिंक से खोलें।",
+  "callback.title": "आपके लिंक की पुष्टि",
+  "callback.checking": "आपके लिंक की पुष्टि हो रही है…",
+  "callback.failedTitle": "लिंक की पुष्टि नहीं हो सकी",
+  "callback.home": "होम पर जाएँ",
+  "reset.title": "नया पासवर्ड सेट करें",
+  "reset.body": "अपने राहप्रहरी खाते के लिए नया पासवर्ड चुनें।",
+  "reset.newPassword": "नया पासवर्ड",
+  "reset.submit": "पासवर्ड अपडेट करें",
+  "reset.submitting": "अपडेट हो रहा है…",
+  "reset.done": "आपका पासवर्ड अपडेट हो गया है।",
+  "reset.noSession":
+    "नया पासवर्ड सेट करने के लिए अपने ईमेल का रीसेट लिंक खोलें। लिंक कुछ समय बाद समाप्त हो जाते हैं।",
 
   "hero.eyebrow": "उत्तराखंड सड़क-ख़तरा परामर्श",
   "hero.title": "सफ़र से पहले सुरक्षा की ख़बर",
@@ -1244,19 +1380,22 @@ export const hi: Record<TranslationKey, string> = {
   "report.draftRestored": "आपका सहेजा ड्राफ़्ट वापस लाया गया।",
   "report.discard": "ड्राफ़्ट हटाएँ",
   "report.photosTitle": "फ़ोटो जोड़ें (वैकल्पिक)",
-  "report.photosHint": "अधिकतम 4 चित्र · JPG, PNG या WebP · प्रत्येक 10 MB",
+  "report.photosHint": "एक फ़ोटो · JPG या PNG · अधिकतम 10 MB",
   "report.addPhotos": "फ़ोटो चुनें",
   "report.photosEmpty":
     "कोई फ़ोटो नहीं। बिना फ़ोटो वाली रिपोर्ट की भी समीक्षा होती है।",
   "report.photoLocal": "इस डिवाइस पर चुनी गई — अपलोड नहीं हुई",
   "report.photoRemove": "हटाएँ",
-  "report.photoTypeErr": "JPG, PNG या WebP चित्र नहीं है।",
-  "report.photoSizeErr": "10 MB से बड़ी है।",
-  "report.photoMaxErr": "आप अधिकतम 4 फ़ोटो जोड़ सकते हैं।",
+  "report.photoTypeErr": "JPG या PNG चित्र चुनें।",
+  "report.photoSizeErr": "फ़ोटो 10 MB या उससे छोटी होनी चाहिए।",
+  "report.photoEmptyErr": "यह फ़ोटो फ़ाइल खाली है। कोई दूसरा चित्र चुनें।",
+  "report.photoSaveErr":
+    "इस डिवाइस पर फ़ोटो सहेजी नहीं जा सकी। पिछली फ़ोटो और आपका विवरण सुरक्षित हैं। दूसरा चित्र आज़माएँ या ब्राउज़र स्टोरेज जाँचें।",
+  "report.photoMaxErr": "केवल एक फ़ोटो जोड़ी जा सकती है।",
   "report.photoConsent":
     "जुड़े हुए संस्करण में फ़ोटो अपलोड से पहले आपकी सहमति ली जाएगी। फ़ोटो निजी साक्ष्य हैं और कभी सार्वजनिक पते पर प्रकाशित नहीं होतीं।",
   "report.photoDraftNote":
-    "सहेजे ड्राफ़्ट में फ़ोटो नहीं रहतीं; आगे बढ़ते समय फिर से जोड़ें।",
+    "चुनी गई फ़ोटो आपके सहेजे ड्राफ़्ट के साथ इसी ब्राउज़र में रहती है। वह अपलोड नहीं हुई है।",
   "report.locTitle": "यह कहाँ था?",
   "report.locSearch": "नज़दीकी क़स्बा या पहचान स्थल",
   "report.locPin": "या मानचित्र पर सड़क चुनें",
@@ -1727,6 +1866,8 @@ export const hi: Record<TranslationKey, string> = {
     'साइन-इन विकास के सहायक से होता है, असली खाता सेवा से नहीं।',
   'status.reason.sessionNone':
     'इस संस्करण में कोई साइन-इन सेवा नहीं जुड़ी है, इसलिए रिपोर्टें भेजी नहीं जा सकतीं।',
+  'status.reason.sessionSignedOut':
+    'इस संस्करण में साइन-इन कॉन्फ़िगर है। इस डिवाइस पर आप साइन इन नहीं हैं।',
   'status.reason.backgroundChecking': 'ब्राउज़र का समर्थन जाँचा जा रहा है।',
   'status.reason.backgroundAvailable':
     'कनेक्शन लौटने पर यह ब्राउज़र पुनः प्रयास शेड्यूल कर सकता है।',

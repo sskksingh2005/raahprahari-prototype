@@ -59,6 +59,8 @@ export interface SystemStatusInput {
   transport: TransportSource;
   online: OnlineStatus;
   session: AccountSession["status"];
+  /** Whether a sign-in provider is configured in this build (not whether it is reachable). */
+  authProvider?: "supabase" | "none";
   sync: Pick<
     SyncState,
     "running" | "lastResult" | "lastSuccessfulSyncAt" | "nextAttemptAt"
@@ -146,18 +148,19 @@ function sessionStatus(input: SystemStatusInput): IntegrationStatus {
   const simulated =
     input.transport === "dev_stub" || input.transport === "injected";
   const signedIn = input.session === "authenticated";
-  const state: IntegrationState = signedIn
-    ? simulated
-      ? "simulated"
-      : "configured"
-    : simulated
-      ? "simulated"
+  const providerConfigured = input.authProvider === "supabase";
+  const state: IntegrationState = simulated
+    ? "simulated"
+    : signedIn || providerConfigured
+      ? "configured"
       : "unavailable";
   const reason: TranslationKey = simulated
     ? "status.reason.sessionStub"
     : signedIn
       ? "status.reason.sessionLive"
-      : "status.reason.sessionNone";
+      : providerConfigured
+        ? "status.reason.sessionSignedOut"
+        : "status.reason.sessionNone";
   const channel: ChannelObservation =
     input.session === "authenticated"
       ? { label: "status.channel.sessionSignedIn", tone: "ok" }

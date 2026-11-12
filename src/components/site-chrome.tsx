@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import {
   ChevronDown,
@@ -10,10 +11,12 @@ import {
   Search,
   Sun,
   TriangleAlert,
+  UserRound,
 } from 'lucide-react'
 import { crossFadeTheme, useScrolled } from '@/components/motion'
 import { OfflineBanner } from '@/components/offline-banner'
 import { Button } from '@/components/ui/button'
+import { LoginDialog } from '@/components/login-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,9 +94,9 @@ function ThemeSwitch() {
   )
 }
 
-// Deferred navigation (VA-16). These are hidden, not faked, until they work:
-// - Community Login: no sign-in provider exists in this build. The old button
-//   only opened a "not available yet" dialog. Restore it with real auth.
+// Navigation availability (VA-16). Items are hidden, not faked, until they work:
+// - Community Login: opens the real Supabase sign-in form (login-dialog.tsx).
+//   The header shows "Account" only once Supabase returns a session.
 // - Official (/official): the publishing service it posts to does not exist
 //   (see /status). The route stays reachable directly for development.
 // - My Reports (/reports): it needs a signed-in account, so it is listed only
@@ -151,6 +154,12 @@ function useSecondaryNav() {
 export function SiteHeader() {
   const { t } = usePrefs()
   const secondaryNav = useSecondaryNav()
+  const [loginOpen, setLoginOpen] = useState(false)
+  // Show "Account" only when the provider has returned a real session.
+  const accountLabel =
+    useAccountSession().status === 'authenticated' ? t('nav.account') : t('nav.login')
+  const loginReturnFocusRef = useRef<HTMLButtonElement>(null)
+  const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const scrolled = useScrolled()
   const { pathname, view } = useRouterState({
     select: (state) => ({
@@ -160,6 +169,11 @@ export function SiteHeader() {
   })
   const active = activeNavTarget(pathname, view)
   const current = (to: NavTarget) => (active === to ? ('page' as const) : undefined)
+
+  const openLogin = (returnTo: HTMLButtonElement | null) => {
+    loginReturnFocusRef.current = returnTo
+    setLoginOpen(true)
+  }
 
   return (
     <>
@@ -217,6 +231,14 @@ export function SiteHeader() {
           <div className="ml-auto hidden min-w-0 shrink-0 items-center gap-3 xl:flex">
             <LanguageSwitch />
             <ThemeSwitch />
+            <Button
+              variant="ghost"
+              className="h-10 rounded-full whitespace-nowrap"
+              onClick={(event) => openLogin(event.currentTarget)}
+            >
+              <UserRound aria-hidden />
+              {accountLabel}
+            </Button>
             <Button asChild variant="report" className="h-10 rounded-full px-4 font-semibold whitespace-nowrap">
               <Link
                 to="/report"
@@ -250,6 +272,7 @@ export function SiteHeader() {
             <Sheet key={pathname}>
               <SheetTrigger asChild>
                 <Button
+                  ref={menuTriggerRef}
                   variant="ghost"
                   size="icon-lg"
                   className="rounded-full xl:hidden"
@@ -311,6 +334,16 @@ export function SiteHeader() {
                   <LanguageSwitch />
                   <ThemeSwitch />
                   <SheetClose asChild>
+                    <Button
+                      variant="outline"
+                      className="h-11 w-full rounded-full"
+                      onClick={() => openLogin(menuTriggerRef.current)}
+                    >
+                      <UserRound aria-hidden />
+                      {accountLabel}
+                    </Button>
+                  </SheetClose>
+                  <SheetClose asChild>
                     <Button asChild variant="report" className="h-11 w-full rounded-full font-semibold">
                       <Link
                         to="/report"
@@ -365,6 +398,12 @@ export function SiteHeader() {
           ))}
         </ul>
       </nav>
+
+      <LoginDialog
+        open={loginOpen}
+        onOpenChange={setLoginOpen}
+        returnFocusRef={loginReturnFocusRef}
+      />
     </>
   )
 }

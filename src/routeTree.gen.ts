@@ -22,6 +22,8 @@ import { Route as StatusRouteImport } from './routes/status'
 import { Route as TravellerRouteImport } from './routes/traveller'
 import { Route as AdvisoriesIndexRouteImport } from './routes/advisories.index'
 import { Route as AdvisoriesSegmentIdRouteImport } from './routes/advisories.$segmentId'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as HelpTopicRouteImport } from './routes/help.$topic'
 import { Route as ReportIndexRouteImport } from './routes/report.index'
 import { Route as ReportLocationRouteImport } from './routes/report.location'
@@ -96,6 +98,16 @@ const AdvisoriesSegmentIdRoute = AdvisoriesSegmentIdRouteImport.update({
   path: '/advisories/$segmentId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/auth/reset-password',
+  path: '/auth/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HelpTopicRoute = HelpTopicRouteImport.update({
   id: '/$topic',
   path: '/$topic',
@@ -150,6 +162,8 @@ export interface FileRoutesByFullPath {
   '/status': typeof StatusRoute
   '/traveller': typeof TravellerRoute
   '/advisories/$segmentId': typeof AdvisoriesSegmentIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/help/$topic': typeof HelpTopicRoute
   '/report/location': typeof ReportLocationRoute
   '/report/photo': typeof ReportPhotoRoute
@@ -172,6 +186,8 @@ export interface FileRoutesByTo {
   '/status': typeof StatusRoute
   '/traveller': typeof TravellerRoute
   '/advisories/$segmentId': typeof AdvisoriesSegmentIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/help/$topic': typeof HelpTopicRoute
   '/report/location': typeof ReportLocationRoute
   '/report/photo': typeof ReportPhotoRoute
@@ -196,6 +212,8 @@ export interface FileRoutesById {
   '/status': typeof StatusRoute
   '/traveller': typeof TravellerRoute
   '/advisories/$segmentId': typeof AdvisoriesSegmentIdRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/help/$topic': typeof HelpTopicRoute
   '/report/location': typeof ReportLocationRoute
   '/report/photo': typeof ReportPhotoRoute
@@ -221,6 +239,8 @@ export interface FileRouteTypes {
     | '/status'
     | '/traveller'
     | '/advisories/$segmentId'
+    | '/auth/callback'
+    | '/auth/reset-password'
     | '/help/$topic'
     | '/report/location'
     | '/report/photo'
@@ -243,6 +263,8 @@ export interface FileRouteTypes {
     | '/status'
     | '/traveller'
     | '/advisories/$segmentId'
+    | '/auth/callback'
+    | '/auth/reset-password'
     | '/help/$topic'
     | '/report/location'
     | '/report/photo'
@@ -266,6 +288,8 @@ export interface FileRouteTypes {
     | '/status'
     | '/traveller'
     | '/advisories/$segmentId'
+    | '/auth/callback'
+    | '/auth/reset-password'
     | '/help/$topic'
     | '/report/location'
     | '/report/photo'
@@ -290,6 +314,8 @@ export interface RootRouteChildren {
   StatusRoute: typeof StatusRoute
   TravellerRoute: typeof TravellerRoute
   AdvisoriesSegmentIdRoute: typeof AdvisoriesSegmentIdRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   ReportsIdRoute: typeof ReportsIdRoute
   AdvisoriesIndexRoute: typeof AdvisoriesIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
@@ -386,6 +412,20 @@ declare module '@tanstack/react-router' {
       path: '/advisories/$segmentId'
       fullPath: '/advisories/$segmentId'
       preLoaderRoute: typeof AdvisoriesSegmentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help/$topic': {
@@ -489,6 +529,8 @@ const rootRouteChildren: RootRouteChildren = {
   StatusRoute: StatusRoute,
   TravellerRoute: TravellerRoute,
   AdvisoriesSegmentIdRoute: AdvisoriesSegmentIdRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
   ReportsIdRoute: ReportsIdRoute,
   AdvisoriesIndexRoute: AdvisoriesIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
