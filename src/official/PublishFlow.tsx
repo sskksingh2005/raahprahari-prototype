@@ -1,87 +1,120 @@
-// src/official/PublishFlow.tsx
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { usePrefs } from "@/i18n/preferences";
+import { cn } from "@/lib/utils";
 import { ConsequentialChangeDialog } from "./ConsequentialChangeDialog";
 import { publishNotice } from "./publishApi";
-import type { OfficialNoticeFormData, PublishResult } from "./officialNotice.types";
-import "./official.css";
-
-type NoticeDraft = OfficialNoticeFormData;
+import type {
+  OfficialNoticeFormData,
+  PublishResult,
+} from "./officialNotice.types";
 
 type Phase = "idle" | "confirming" | "submitting";
 
 interface Props {
-  draft: NoticeDraft;
+  draft: OfficialNoticeFormData;
+  /** Shown only when supplied. There is no sign-in page in this build. */
   onRequestSignIn?: () => void;
   onSuccess?: (noticeId: string) => void;
 }
 
+const bannerClass =
+  "rounded-lg border px-3 py-2.5 text-sm text-foreground [&_strong]:font-semibold";
+
 export function PublishFlow({ draft, onRequestSignIn, onSuccess }: Props) {
+  const { t } = usePrefs();
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<PublishResult | null>(null);
+  // A fresh dialog each time it opens, so the acknowledgement starts unchecked.
+  const [openCount, setOpenCount] = useState(0);
+  const inFlight = useRef(false);
+  const reviewRef = useRef<HTMLButtonElement>(null);
 
   async function handleConfirm() {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setPhase("submitting");
-    const r = await publishNotice(draft);
-    setResult(r);
-    if (r.kind === "success" && onSuccess) onSuccess(r.noticeId);
-    setPhase("idle"); // dialog band, result banner dikhega
-  }
-
-  function signIn() {
-    if (onRequestSignIn) onRequestSignIn();
-    else window.location.assign("/login");
+    try {
+      const outcome = await publishNotice(draft);
+      setResult(outcome);
+      setPhase("idle");
+      if (outcome.kind === "success") onSuccess?.(outcome.noticeId);
+    } finally {
+      inFlight.current = false;
+    }
   }
 
   return (
-    <section aria-live="polite" className="official-publish">
-      {result?.kind === "success" && (
-        <p role="status" className="official-banner ok">
-          Notice publish ho gaya. ID: {result.noticeId}
-        </p>
-      )}
-
+    <div className="space-y-3">
+      {/* Failures stay here; success is announced by the parent form. */}
       {result?.kind === "forbidden" && (
-        <div role="alert" className="official-banner bad">
-          <strong>Permission nahi hai.</strong> {result.message}
-          <p>Tumhara draft safe hai. Sahi authority se contact karo.</p>
+        <div
+          role="alert"
+          className={cn(bannerClass, "border-status-dnt bg-status-dnt/10")}
+        >
+          <strong>{t("official.result.forbiddenTitle")}</strong>{" "}
+          {t("official.result.forbidden")}
         </div>
       )}
-
       {result?.kind === "session-expired" && (
-        <div role="alert" className="official-banner warn">
-          <strong>Session expire ho gaya.</strong> Notice abhi publish nahi hua.
-          <p>Tumhara draft safe hai. Dobara sign in karke phir publish karo.</p>
-          <button type="button" onClick={signIn}>
-            Sign in karo
-          </button>
+        <div
+          role="alert"
+          className={cn(
+            bannerClass,
+            "border-status-caution bg-status-caution/10",
+          )}
+        >
+          <strong>{t("official.result.expiredTitle")}</strong>{" "}
+          {t("official.result.expired")}
+          {onRequestSignIn && (
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-2 min-h-11"
+              onClick={onRequestSignIn}
+            >
+              {t("official.result.signIn")}
+            </Button>
+          )}
         </div>
       )}
-
       {result?.kind === "error" && (
-        <p role="alert" className="official-banner bad">
-          {result.message} Notice publish nahi hua.
+        <p
+          role="alert"
+          className={cn(bannerClass, "border-status-dnt bg-status-dnt/10")}
+        >
+          {result.reason === "network"
+            ? t("official.result.network")
+            : t("official.result.server").replace(
+                "{status}",
+                String(result.status ?? ""),
+              )}
         </p>
       )}
 
-      <button
+      <Button
+        ref={reviewRef}
         type="button"
+        className="min-h-11"
         onClick={() => {
           setResult(null);
+          setOpenCount((n) => n + 1);
           setPhase("confirming");
         }}
         disabled={phase !== "idle"}
       >
-        Review &amp; publish
-      </button>
+        {t("official.review")}
+      </Button>
 
-      {phase !== "idle" && (
-        <ConsequentialChangeDialog
-          draft={draft}
-          submitting={phase === "submitting"}
-          onConfirm={handleConfirm}
-          onCancel={() => setPhase("idle")}
-        />
-      )}
-    </section>
+      <ConsequentialChangeDialog
+        key={openCount}
+        open={phase !== "idle"}
+        draft={draft}
+        submitting={phase === "submitting"}
+        onConfirm={() => void handleConfirm()}
+        onCancel={() => setPhase("idle")}
+        returnFocusRef={reviewRef}
+      />
+    </div>
   );
 }

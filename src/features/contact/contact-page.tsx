@@ -45,6 +45,12 @@ export function ContactPage() {
 
     setErrors(nextErrors);
     setNotice(Object.keys(nextErrors).length === 0);
+    // Take keyboard and screen reader users straight to the first problem.
+    const firstInvalid = (["name", "email", "message"] as const).find(
+      (field) => nextErrors[field],
+    );
+    if (firstInvalid)
+      document.getElementById(`contact-${firstInvalid}`)?.focus();
   }
 
   function validateOnBlur(field: ContactField, value: string) {

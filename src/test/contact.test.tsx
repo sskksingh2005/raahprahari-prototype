@@ -48,6 +48,16 @@ describe("contact form validation", () => {
     expect(screen.getByText("Enter your name.")).toBeVisible();
     expect(screen.getAllByText("Enter a valid email address.")).toHaveLength(1);
     expect(screen.getByText("Enter a message.")).toBeVisible();
+    // Focus goes to the first field that needs fixing.
+    expect(screen.getByLabelText("Name")).toHaveFocus();
+  });
+
+  it("focuses the first invalid field when earlier fields are fine", async () => {
+    const user = userEvent.setup();
+    renderContact();
+    await user.type(screen.getByLabelText("Name"), "Asha");
+    await user.click(screen.getByRole("button", { name: "Submit message" }));
+    expect(screen.getByLabelText("Email")).toHaveFocus();
   });
 
   it("shows the honest not-sent notice only for valid input", async () => {

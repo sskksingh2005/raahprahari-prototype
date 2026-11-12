@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { AdvisoryCard } from "@/components/advisory-card";
 import { segmentById } from "@/data/fixtures";
 import type { Segment } from "@/lib/types";
@@ -23,11 +24,14 @@ export function OfficialSegmentStatus({
   heading: string;
   note?: string;
 }) {
+  const headingId = useId();
   const segment = resolveSegment(segmentText);
   if (!segment) return null;
   return (
-    <section aria-label={heading} className="mt-4">
-      <h3 className="text-sm font-semibold mb-2">{heading}</h3>
+    <section aria-labelledby={headingId} className="mt-4">
+      <h3 id={headingId} className="mb-2 text-sm font-semibold text-foreground">
+        {heading}
+      </h3>
       <AdvisoryCard segment={segment} showRestrictionDetail />
       {note && <p className="mt-2 text-xs text-muted-foreground">{note}</p>}
     </section>
