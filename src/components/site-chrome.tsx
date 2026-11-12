@@ -16,15 +16,7 @@ import {
 import { crossFadeTheme, useScrolled } from '@/components/motion'
 import { OfflineBanner } from '@/components/offline-banner'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { LoginDialog } from '@/components/login-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +34,7 @@ import {
 } from '@/components/ui/sheet'
 import { Logo } from '@/components/logo'
 import { usePrefs } from '@/i18n/preferences'
+import { useAccountSession } from '@/lib/account-session'
 import { cn } from '@/lib/utils'
 
 function LanguageSwitch() {
@@ -101,40 +94,6 @@ function ThemeSwitch() {
   )
 }
 
-function LoginDialog({
-  open,
-  onOpenChange,
-  returnFocusRef,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  returnFocusRef: React.RefObject<HTMLButtonElement | null>
-}) {
-  const { t } = usePrefs()
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        onCloseAutoFocus={(event) => {
-          if (returnFocusRef.current?.isConnected) {
-            event.preventDefault()
-            returnFocusRef.current.focus()
-          }
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle className="font-display">{t('login.title')}</DialogTitle>
-          <DialogDescription>{t('login.body')}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button>{t('login.close')}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 export const PRIMARY_NAV = [
   { to: '/', label: 'nav.home' },
   { to: '/traveller', label: 'nav.traveller' },
@@ -181,6 +140,9 @@ export function activeNavTarget(pathname: string, view?: string): NavTarget | nu
 export function SiteHeader() {
   const { t } = usePrefs()
   const [loginOpen, setLoginOpen] = useState(false)
+  // Show "Account" only when the provider has returned a real session.
+  const accountLabel =
+    useAccountSession().status === 'authenticated' ? t('nav.account') : t('nav.login')
   const loginReturnFocusRef = useRef<HTMLButtonElement>(null)
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const scrolled = useScrolled()
@@ -260,7 +222,7 @@ export function SiteHeader() {
               onClick={(event) => openLogin(event.currentTarget)}
             >
               <UserRound aria-hidden />
-              {t('nav.login')}
+              {accountLabel}
             </Button>
             <Button asChild variant="report" className="h-10 rounded-full px-4 font-semibold whitespace-nowrap">
               <Link
@@ -363,7 +325,7 @@ export function SiteHeader() {
                       onClick={() => openLogin(menuTriggerRef.current)}
                     >
                       <UserRound aria-hidden />
-                      {t('nav.login')}
+                      {accountLabel}
                     </Button>
                   </SheetClose>
                   <SheetClose asChild>

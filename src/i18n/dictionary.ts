@@ -30,8 +30,29 @@ export const en = {
     "You are offline. Showing information saved on this device.",
   "login.title": "Community login",
   "login.body":
-    "Accounts for travellers, volunteers, moderators and officials are part of the next milestone. In this prototype you can check roads and file reports without signing in — reports stay on this device.",
-  "login.close": "Got it",
+    "Sign in with your RaahPrahari account email and password. You can still check roads and file reports without signing in.",
+  "login.close": "Close",
+  "login.email": "Email",
+  "login.password": "Password",
+  "login.submit": "Sign in",
+  "login.submitting": "Signing in…",
+  "login.emailInvalid": "Enter a valid email address.",
+  "login.passwordRequired": "Enter your password.",
+  "login.invalidCredentials": "The email or password is incorrect.",
+  "login.networkError":
+    "Could not reach the sign-in service. Check your connection and try again.",
+  "login.notConfigured":
+    "Sign-in is not configured for this build. Contact the site administrator.",
+  "login.genericError": "Sign-in failed. Please try again.",
+  "login.noSession":
+    "Sign-in did not return a session. Your account may need confirmation.",
+  "login.checking": "Checking your sign-in…",
+  "login.signedIn": "You are signed in.",
+  "login.signOut": "Sign out",
+  "login.signingOut": "Signing out…",
+  "login.signOutError":
+    "Could not reach the sign-in service. You are signed out on this device.",
+  "nav.account": "Account",
 
   "hero.eyebrow": "Uttarakhand road-hazard advisories",
   "hero.title": "Know before you go.",
@@ -622,8 +643,29 @@ export const hi: Record<TranslationKey, string> = {
     "आप ऑफ़लाइन हैं। इस डिवाइस पर सहेजी गई जानकारी दिखाई जा रही है।",
   "login.title": "समुदाय लॉगिन",
   "login.body":
-    "यात्रियों, स्वयंसेवकों, मॉडरेटरों और अधिकारियों के खाते अगले चरण में आएँगे। इस प्रोटोटाइप में आप बिना साइन इन किए सड़क जाँच सकते हैं और रिपोर्ट भर सकते हैं — रिपोर्ट इसी डिवाइस पर रहती हैं।",
-  "login.close": "ठीक है",
+    "अपने राहप्रहरी खाते के ईमेल और पासवर्ड से साइन इन करें। बिना साइन इन किए भी आप सड़कें जाँच सकते हैं और रिपोर्ट भर सकते हैं।",
+  "login.close": "बंद करें",
+  "login.email": "ईमेल",
+  "login.password": "पासवर्ड",
+  "login.submit": "साइन इन करें",
+  "login.submitting": "साइन इन हो रहा है…",
+  "login.emailInvalid": "मान्य ईमेल पता दर्ज करें।",
+  "login.passwordRequired": "अपना पासवर्ड दर्ज करें।",
+  "login.invalidCredentials": "ईमेल या पासवर्ड गलत है।",
+  "login.networkError":
+    "साइन-इन सेवा से संपर्क नहीं हो सका। अपना कनेक्शन जाँचें और फिर कोशिश करें।",
+  "login.notConfigured":
+    "इस संस्करण में साइन-इन कॉन्फ़िगर नहीं है। साइट व्यवस्थापक से संपर्क करें।",
+  "login.genericError": "साइन इन नहीं हो सका। कृपया फिर कोशिश करें।",
+  "login.noSession":
+    "साइन-इन से सत्र नहीं मिला। हो सकता है आपके खाते की पुष्टि बाकी हो।",
+  "login.checking": "आपका साइन-इन जाँचा जा रहा है…",
+  "login.signedIn": "आप साइन इन हैं।",
+  "login.signOut": "साइन आउट करें",
+  "login.signingOut": "साइन आउट हो रहा है…",
+  "login.signOutError":
+    "साइन-इन सेवा से संपर्क नहीं हो सका। इस डिवाइस पर आप साइन आउट हो गए हैं।",
+  "nav.account": "खाता",
 
   "hero.eyebrow": "उत्तराखंड सड़क-ख़तरा परामर्श",
   "hero.title": "सफ़र से पहले सुरक्षा की ख़बर",
