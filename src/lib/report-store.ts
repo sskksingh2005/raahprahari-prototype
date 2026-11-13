@@ -52,15 +52,18 @@ export function withObservationDefaults(
   return { ...draft, ...observationExtras(draft) };
 }
 
-export type ReportHazard =
-  | "landslide"
-  | "flooding"
-  | "road_block"
-  | "fallen_tree"
-  | "damaged_bridge"
-  | "accident"
-  | "poor_visibility"
-  | "other";
+export const REPORT_HAZARDS = [
+  "landslide",
+  "flooding",
+  "road_block",
+  "fallen_tree",
+  "damaged_bridge",
+  "accident",
+  "poor_visibility",
+  "other",
+] as const;
+
+export type ReportHazard = (typeof REPORT_HAZARDS)[number];
 
 export interface ReportPhoto {
   id: string;
@@ -191,16 +194,7 @@ export function readReportDraft(): ReportDraft | null {
     description: string;
     observedAt: string;
   };
-  const hazardTypes: ReportHazard[] = [
-    "landslide",
-    "flooding",
-    "road_block",
-    "fallen_tree",
-    "damaged_bridge",
-    "accident",
-    "poor_visibility",
-    "other",
-  ];
+  const hazardTypes: readonly ReportHazard[] = REPORT_HAZARDS;
   const hazardType =
     typeof saved.hazardType === "string" &&
     hazardTypes.includes(saved.hazardType as ReportHazard)

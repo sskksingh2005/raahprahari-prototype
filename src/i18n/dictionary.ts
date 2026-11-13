@@ -98,6 +98,27 @@ export const en = {
   "reset.done": "Your password has been updated.",
   "reset.noSession":
     "Open the reset link from your email to set a new password. Links expire after a short time.",
+  "ai.suggest": "Suggest details with AI",
+  "ai.privacy":
+    "Optional, and only when you press the button. Your description is sent through Supabase to Google Gemini; photos are not sent. Common email and phone patterns are removed automatically, but not all personal details can be caught, so please leave out names, contact details and identifying addresses.",
+  "ai.signinRequired": "Sign in to use AI suggestions.",
+  "ai.loading": "Getting suggestions…",
+  "ai.suggestionTitle": "AI suggestion — review and edit",
+  "ai.suggestionHelp":
+    "Nothing is added to your report until you accept a field. You can change a value before accepting it.",
+  "ai.field.hazard": "Hazard",
+  "ai.accept": "Accept",
+  "ai.reject": "Reject",
+  "ai.dismiss": "Dismiss",
+  "ai.none": "AI could not suggest any details from this description.",
+  "ai.errorNetwork": "Could not reach the suggestion service.",
+  "ai.errorInvalid": "This description cannot be used for suggestions.",
+  "ai.errorFailed": "Suggestions failed this time.",
+  "ai.errorTimeout": "The suggestion service took too long to answer.",
+  "ai.errorRateLimited":
+    "You have used AI suggestions several times in a short period. Try again in {seconds} seconds.",
+  "ai.unavailable": "AI suggestions are not available in this build.",
+  "ai.manual": "Your description is kept. You can fill in the details yourself.",
   "loc.gpsDenied":
     "Location permission was denied. Search for a road or place, or adjust the pin manually.",
   "loc.gpsUnavailable":
@@ -692,7 +713,17 @@ export const en = {
     'A report, score, reputation or AI output cannot create or remove an official road closure. Any clearance remains awaiting verification until the approved process resolves it.',
   'aboutPage.privacyTitle': 'Privacy',
   'aboutPage.privacyBody':
-    'This prototype keeps your language, theme, saved roads, drafts and locally saved reports in this browser only. Nothing is uploaded to a server.',
+    'Your language, theme, saved roads, drafts and reports are stored in this browser.',
+  'aboutPage.privacyAccount':
+    'Sign-in is handled by Supabase, our account provider. Your email address and sign-in session are stored there.',
+  'aboutPage.privacyDeliveryNone':
+    'This build has no report service configured, so reports and photos stay on this device and are not sent anywhere.',
+  'aboutPage.privacyDeliveryDev':
+    'This development build uses a local test helper for report delivery. Reports and photos do not leave this device.',
+  'aboutPage.privacyDeliveryConfigured':
+    'This build has a report service configured. While you are signed in, submitted reports are sent to it and attached photos are uploaded separately. Until then they stay on this device.',
+  'aboutPage.privacyAi':
+    'AI suggestions are optional and run only when you press "Suggest details with AI" while signed in. Your description is cleaned automatically, then sent through Supabase to Google Gemini. Photos are never sent to AI. Automatic cleaning catches common email and phone number patterns but cannot guarantee that all personal information is removed, so please leave out names, contact details and identifying addresses.',
   'aboutPage.termsTitle': 'Terms',
   'aboutPage.termsBody':
     'The information shown is synthetic and provided for demonstration only. Do not rely on it for travel decisions. Follow official instructions and local authorities.',
@@ -1341,6 +1372,27 @@ export const hi: Record<TranslationKey, string> = {
   "reset.done": "आपका पासवर्ड अपडेट हो गया है।",
   "reset.noSession":
     "नया पासवर्ड सेट करने के लिए अपने ईमेल का रीसेट लिंक खोलें। लिंक कुछ समय बाद समाप्त हो जाते हैं।",
+  "ai.suggest": "AI से जानकारी सुझाएँ",
+  "ai.privacy":
+    "वैकल्पिक, और केवल बटन दबाने पर। आपका विवरण Supabase के ज़रिए Google Gemini को भेजा जाता है; फ़ोटो नहीं भेजी जातीं। सामान्य ईमेल और फ़ोन नंबर अपने-आप हटाए जाते हैं, पर हर निजी जानकारी पकड़ी नहीं जा सकती, इसलिए कृपया नाम, संपर्क विवरण और पहचान बताने वाले पते न लिखें।",
+  "ai.signinRequired": "AI सुझाव के लिए साइन इन करें।",
+  "ai.loading": "सुझाव लाए जा रहे हैं…",
+  "ai.suggestionTitle": "AI सुझाव — जाँचें और बदलें",
+  "ai.suggestionHelp":
+    "जब तक आप किसी फ़ील्ड को स्वीकार नहीं करते, रिपोर्ट में कुछ नहीं जुड़ता। स्वीकार करने से पहले आप मान बदल सकते हैं।",
+  "ai.field.hazard": "ख़तरा",
+  "ai.accept": "स्वीकार करें",
+  "ai.reject": "अस्वीकार करें",
+  "ai.dismiss": "बंद करें",
+  "ai.none": "इस विवरण से AI कोई जानकारी नहीं सुझा सका।",
+  "ai.errorNetwork": "सुझाव सेवा से संपर्क नहीं हो सका।",
+  "ai.errorInvalid": "इस विवरण से सुझाव नहीं बन सकते।",
+  "ai.errorFailed": "इस बार सुझाव नहीं मिल सके।",
+  "ai.errorTimeout": "सुझाव सेवा ने जवाब देने में बहुत देर लगाई।",
+  "ai.errorRateLimited":
+    "आपने थोड़े समय में कई बार AI सुझाव लिए हैं। {seconds} सेकंड बाद फिर कोशिश करें।",
+  "ai.unavailable": "इस संस्करण में AI सुझाव उपलब्ध नहीं हैं।",
+  "ai.manual": "आपका विवरण सुरक्षित है। आप जानकारी खुद भर सकते हैं।",
   "loc.gpsDenied":
     "स्थान की अनुमति नहीं दी गई। सड़क या जगह खोजें, या पिन खुद लगाएँ।",
   "loc.gpsUnavailable":
@@ -1928,7 +1980,17 @@ export const hi: Record<TranslationKey, string> = {
     'कोई रिपोर्ट, स्कोर, प्रतिष्ठा या AI आउटपुट आधिकारिक सड़क बंदी बना या हटा नहीं सकता। कोई भी मंज़ूरी अनुमोदित प्रक्रिया पूरी होने तक सत्यापन की प्रतीक्षा में रहती है।',
   'aboutPage.privacyTitle': 'गोपनीयता',
   'aboutPage.privacyBody':
-    'यह प्रोटोटाइप आपकी भाषा, थीम, सहेजी सड़कें, ड्राफ़्ट और स्थानीय रूप से सहेजी रिपोर्ट केवल इसी ब्राउज़र में रखता है। कुछ भी सर्वर पर अपलोड नहीं होता।',
+    'आपकी भाषा, थीम, सहेजी सड़कें, ड्राफ़्ट और रिपोर्ट इसी ब्राउज़र में रखी जाती हैं।',
+  'aboutPage.privacyAccount':
+    'साइन-इन Supabase संभालता है, जो हमारी खाता सेवा है। आपका ईमेल पता और साइन-इन सत्र वहीं रखे जाते हैं।',
+  'aboutPage.privacyDeliveryNone':
+    'इस संस्करण में कोई रिपोर्ट सेवा कॉन्फ़िगर नहीं है, इसलिए रिपोर्ट और फ़ोटो इसी डिवाइस पर रहती हैं और कहीं नहीं भेजी जातीं।',
+  'aboutPage.privacyDeliveryDev':
+    'यह विकास संस्करण रिपोर्ट भेजने के लिए एक स्थानीय परीक्षण सहायक का उपयोग करता है। रिपोर्ट और फ़ोटो इस डिवाइस से बाहर नहीं जातीं।',
+  'aboutPage.privacyDeliveryConfigured':
+    'इस संस्करण में एक रिपोर्ट सेवा कॉन्फ़िगर है। साइन इन रहने पर भेजी गई रिपोर्ट उसे भेजी जाती हैं और जुड़ी फ़ोटो अलग से अपलोड होती हैं। तब तक वे इसी डिवाइस पर रहती हैं।',
+  'aboutPage.privacyAi':
+    'AI सुझाव वैकल्पिक हैं और केवल तभी चलते हैं जब आप साइन इन रहते हुए "AI से जानकारी सुझाएँ" दबाते हैं। आपका विवरण पहले अपने-आप साफ़ किया जाता है, फिर Supabase के ज़रिए Google Gemini को भेजा जाता है। फ़ोटो कभी AI को नहीं भेजी जातीं। अपने-आप सफ़ाई सामान्य ईमेल और फ़ोन नंबर पकड़ती है, पर सारी निजी जानकारी हटने की गारंटी नहीं दे सकती, इसलिए कृपया नाम, संपर्क विवरण और पहचान बताने वाले पते न लिखें।',
   'aboutPage.termsTitle': 'शर्तें',
   'aboutPage.termsBody':
     'दिखाई गई जानकारी कृत्रिम है और केवल प्रदर्शन के लिए है। यात्रा के निर्णय इस पर आधारित न करें। आधिकारिक निर्देशों और स्थानीय प्राधिकरणों का पालन करें।',

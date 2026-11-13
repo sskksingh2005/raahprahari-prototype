@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { AiSuggestionAssist } from "@/features/reports/ai-suggestions";
 import { Textarea } from "@/components/ui/textarea";
 import { PLACES, SEGMENTS, placeById } from "@/data/fixtures";
 import type { TranslationKey } from "@/i18n/dictionary";
@@ -936,6 +937,15 @@ export function ReportStepPage({
                       {draft.description.length} of 500 characters
                     </span>
                   </div>
+                  <AiSuggestionAssist
+                    description={draft.description}
+                    hazardOptions={HAZARDS}
+                    onApply={(patch) => {
+                      updateDraft(patch);
+                      if (patch.hazardType)
+                        setErrors((current) => ({ ...current, hazardType: "" }));
+                    }}
+                  />
                 </div>
 
                 <div className="mt-5 max-w-sm">

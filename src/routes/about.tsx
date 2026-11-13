@@ -15,6 +15,21 @@ import { Logo } from "@/components/logo";
 import { PageBanner } from "@/components/page-banner";
 import { Button } from "@/components/ui/button";
 import { usePrefs } from "@/i18n/preferences";
+import type { TranslationKey } from "@/i18n/dictionary";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { getTransportSource } from "@/lib/sync/sync-engine";
+
+/** Privacy wording for report delivery, matching this build's transport. */
+export function deliveryPrivacyKey(): TranslationKey {
+  switch (getTransportSource()) {
+    case "none":
+      return "aboutPage.privacyDeliveryNone";
+    case "dev_stub":
+      return "aboutPage.privacyDeliveryDev";
+    default:
+      return "aboutPage.privacyDeliveryConfigured";
+  }
+}
 
 export const Route = createFileRoute("/about")({
   head: () => ({ meta: [{ title: "About | RaahPrahari" }] }),
@@ -75,6 +90,12 @@ function AboutPage() {
             />
             <h2>{t("aboutPage.privacyTitle")}</h2>
             <p>{t("aboutPage.privacyBody")}</p>
+            {isSupabaseConfigured() && (
+              <p className="mt-2">{t("aboutPage.privacyAccount")}</p>
+            )}
+            {/* Reflects how this build is actually configured. */}
+            <p className="mt-2">{t(deliveryPrivacyKey())}</p>
+            <p className="mt-2">{t("aboutPage.privacyAi")}</p>
           </article>
           <article id="terms" className="rp-info-card scroll-mt-24">
             <FileText aria-hidden className="mb-3 size-5 text-brand-orange" />
