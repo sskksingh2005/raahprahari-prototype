@@ -49,6 +49,7 @@ describe("workspace actions view", () => {
       "Road search and maps",
       "Report a hazard",
       "My Reports",
+      "Review queue",
       "Account sign-in",
       "Official notice",
       "Points and reputation",
@@ -72,10 +73,10 @@ describe("workspace actions view", () => {
 
   it("shows totals that match the listed actions", () => {
     renderView();
-    expect(screen.getByTestId("audit-count-blocked")).toHaveTextContent("8");
+    expect(screen.getByTestId("audit-count-blocked")).toHaveTextContent("9");
     expect(screen.getByTestId("audit-count-available")).toHaveTextContent("3");
     const listed = screen.getAllByTestId(/^audit-action-/).length;
-    expect(listed).toBe(19);
+    expect(listed).toBe(22);
   });
 
   it("links each page screen to its route and explains the dialog one", () => {
@@ -87,6 +88,7 @@ describe("workspace actions view", () => {
       "/traveller",
       "/report",
       "/reports",
+      "/review",
       "/official",
       "/contributions",
       "/contact",

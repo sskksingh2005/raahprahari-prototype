@@ -12,6 +12,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { routeTree } from "@/routeTree.gen";
+import { REPORTS } from "@/data/fixtures";
 import { NotFoundPage } from "@/components/error-pages";
 import { TILE_FAILURE_THRESHOLD } from "@/features/map/leaflet-segment-map";
 
@@ -35,6 +36,8 @@ const routePaths = [
   "/status",
   "/contributions",
   "/official",
+  "/review",
+  "/review/RP-419301",
 ] as const;
 
 const originalGeolocation = Object.getOwnPropertyDescriptor(
@@ -361,7 +364,9 @@ describe("SH-15 route and navigation links", () => {
           const isExistingRoute =
             routePaths.includes(target as (typeof routePaths)[number]) ||
             /^\/advisories\/[^/]+$/.test(target) ||
-            /^\/help\/[^/]+$/.test(target);
+            /^\/help\/[^/]+$/.test(target) ||
+            // A review detail link is live only if the report it names exists.
+            REPORTS.some((report) => target === `/review/${report.ref}`);
           if (!isExistingRoute) {
             deadLinks.push(`${path}: ${label} (${href})`);
           }

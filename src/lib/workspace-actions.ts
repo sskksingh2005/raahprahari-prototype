@@ -23,6 +23,7 @@ export type WorkspaceScreenId =
   | "roads"
   | "report"
   | "myReports"
+  | "review"
   | "account"
   | "official"
   | "contributions"
@@ -32,6 +33,7 @@ export type WorkspaceRoute =
   | "/traveller"
   | "/report"
   | "/reports"
+  | "/review"
   | "/official"
   | "/contributions"
   | "/contact";
@@ -153,6 +155,19 @@ export function deriveWorkspaceActions(
                 "blocked",
                 "audit.reason.myReportsNoSignIn",
               ),
+      ],
+    },
+    {
+      id: "review",
+      name: "audit.screen.review",
+      route: "/review",
+      actions: [
+        // review-queue.ts groups the synthetic REPORTS by their review status.
+        action("viewQueues", "simulated", "audit.reason.syntheticReports"),
+        // use-review-claims.ts writes rp.reviewClaims.
+        action("claimReport", "device", "audit.reason.claimsLocal"),
+        // The detail view has no decision control: nothing could store it.
+        action("recordDecision", "blocked", "audit.reason.noReviewService"),
       ],
     },
     {

@@ -59,12 +59,21 @@ describe("workspace action audit: default build", () => {
       expect(find(DEFAULT_BUILD, id).availability).toBe("simulated");
   });
 
-  it("totals the 19 audited actions", () => {
+  it("totals the 22 audited actions", () => {
     expect(countByAvailability(deriveWorkspaceActions(DEFAULT_BUILD))).toEqual({
       available: 3,
-      device: 5,
-      simulated: 3,
-      blocked: 8,
+      device: 6,
+      simulated: 4,
+      blocked: 9,
+    });
+  });
+
+  it("lists the review queue, with decisions blocked", () => {
+    expect(find(DEFAULT_BUILD, "viewQueues").availability).toBe("simulated");
+    expect(find(DEFAULT_BUILD, "claimReport").availability).toBe("device");
+    expect(find(DEFAULT_BUILD, "recordDecision")).toMatchObject({
+      availability: "blocked",
+      reason: "audit.reason.noReviewService",
     });
   });
 });

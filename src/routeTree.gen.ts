@@ -32,6 +32,8 @@ import { Route as ReportReceivedRouteImport } from './routes/report.received'
 import { Route as ReportReviewRouteImport } from './routes/report.review'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
+import { Route as ReviewIndexRouteImport } from './routes/review.index'
+import { Route as ReviewRefRouteImport } from './routes/review.$ref'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -148,6 +150,16 @@ const ReportsIdRoute = ReportsIdRouteImport.update({
   path: '/reports/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReviewIndexRoute = ReviewIndexRouteImport.update({
+  id: '/review/',
+  path: '/review/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRefRoute = ReviewRefRouteImport.update({
+  id: '/review/$ref',
+  path: '/review/$ref',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -170,9 +182,11 @@ export interface FileRoutesByFullPath {
   '/report/received': typeof ReportReceivedRoute
   '/report/review': typeof ReportReviewRoute
   '/reports/$id': typeof ReportsIdRoute
+  '/review/$ref': typeof ReviewRefRoute
   '/advisories/': typeof AdvisoriesIndexRoute
   '/report/': typeof ReportIndexRoute
   '/reports/': typeof ReportsIndexRoute
+  '/review/': typeof ReviewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -194,9 +208,11 @@ export interface FileRoutesByTo {
   '/report/received': typeof ReportReceivedRoute
   '/report/review': typeof ReportReviewRoute
   '/reports/$id': typeof ReportsIdRoute
+  '/review/$ref': typeof ReviewRefRoute
   '/advisories': typeof AdvisoriesIndexRoute
   '/report': typeof ReportIndexRoute
   '/reports': typeof ReportsIndexRoute
+  '/review': typeof ReviewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -220,9 +236,11 @@ export interface FileRoutesById {
   '/report/received': typeof ReportReceivedRoute
   '/report/review': typeof ReportReviewRoute
   '/reports/$id': typeof ReportsIdRoute
+  '/review/$ref': typeof ReviewRefRoute
   '/advisories/': typeof AdvisoriesIndexRoute
   '/report/': typeof ReportIndexRoute
   '/reports/': typeof ReportsIndexRoute
+  '/review/': typeof ReviewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -247,9 +265,11 @@ export interface FileRouteTypes {
     | '/report/received'
     | '/report/review'
     | '/reports/$id'
+    | '/review/$ref'
     | '/advisories/'
     | '/report/'
     | '/reports/'
+    | '/review/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -271,9 +291,11 @@ export interface FileRouteTypes {
     | '/report/received'
     | '/report/review'
     | '/reports/$id'
+    | '/review/$ref'
     | '/advisories'
     | '/report'
     | '/reports'
+    | '/review'
   id:
     | '__root__'
     | '/'
@@ -296,9 +318,11 @@ export interface FileRouteTypes {
     | '/report/received'
     | '/report/review'
     | '/reports/$id'
+    | '/review/$ref'
     | '/advisories/'
     | '/report/'
     | '/reports/'
+    | '/review/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -317,8 +341,10 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   ReportsIdRoute: typeof ReportsIdRoute
+  ReviewRefRoute: typeof ReviewRefRoute
   AdvisoriesIndexRoute: typeof AdvisoriesIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
+  ReviewIndexRoute: typeof ReviewIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -484,6 +510,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/review/': {
+      id: '/review/'
+      path: '/review'
+      fullPath: '/review/'
+      preLoaderRoute: typeof ReviewIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review/$ref': {
+      id: '/review/$ref'
+      path: '/review/$ref'
+      fullPath: '/review/$ref'
+      preLoaderRoute: typeof ReviewRefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -532,8 +572,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   ReportsIdRoute: ReportsIdRoute,
+  ReviewRefRoute: ReviewRefRoute,
   AdvisoriesIndexRoute: AdvisoriesIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
+  ReviewIndexRoute: ReviewIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
