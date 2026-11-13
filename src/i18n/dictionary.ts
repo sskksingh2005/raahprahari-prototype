@@ -98,6 +98,28 @@ export const en = {
   "reset.done": "Your password has been updated.",
   "reset.noSession":
     "Open the reset link from your email to set a new password. Links expire after a short time.",
+  "loc.gpsDenied":
+    "Location permission was denied. Search for a road or place, or adjust the pin manually.",
+  "loc.gpsUnavailable":
+    "Device location is unavailable right now. Search for a road or place, or adjust the pin manually.",
+  "loc.gpsUnsupported":
+    "This browser does not support device location. Search for a road or place, or adjust the pin manually.",
+  "loc.gpsOutside":
+    "Device location is outside this prototype coverage area. Search for a road or place manually.",
+  "loc.multipleMatches": "Multiple matches found — please choose one.",
+  "loc.placeOption": "Place · choose the road segment next",
+  "loc.chooseSegment":
+    "Several road segments are nearby. Choose the one you were on:",
+  "loc.chooseSegmentError":
+    "Choose the road segment you were on before confirming.",
+  "loc.segmentNotChosen": "Not chosen yet",
+  "loc.kmAway": "({km} km away)",
+  "loc.accuracyApprox": "Approximate pin location",
+  "loc.accuracyUnknown": "Unknown",
+  "loc.statusLabel": "Confirmation",
+  "loc.statusConfirmed": "Location confirmed",
+  "loc.statusUnconfirmed": "Not confirmed yet",
+  "loc.confirm": "Confirm this location",
   "obs.optionalNote":
     "The details below are optional. Leave them as Unknown if you are not sure.",
   "obs.source.legend": "How do you know about this?",
@@ -1104,6 +1126,28 @@ export const hi: Record<TranslationKey, string> = {
   "reset.done": "आपका पासवर्ड अपडेट हो गया है।",
   "reset.noSession":
     "नया पासवर्ड सेट करने के लिए अपने ईमेल का रीसेट लिंक खोलें। लिंक कुछ समय बाद समाप्त हो जाते हैं।",
+  "loc.gpsDenied":
+    "स्थान की अनुमति नहीं दी गई। सड़क या जगह खोजें, या पिन खुद लगाएँ।",
+  "loc.gpsUnavailable":
+    "डिवाइस का स्थान अभी उपलब्ध नहीं है। सड़क या जगह खोजें, या पिन खुद लगाएँ।",
+  "loc.gpsUnsupported":
+    "यह ब्राउज़र डिवाइस स्थान का समर्थन नहीं करता। सड़क या जगह खोजें, या पिन खुद लगाएँ।",
+  "loc.gpsOutside":
+    "डिवाइस का स्थान इस प्रोटोटाइप के क्षेत्र से बाहर है। सड़क या जगह खुद खोजें।",
+  "loc.multipleMatches": "कई परिणाम मिले — कृपया एक चुनें।",
+  "loc.placeOption": "जगह · इसके बाद सड़क का हिस्सा चुनें",
+  "loc.chooseSegment":
+    "पास में सड़क के कई हिस्से हैं। जिस पर आप थे, वह चुनें:",
+  "loc.chooseSegmentError":
+    "पुष्टि से पहले वह सड़क हिस्सा चुनें जिस पर आप थे।",
+  "loc.segmentNotChosen": "अभी नहीं चुना गया",
+  "loc.kmAway": "({km} किमी दूर)",
+  "loc.accuracyApprox": "पिन का अनुमानित स्थान",
+  "loc.accuracyUnknown": "अज्ञात",
+  "loc.statusLabel": "पुष्टि",
+  "loc.statusConfirmed": "स्थान की पुष्टि हो गई",
+  "loc.statusUnconfirmed": "अभी पुष्टि नहीं हुई",
+  "loc.confirm": "इस स्थान की पुष्टि करें",
   "obs.optionalNote":
     "नीचे की जानकारी वैकल्पिक है। पक्का न हो तो इसे अज्ञात ही रहने दें।",
   "obs.source.legend": "आपको इसकी जानकारी कैसे मिली?",
