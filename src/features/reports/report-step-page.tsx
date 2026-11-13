@@ -227,7 +227,15 @@ export function ReportStepPage({
   const cameraInput = useRef<HTMLInputElement>(null);
   const libraryInput = useRef<HTMLInputElement>(null);
 
+  // Read the latest translator through a ref so a language switch does not
+  // re-run the restore effect below and overwrite edits not yet autosaved.
+  const tRef = useRef(t);
   useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+
+  useEffect(() => {
+    const t = tRef.current;
     let active = true;
     const loadSavedDraft = async () => {
       // Default the observation time to now right after mount (not during
@@ -291,7 +299,7 @@ export function ReportStepPage({
     return () => {
       active = false;
     };
-  }, [prefillSegmentId, step, t]);
+  }, [prefillSegmentId, step]);
 
   useEffect(() => {
     if (step !== "received" || !submittedReportId) return;

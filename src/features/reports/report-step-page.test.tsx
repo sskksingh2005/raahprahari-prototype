@@ -24,6 +24,7 @@ import {
   writeReportDraft,
 } from "@/lib/report-store";
 import { STORAGE_KEYS } from "@/lib/storage";
+import { PreferencesProvider, usePrefs } from "@/i18n/preferences";
 
 const navigate = vi.fn();
 
@@ -135,16 +136,13 @@ describe("report photo selection", () => {
 
     choose(new File(["png"], "first.png", { type: "image/png" }));
     await waitFor(
-      () =>
-        expect(screen.getAllByText("first.png").length).toBeGreaterThan(0),
+      () => expect(screen.getAllByText("first.png").length).toBeGreaterThan(0),
       { timeout: 3000 },
     );
     expect(screen.getByText(/not uploaded/)).toBeInTheDocument();
     const photoId = readReportDraft()?.photo?.id;
     expect(photoId).toBeTruthy();
-    await waitFor(async () =>
-      expect(await localDb.drafts.count()).toBe(1),
-    );
+    await waitFor(async () => expect(await localDb.drafts.count()).toBe(1));
 
     const rejected: [File, string][] = [
       [
@@ -266,9 +264,7 @@ describe("report step flow", () => {
       await screen.findByText("Saved locally — not delivered"),
     ).toBeInTheDocument();
     // No report service is configured, so there is no Sync now button to press.
-    expect(
-      screen.queryByRole("button", { name: "Sync now" }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "Sync now" })).toBeNull();
     expect(await screen.findByText("Not delivered yet")).toBeInTheDocument();
     expect(screen.getByText(new RegExp(reportId!))).toBeInTheDocument();
     expect(screen.getByText(/Observed:/)).toBeInTheDocument();
@@ -308,12 +304,15 @@ describe("optional observation details", () => {
       "Which part of the road is affected?",
       "Which vehicles can still pass?",
     ]) {
-      expect(within(group(legend)).getByRole("radio", { name: "Unknown" })).toBeChecked();
+      expect(
+        within(group(legend)).getByRole("radio", { name: "Unknown" }),
+      ).toBeChecked();
     }
     // Optional: Continue works with everything left as Unknown.
     await waitFor(() =>
       expect(
-        (screen.getByLabelText("When did you observe it?") as HTMLInputElement).value,
+        (screen.getByLabelText("When did you observe it?") as HTMLInputElement)
+          .value,
       ).not.toBe(""),
     );
     fireEvent.click(screen.getByRole("button", { name: "Landslide" }));
@@ -329,10 +328,13 @@ describe("optional observation details", () => {
   });
 
   it("keeps chosen values in the draft and shows them on the review step", async () => {
-    const first = render(<ReportStepPage step="observation" navigate={navigate} />);
+    const first = render(
+      <ReportStepPage step="observation" navigate={navigate} />,
+    );
     await waitFor(() =>
       expect(
-        (screen.getByLabelText("When did you observe it?") as HTMLInputElement).value,
+        (screen.getByLabelText("When did you observe it?") as HTMLInputElement)
+          .value,
       ).not.toBe(""),
     );
     fireEvent.click(screen.getByRole("button", { name: "Landslide" }));
@@ -373,7 +375,9 @@ describe("optional observation details", () => {
     first.unmount();
 
     render(<ReportStepPage step="review" navigate={navigate} />);
-    const review = await screen.findByRole("heading", { name: "Road impact and source" });
+    const review = await screen.findByRole("heading", {
+      name: "Road impact and source",
+    });
     const section = review.closest("section")!;
     await waitFor(() => expect(section).toHaveTextContent("I saw it myself"));
     expect(section).toHaveTextContent("One lane or part of the road");
@@ -397,5 +401,47 @@ describe("optional observation details", () => {
       laneDirection: "unknown",
       vehicleApplicability: "unknown",
     });
+  });
+});
+
+describe("draft restore and language switch", () => {
+  function LanguageToggle() {
+    const { lang, setLang } = usePrefs();
+    return (
+      <button
+        type="button"
+        onClick={() => setLang(lang === "en" ? "hi" : "en")}
+      >
+        toggle language
+      </button>
+    );
+  }
+
+  it("keeps edits made just before switching language", async () => {
+    writeReportDraft({
+      ...createEmptyReportDraft(),
+      hazardType: "landslide",
+      description: "Saved earlier.",
+    });
+    render(
+      <PreferencesProvider>
+        <LanguageToggle />
+        <ReportStepPage step="observation" navigate={navigate} />
+      </PreferencesProvider>,
+    );
+    await screen.findByText("Draft restored from this device");
+    const description = () =>
+      document.getElementById("report-description") as HTMLTextAreaElement;
+    await waitFor(() => expect(description().value).toBe("Saved earlier."));
+
+    // Edit, then switch language before the debounced autosave runs.
+    fireEvent.change(description(), { target: { value: "Typed just now." } });
+    fireEvent.click(screen.getByRole("button", { name: "toggle language" }));
+    // Give a re-run restore time to land if it were (wrongly) triggered.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(description().value).toBe("Typed just now.");
+    await waitFor(() =>
+      expect(readReportDraft()?.description).toBe("Typed just now."),
+    );
   });
 });
