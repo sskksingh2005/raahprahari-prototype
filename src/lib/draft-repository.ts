@@ -877,6 +877,37 @@ export function observeSubmittedReport(
   });
 }
 
+/**
+ * One report for the detail page: its draft, outbox entry (null until queued)
+ * and photo attachments, all limited to this account scope. Read-only.
+ */
+export async function getReportDetail(id: string, scope = getActiveAccountScope()) {
+  const [draft, outbox, attachments] = await Promise.all([
+    localDb.drafts.get(id),
+    localDb.outbox.get(id),
+    localDb.attachments.where("draftId").equals(id).toArray(),
+  ]);
+  if (!draft || draft.accountScope !== scope) return null;
+  return {
+    draft,
+    outbox: outbox && outbox.accountScope === scope ? outbox : null,
+    attachments: attachments.filter((item) => item.accountScope === scope),
+  };
+}
+
+/** Live version of getReportDetail, so upload progress updates on screen. */
+export function observeReportDetail(
+  id: string,
+  scope: string,
+  onValue: (value: Awaited<ReturnType<typeof getReportDetail>>) => void,
+  onError: (error: unknown) => void,
+) {
+  return liveQuery(() => getReportDetail(id, scope)).subscribe({
+    next: onValue,
+    error: onError,
+  });
+}
+
 export async function listOutbox(scope = getActiveAccountScope()) {
   return await localDb.outbox
     .where("accountScope")
