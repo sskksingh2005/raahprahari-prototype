@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useSyncExternalStore } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import {
   ChevronDown,
@@ -16,6 +16,7 @@ import {
 import { crossFadeTheme, useScrolled } from '@/components/motion'
 import { OfflineBanner } from '@/components/offline-banner'
 import { Button } from '@/components/ui/button'
+import { FeatureSearchModal } from '@/components/feature-search-modal'
 import { LoginDialog } from '@/components/login-dialog'
 import {
   DropdownMenu,
@@ -102,6 +103,62 @@ function ThemeSwitch() {
 // - My Reports (/reports): it needs a signed-in account, so it is listed only
 //   while a session exists.
 
+const noSubscription = () => () => {}
+const isApplePlatform = () => {
+  const platform =
+    (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform ??
+    navigator.platform
+  return /mac|iphone|ipad/i.test(platform)
+}
+
+/**
+ * "⌘K" on Apple keyboards, "Ctrl K" elsewhere. The server snapshot is "Ctrl K",
+ * so the server HTML and the first client render match (no hydration error).
+ */
+function useShortcutLabel() {
+  const mac = useSyncExternalStore(noSubscription, isApplePlatform, () => false)
+  return mac ? '⌘K' : 'Ctrl K'
+}
+
+/** Opens the feature search. The shortcut badge is decorative; aria-keyshortcuts names it. */
+function SearchButton({
+  onOpen,
+  compact = false,
+}: {
+  onOpen: (button: HTMLButtonElement) => void
+  compact?: boolean
+}) {
+  const { t } = usePrefs()
+  const shortcut = useShortcutLabel()
+  const shared = {
+    type: 'button' as const,
+    variant: 'ghost' as const,
+    'aria-keyshortcuts': 'Control+K Meta+K',
+    title: t('palette.shortcut').replace('{keys}', shortcut),
+    onClick: (event: React.MouseEvent<HTMLButtonElement>) => onOpen(event.currentTarget),
+  }
+  // An icon-only button must carry its name in aria-label (Button enforces it).
+  if (compact)
+    return (
+      <Button {...shared} size="icon-lg" aria-label={t('palette.open')} className="rounded-full">
+        <Search aria-hidden />
+      </Button>
+    )
+  return (
+    <Button {...shared} className="h-10 gap-2 rounded-full px-3">
+      <Search aria-hidden />
+      <span className="sr-only">{t('palette.open')}</span>
+      <kbd
+        aria-hidden
+        data-testid="search-shortcut"
+        className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground"
+      >
+        {shortcut}
+      </kbd>
+    </Button>
+  )
+}
+
 export const PRIMARY_NAV = [
   { to: '/', label: 'nav.home' },
   { to: '/traveller', label: 'nav.traveller' },
@@ -175,6 +232,13 @@ export function SiteHeader() {
     setLoginOpen(true)
   }
 
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchReturnFocusRef = useRef<HTMLButtonElement | null>(null)
+  const openSearch = (button: HTMLButtonElement) => {
+    searchReturnFocusRef.current = button
+    setSearchOpen(true)
+  }
+
   return (
     <>
       <header
@@ -229,6 +293,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="ml-auto hidden min-w-0 shrink-0 items-center gap-3 xl:flex">
+            <SearchButton onOpen={openSearch} />
             <LanguageSwitch />
             <ThemeSwitch />
             <Button
@@ -252,6 +317,7 @@ export function SiteHeader() {
           </div>
 
           <div className="ml-auto flex items-center gap-1 xl:hidden">
+            <SearchButton onOpen={openSearch} compact />
             <Button
               asChild
               variant="report"
@@ -398,6 +464,13 @@ export function SiteHeader() {
           ))}
         </ul>
       </nav>
+
+      {/* One instance: it also owns the Ctrl+K / Cmd+K shortcut for the page. */}
+      <FeatureSearchModal
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        returnFocusRef={searchReturnFocusRef}
+      />
 
       <LoginDialog
         open={loginOpen}

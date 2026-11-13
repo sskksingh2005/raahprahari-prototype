@@ -124,13 +124,14 @@ describe('header layout does not overlap at 1280, 1440 and 1920', () => {
     expect(styles).toMatch(/\.rp-lang \.rp-lang-btn:focus-visible[\s\S]*?outline-offset:\s*-3px/)
   })
 
-  it('1280px width fits the desktop row (language, theme, Report Hazard)', () => {
+  it('1280px width fits the desktop row (search, language, theme, login, Report Hazard)', () => {
     // 1280 viewport - 2 * 3rem padding = 1184px of inner width.
     const inner = 1280 - 96
-    const logoW = 48
-    const nav = 6 * (20 + 70) // padding + average label width
-    const right = 110 + 40 + 150
-    const gaps = 2 * 12 + 3 * 12
+    // Widths measured in Chromium at 1280px (English labels), rounded up.
+    const logoW = 37
+    const nav = 479
+    const right = 102 /* search + Ctrl K */ + 461 /* language, theme, login, report + gaps */
+    const gaps = 2 * 12 + 3 * 12 // between row items, and before the search button
     expect(logoW + nav + right + gaps).toBeLessThan(inner)
   })
 })

@@ -81,6 +81,7 @@ describe("header breakpoints", () => {
     expect(classes(row)).toEqual(expect.arrayContaining(["flex", "items-center", "gap-3", "min-w-0"]));
     expect(classes(right)).toContain("ml-auto");
     expect(Array.from(right.children).map((el) => el.textContent || el.getAttribute("aria-label"))).toEqual([
+      expect.stringMatching(/^Search features/),
       "ENहिन्दी",
       expect.stringMatching(/theme|system|light|dark/i),
       "Community Login",
