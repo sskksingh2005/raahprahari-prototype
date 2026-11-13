@@ -28,6 +28,7 @@ import { MapLegend } from "@/features/routes/schematic-map";
 import { en, hi, type TranslationKey } from "@/i18n/dictionary";
 import { PreferencesProvider, usePrefs } from "@/i18n/preferences";
 import { summariseRoute } from "@/lib/advisory";
+import { setAccountSession } from "@/lib/account-session";
 import { AppStoreProvider } from "@/lib/app-store";
 import { getAdvisories } from "@/lib/data";
 import { routeTree } from "@/routeTree.gen";
@@ -358,11 +359,25 @@ describe("change order 8: marker shapes on every legend", () => {
 
 describe("change order 9: synthetic and planned claims", () => {
   it(
-    "has no profile screen or activity numbers, and the offline feature is labelled planned",
+    "shows no profile activity numbers, and the offline feature is labelled planned",
     async () => {
-      expect(
-        Object.keys(files).filter((path) => /\/routes\/.*profile/i.test(path)),
-      ).toEqual([]);
+      // The profile screen (SU-03) holds account details and preferences only:
+      // no synthetic activity or contribution numbers.
+      setAccountSession({
+        status: "authenticated",
+        userId: "user",
+        email: "traveller@example.com",
+        role: null,
+      });
+      try {
+        await mountAt("/profile");
+        const main = await screen.findByRole("main");
+        await within(main).findByRole("heading", { level: 1, name: "Profile" });
+        expect(main.textContent).not.toMatch(/\d/);
+      } finally {
+        setAccountSession({ status: "signed_out", userId: null });
+        cleanup();
+      }
       await mountAt("/");
       const strip = await screen.findByRole("list", {
         name: "RaahPrahari features",

@@ -98,6 +98,78 @@ export const en = {
   "reset.done": "Your password has been updated.",
   "reset.noSession":
     "Open the reset link from your email to set a new password. Links expire after a short time.",
+  "loc.gpsDenied":
+    "Location permission was denied. Search for a road or place, or adjust the pin manually.",
+  "loc.gpsUnavailable":
+    "Device location is unavailable right now. Search for a road or place, or adjust the pin manually.",
+  "loc.gpsUnsupported":
+    "This browser does not support device location. Search for a road or place, or adjust the pin manually.",
+  "loc.gpsOutside":
+    "Device location is outside this prototype coverage area. Search for a road or place manually.",
+  "loc.multipleMatches": "Multiple matches found — please choose one.",
+  "loc.placeOption": "Place · choose the road segment next",
+  "loc.chooseSegment":
+    "Several road segments are nearby. Choose the one you were on:",
+  "loc.chooseSegmentError":
+    "Choose the road segment you were on before confirming.",
+  "loc.segmentNotChosen": "Not chosen yet",
+  "loc.kmAway": "({km} km away)",
+  "loc.accuracyApprox": "Approximate pin location",
+  "loc.accuracyUnknown": "Unknown",
+  "loc.statusLabel": "Confirmation",
+  "loc.statusConfirmed": "Location confirmed",
+  "loc.statusUnconfirmed": "Not confirmed yet",
+  "loc.confirm": "Confirm this location",
+  "obs.optionalNote":
+    "The details below are optional. Leave them as Unknown if you are not sure.",
+  "obs.source.legend": "How do you know about this?",
+  "obs.source.unknown": "Unknown",
+  "obs.source.firsthand": "I saw it myself",
+  "obs.source.secondhand": "Someone else told me",
+  "obs.lane.legend": "Which part of the road is affected?",
+  "obs.lane.unknown": "Unknown",
+  "obs.lane.full_width": "The whole width of the road",
+  "obs.lane.one_lane": "One lane or part of the road",
+  "obs.lane.roadside": "Roadside or shoulder only",
+  "obs.vehicle.legend": "Which vehicles can still pass?",
+  "obs.vehicle.unknown": "Unknown",
+  "obs.vehicle.all_vehicles": "All vehicles",
+  "obs.vehicle.light_vehicles": "Cars and smaller vehicles only",
+  "obs.vehicle.two_wheelers": "Two-wheelers only",
+  "obs.vehicle.no_vehicles": "No vehicles",
+  "obs.review.title": "Road impact and source",
+  "obs.review.source": "Source",
+  "obs.review.lane": "Road affected",
+  "obs.review.vehicle": "Vehicles that can pass",
+  "profile.title": "Profile",
+  "profile.link": "Profile and preferences",
+  "profile.account": "Account",
+  "profile.signedOut":
+    "You are not signed in. Preferences below are saved on this device.",
+  "profile.email": "Email",
+  "profile.emailUnknown": "Not provided",
+  "profile.role": "Role",
+  "profile.roleNone": "No role assigned",
+  "profile.roleNote":
+    "Roles such as reviewer or official are assigned by RaahPrahari administrators and checked by the server. They cannot be changed here.",
+  "profile.preferences": "Preferences",
+  "profile.prefsNote": "Saved in this browser.",
+  "profile.language": "Language",
+  "profile.theme": "Theme",
+  "profile.themeLight": "Light",
+  "profile.themeDark": "Dark",
+  "profile.themeSystem": "Use system setting",
+  "signout.title": "Sign out with unsynced drafts?",
+  "signout.unsyncedOne":
+    "You have {count} unsynced draft. It will remain on this device but won't sync until you sign in again.",
+  "signout.unsyncedMany":
+    "You have {count} unsynced drafts. They will remain on this device but won't sync until you sign in again.",
+  "signout.unknown":
+    "We could not check for unsynced drafts. Any drafts remain on this device but won't sync until you sign in again.",
+  "signout.kept":
+    "Signing out does not delete drafts. They are kept for this account and resume syncing when the same account signs in on this device.",
+  "signout.cancel": "Stay signed in",
+  "signout.confirm": "Sign out anyway",
 
   "hero.eyebrow": "Uttarakhand road-hazard advisories",
   "hero.title": "Know before you go.",
@@ -1216,6 +1288,78 @@ export const hi: Record<TranslationKey, string> = {
   "reset.done": "आपका पासवर्ड अपडेट हो गया है।",
   "reset.noSession":
     "नया पासवर्ड सेट करने के लिए अपने ईमेल का रीसेट लिंक खोलें। लिंक कुछ समय बाद समाप्त हो जाते हैं।",
+  "loc.gpsDenied":
+    "स्थान की अनुमति नहीं दी गई। सड़क या जगह खोजें, या पिन खुद लगाएँ।",
+  "loc.gpsUnavailable":
+    "डिवाइस का स्थान अभी उपलब्ध नहीं है। सड़क या जगह खोजें, या पिन खुद लगाएँ।",
+  "loc.gpsUnsupported":
+    "यह ब्राउज़र डिवाइस स्थान का समर्थन नहीं करता। सड़क या जगह खोजें, या पिन खुद लगाएँ।",
+  "loc.gpsOutside":
+    "डिवाइस का स्थान इस प्रोटोटाइप के क्षेत्र से बाहर है। सड़क या जगह खुद खोजें।",
+  "loc.multipleMatches": "कई परिणाम मिले — कृपया एक चुनें।",
+  "loc.placeOption": "जगह · इसके बाद सड़क का हिस्सा चुनें",
+  "loc.chooseSegment":
+    "पास में सड़क के कई हिस्से हैं। जिस पर आप थे, वह चुनें:",
+  "loc.chooseSegmentError":
+    "पुष्टि से पहले वह सड़क हिस्सा चुनें जिस पर आप थे।",
+  "loc.segmentNotChosen": "अभी नहीं चुना गया",
+  "loc.kmAway": "({km} किमी दूर)",
+  "loc.accuracyApprox": "पिन का अनुमानित स्थान",
+  "loc.accuracyUnknown": "अज्ञात",
+  "loc.statusLabel": "पुष्टि",
+  "loc.statusConfirmed": "स्थान की पुष्टि हो गई",
+  "loc.statusUnconfirmed": "अभी पुष्टि नहीं हुई",
+  "loc.confirm": "इस स्थान की पुष्टि करें",
+  "obs.optionalNote":
+    "नीचे की जानकारी वैकल्पिक है। पक्का न हो तो इसे अज्ञात ही रहने दें।",
+  "obs.source.legend": "आपको इसकी जानकारी कैसे मिली?",
+  "obs.source.unknown": "अज्ञात",
+  "obs.source.firsthand": "मैंने खुद देखा",
+  "obs.source.secondhand": "किसी और ने बताया",
+  "obs.lane.legend": "सड़क का कौन सा हिस्सा प्रभावित है?",
+  "obs.lane.unknown": "अज्ञात",
+  "obs.lane.full_width": "सड़क की पूरी चौड़ाई",
+  "obs.lane.one_lane": "एक लेन या सड़क का कुछ हिस्सा",
+  "obs.lane.roadside": "केवल सड़क का किनारा",
+  "obs.vehicle.legend": "कौन से वाहन अब भी निकल सकते हैं?",
+  "obs.vehicle.unknown": "अज्ञात",
+  "obs.vehicle.all_vehicles": "सभी वाहन",
+  "obs.vehicle.light_vehicles": "केवल कार और छोटे वाहन",
+  "obs.vehicle.two_wheelers": "केवल दोपहिया वाहन",
+  "obs.vehicle.no_vehicles": "कोई वाहन नहीं",
+  "obs.review.title": "सड़क पर असर और स्रोत",
+  "obs.review.source": "स्रोत",
+  "obs.review.lane": "प्रभावित सड़क",
+  "obs.review.vehicle": "निकल सकने वाले वाहन",
+  "profile.title": "प्रोफ़ाइल",
+  "profile.link": "प्रोफ़ाइल और प्राथमिकताएँ",
+  "profile.account": "खाता",
+  "profile.signedOut":
+    "आप साइन इन नहीं हैं। नीचे की प्राथमिकताएँ इसी डिवाइस पर सहेजी जाती हैं।",
+  "profile.email": "ईमेल",
+  "profile.emailUnknown": "उपलब्ध नहीं",
+  "profile.role": "भूमिका",
+  "profile.roleNone": "कोई भूमिका तय नहीं",
+  "profile.roleNote":
+    "समीक्षक या अधिकारी जैसी भूमिकाएँ राहप्रहरी व्यवस्थापक तय करते हैं और सर्वर उनकी जाँच करता है। इन्हें यहाँ नहीं बदला जा सकता।",
+  "profile.preferences": "प्राथमिकताएँ",
+  "profile.prefsNote": "इसी ब्राउज़र में सहेजी गईं।",
+  "profile.language": "भाषा",
+  "profile.theme": "थीम",
+  "profile.themeLight": "हल्की",
+  "profile.themeDark": "गहरी",
+  "profile.themeSystem": "सिस्टम सेटिंग अपनाएँ",
+  "signout.title": "बिना सिंक हुए ड्राफ़्ट के साथ साइन आउट करें?",
+  "signout.unsyncedOne":
+    "आपका {count} ड्राफ़्ट सिंक नहीं हुआ है। यह इसी डिवाइस पर रहेगा, लेकिन दोबारा साइन इन करने तक सिंक नहीं होगा।",
+  "signout.unsyncedMany":
+    "आपके {count} ड्राफ़्ट सिंक नहीं हुए हैं। ये इसी डिवाइस पर रहेंगे, लेकिन दोबारा साइन इन करने तक सिंक नहीं होंगे।",
+  "signout.unknown":
+    "बिना सिंक हुए ड्राफ़्ट की जाँच नहीं हो सकी। कोई भी ड्राफ़्ट इसी डिवाइस पर रहेगा, लेकिन दोबारा साइन इन करने तक सिंक नहीं होगा।",
+  "signout.kept":
+    "साइन आउट करने से ड्राफ़्ट नहीं मिटते। वे इसी खाते के लिए रखे जाते हैं और इसी डिवाइस पर वही खाता साइन इन करने पर फिर सिंक होने लगते हैं।",
+  "signout.cancel": "साइन इन रहें",
+  "signout.confirm": "फिर भी साइन आउट करें",
 
   "hero.eyebrow": "उत्तराखंड सड़क-ख़तरा परामर्श",
   "hero.title": "सफ़र से पहले सुरक्षा की ख़बर",

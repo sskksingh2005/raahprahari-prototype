@@ -26,8 +26,11 @@ import {
 import { SyncNowButton } from "@/components/sync-now-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { PLACES, SEGMENTS, placeById } from "@/data/fixtures";
+import type { TranslationKey } from "@/i18n/dictionary";
 import { usePrefs } from "@/i18n/preferences";
 import { getActiveAccountScope } from "@/lib/account-scope";
 import {
@@ -51,12 +54,20 @@ import {
   toLocalDateTime,
   validateObservation,
   photoValidationCode,
+  withObservationDefaults,
+  LANE_DIRECTIONS,
+  OBSERVATION_SOURCES,
+  VEHICLE_APPLICABILITY,
   writeReportDraft,
   type ReportDraft,
   type ReportHazard,
   type ReportLocation,
 } from "@/lib/report-store";
-import { inCoverage, getCurrentPosition, nearbySegments } from "@/lib/geo";
+import {
+  inCoverage,
+  getCurrentPosition,
+  segmentCandidates,
+} from "@/lib/geo";
 
 export type ReportStep =
   "observation" | "photo" | "location" | "review" | "received";
@@ -99,6 +110,9 @@ const formatBytes = (size: number) =>
     ? `${Math.max(1, Math.round(size / 1024))} KB`
     : `${(size / 1024 / 1024).toFixed(1)} MB`;
 
+/** Device accuracy radius, e.g. "±25 m". */
+export const formatAccuracy = (meters: number) => `±${Math.round(meters)} m`;
+
 const formatCoordinates = (lat: number, lon: number) =>
   `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? "N" : "S"}, ${Math.abs(lon).toFixed(4)}° ${lon >= 0 ? "E" : "W"}`;
 
@@ -122,9 +136,8 @@ function optionsFor(query: string): SearchOption[] {
     label: place.name,
     lat: place.lat,
     lon: place.lon,
-    segment:
-      nearbySegments(place.lat, place.lon, 15)[0]?.segment.code ??
-      "Road segment not identified",
+    // A place is not a road: the segment is chosen from nearby candidates.
+    segment: "",
   }));
   const segmentOptions = SEGMENTS.filter((segment) => {
     const from = placeById(segment.from)?.name ?? "";
@@ -144,6 +157,9 @@ function optionsFor(query: string): SearchOption[] {
   return [...segmentOptions, ...placeOptions].slice(0, 6);
 }
 
+/** Stored when no segment is within range; the report can still be confirmed. */
+const NO_SEGMENT = "Road segment not identified";
+
 function makeLocation(
   lat: number,
   lon: number,
@@ -152,10 +168,15 @@ function makeLocation(
   source: ReportLocation["source"],
   accuracyM: number | null = null,
 ): ReportLocation {
-  const nearest = nearbySegments(lat, lon, 15)[0]?.segment;
-  const fallbackSegment = nearest
-    ? `${nearest.code} · ${placeById(nearest.from)?.name ?? ""} – ${placeById(nearest.to)?.name ?? ""}`
-    : "Road segment not identified";
+  // Never auto-pick between several nearby segments: leave it empty so the
+  // user chooses. A single candidate is pre-filled but still needs confirming.
+  const candidates = segmentCandidates(lat, lon);
+  const fallbackSegment =
+    candidates.length === 1
+      ? candidates[0].label
+      : candidates.length === 0
+        ? NO_SEGMENT
+        : "";
   return {
     query,
     roadSegment: roadSegment || fallbackSegment,
@@ -222,7 +243,7 @@ export function ReportStepPage({
         const saved = await loadActiveDraft(scope);
         if (!active) return;
         if (saved) {
-          setDraft(saved.payload);
+          setDraft(withObservationDefaults(saved.payload));
           setDraftId(saved.id);
           setLocationSearch(saved.payload.location?.query ?? "");
           setNotice(t("saveStatus.draftRestored"));
@@ -519,16 +540,18 @@ export function ReportStepPage({
     setLocating(false);
     if (!result.ok) {
       setGpsError(
-        result.reason === "denied"
-          ? "Location permission was denied. Search for a road or place, or adjust the pin manually."
-          : "Device location is unavailable. Search for a road or place, or adjust the pin manually.",
+        t(
+          result.reason === "denied"
+            ? "loc.gpsDenied"
+            : result.reason === "unsupported"
+              ? "loc.gpsUnsupported"
+              : "loc.gpsUnavailable",
+        ),
       );
       return;
     }
     if (!inCoverage(result.lat, result.lon)) {
-      setGpsError(
-        "Device location is outside this prototype coverage area. Search for a road or place manually.",
-      );
+      setGpsError(t("loc.gpsOutside"));
       return;
     }
     const loc = makeLocation(
@@ -554,6 +577,13 @@ export function ReportStepPage({
     updateLocation(location);
   };
 
+  /** An explicit segment choice; any location edit clears confirmation. */
+  const chooseSegment = (label: string) => {
+    if (!draft.location) return;
+    updateLocation({ ...draft.location, roadSegment: label, confirmed: false });
+    setErrors((current) => ({ ...current, location: "" }));
+  };
+
   const confirmLocation = async () => {
     if (
       !draft.location ||
@@ -564,6 +594,10 @@ export function ReportStepPage({
         location:
           "Search for a place or road, use device location, or adjust the map pin.",
       });
+      return;
+    }
+    if (!draft.location.roadSegment) {
+      setErrors({ location: t("loc.chooseSegmentError") });
       return;
     }
     const next = { ...draft, location: { ...draft.location, confirmed: true } };
@@ -631,9 +665,22 @@ export function ReportStepPage({
     go("/report/received");
   };
 
-  const matchingOptions = useMemo(
+  // Hide the result list once the typed query has been chosen.
+  const searchChosen =
+    draft.location?.lat != null && draft.location.query === locationSearch;
+  const allMatches = useMemo(
     () => optionsFor(locationSearch),
     [locationSearch],
+  );
+  const matchingOptions = searchChosen ? [] : allMatches;
+  const locLat = draft.location?.lat ?? null;
+  const locLon = draft.location?.lon ?? null;
+  const nearbyChoices = useMemo(
+    () =>
+      locLat !== null && locLon !== null
+        ? segmentCandidates(locLat, locLon)
+        : [],
+    [locLat, locLon],
   );
   const currentStep =
     step === "observation" || step === "photo"
@@ -911,6 +958,38 @@ export function ReportStepPage({
                       {errors.observedAt}
                     </p>
                   )}
+                </div>
+
+                <div className="mt-6 space-y-5">
+                  <p className="text-sm text-muted-foreground">
+                    {t("obs.optionalNote")}
+                  </p>
+                  <ObservationChoice
+                    id="report-source"
+                    legend={t("obs.source.legend")}
+                    value={draft.source}
+                    options={OBSERVATION_SOURCES}
+                    labelKey={(value) => `obs.source.${value}`}
+                    onChange={(source) => updateDraft({ source })}
+                  />
+                  <ObservationChoice
+                    id="report-lane"
+                    legend={t("obs.lane.legend")}
+                    value={draft.laneDirection}
+                    options={LANE_DIRECTIONS}
+                    labelKey={(value) => `obs.lane.${value}`}
+                    onChange={(laneDirection) => updateDraft({ laneDirection })}
+                  />
+                  <ObservationChoice
+                    id="report-vehicle"
+                    legend={t("obs.vehicle.legend")}
+                    value={draft.vehicleApplicability}
+                    options={VEHICLE_APPLICABILITY}
+                    labelKey={(value) => `obs.vehicle.${value}`}
+                    onChange={(vehicleApplicability) =>
+                      updateDraft({ vehicleApplicability })
+                    }
+                  />
                 </div>
 
                 <div className="mt-5 overflow-hidden rounded-xl border border-border">
@@ -1205,6 +1284,11 @@ export function ReportStepPage({
                     Search is limited to this prototype’s synthetic location
                     list.
                   </p>
+                  {matchingOptions.length > 1 && (
+                    <p role="status" className="mt-2 text-sm font-medium">
+                      {t("loc.multipleMatches")}
+                    </p>
+                  )}
                   {matchingOptions.length > 0 && (
                     <ul
                       role="listbox"
@@ -1226,7 +1310,7 @@ export function ReportStepPage({
                               {option.label}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {option.segment}
+                              {option.segment || t("loc.placeOption")}
                             </span>
                           </button>
                         </li>
@@ -1374,7 +1458,7 @@ export function ReportStepPage({
                           Road / segment
                         </dt>
                         <dd className="mt-1 font-medium">
-                          {draft.location?.roadSegment || "Not selected"}
+                          {draft.location?.roadSegment || t("loc.segmentNotChosen")}
                         </dd>
                       </div>
                       <div>
@@ -1385,10 +1469,14 @@ export function ReportStepPage({
                           {draft.location?.lat !== null &&
                           draft.location?.lat !== undefined &&
                           draft.location.lon !== null
-                            ? formatCoordinates(
+                            ? `${formatCoordinates(
                                 draft.location.lat,
                                 draft.location.lon,
-                              )
+                              )}${
+                                draft.location.accuracyM != null
+                                  ? ` (${formatAccuracy(draft.location.accuracyM)})`
+                                  : ""
+                              }`
                             : "Not selected"}
                         </dd>
                       </div>
@@ -1399,14 +1487,66 @@ export function ReportStepPage({
                         <dd className="mt-1">
                           {draft.location?.accuracyM !== null &&
                           draft.location?.accuracyM !== undefined
-                            ? `±${Math.round(draft.location.accuracyM)} meters`
+                            ? formatAccuracy(draft.location.accuracyM)
                             : draft.location?.lat !== null &&
                                 draft.location?.lat !== undefined
-                              ? "Approximate pin location"
-                              : "Unknown"}
+                              ? t("loc.accuracyApprox")
+                              : t("loc.accuracyUnknown")}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-muted-foreground">
+                          {t("loc.statusLabel")}
+                        </dt>
+                        <dd className="mt-1" aria-live="polite">
+                          {draft.location?.confirmed
+                            ? t("loc.statusConfirmed")
+                            : t("loc.statusUnconfirmed")}
                         </dd>
                       </div>
                     </dl>
+                    {nearbyChoices.length > 1 && (
+                      <fieldset className="mt-4">
+                        <legend className="mb-2 text-sm font-medium">
+                          {t("loc.chooseSegment")}
+                        </legend>
+                        <RadioGroup
+                          value={
+                            nearbyChoices.some(
+                              (c) => c.label === draft.location?.roadSegment,
+                            )
+                              ? draft.location?.roadSegment
+                              : ""
+                          }
+                          onValueChange={chooseSegment}
+                          className="gap-1"
+                        >
+                          {nearbyChoices.map((choice) => (
+                            <div
+                              key={choice.id}
+                              className="flex min-h-11 items-center gap-2"
+                            >
+                              <RadioGroupItem
+                                value={choice.label}
+                                id={`segment-choice-${choice.id}`}
+                              />
+                              <Label
+                                htmlFor={`segment-choice-${choice.id}`}
+                                className="font-normal"
+                              >
+                                {choice.label}{" "}
+                                <span className="text-xs text-muted-foreground">
+                                  {t("loc.kmAway").replace(
+                                    "{km}",
+                                    choice.km.toFixed(1),
+                                  )}
+                                </span>
+                              </Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </fieldset>
+                    )}
                     {adjustingPin && (
                       <div className="mt-4 grid grid-cols-2 gap-2">
                         <label
@@ -1482,7 +1622,7 @@ export function ReportStepPage({
                 </p>
                 <StepActions
                   back={() => go("/report/photo")}
-                  continueLabel="Confirm location"
+                  continueLabel={t("loc.confirm")}
                   onContinue={confirmLocation}
                   onSave={saveDraft}
                 />
@@ -1556,6 +1696,25 @@ export function ReportStepPage({
                           )}
                         </p>
                       )}
+                  </ReviewSection>
+                  <ReviewSection
+                    title={t("obs.review.title")}
+                    edit={() => go("/report")}
+                  >
+                    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                      <dt className="text-muted-foreground">
+                        {t("obs.review.source")}
+                      </dt>
+                      <dd>{t(`obs.source.${draft.source}`)}</dd>
+                      <dt className="text-muted-foreground">
+                        {t("obs.review.lane")}
+                      </dt>
+                      <dd>{t(`obs.lane.${draft.laneDirection}`)}</dd>
+                      <dt className="text-muted-foreground">
+                        {t("obs.review.vehicle")}
+                      </dt>
+                      <dd>{t(`obs.vehicle.${draft.vehicleApplicability}`)}</dd>
+                    </dl>
                   </ReviewSection>
                   <ReviewSection
                     title={t("segment.observationTime")}
@@ -1636,6 +1795,44 @@ function StepActions({
         <ArrowRight aria-hidden />
       </Button>
     </div>
+  );
+}
+
+/** Optional single-choice observation field; "unknown" is a real, explicit choice. */
+function ObservationChoice<T extends string>({
+  id,
+  legend,
+  value,
+  options,
+  labelKey,
+  onChange,
+}: {
+  id: string;
+  legend: string;
+  value: T;
+  options: readonly T[];
+  labelKey: (value: T) => TranslationKey;
+  onChange: (value: T) => void;
+}) {
+  const { t } = usePrefs();
+  return (
+    <fieldset>
+      <legend className="mb-2 text-sm font-medium">{legend}</legend>
+      <RadioGroup
+        value={value}
+        onValueChange={(next) => onChange(next as T)}
+        className="grid gap-1 sm:grid-cols-2"
+      >
+        {options.map((option) => (
+          <div key={option} className="flex min-h-11 items-center gap-2">
+            <RadioGroupItem value={option} id={`${id}-${option}`} />
+            <Label htmlFor={`${id}-${option}`} className="font-normal">
+              {t(labelKey(option))}
+            </Label>
+          </div>
+        ))}
+      </RadioGroup>
+    </fieldset>
   );
 }
 

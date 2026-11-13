@@ -11,7 +11,11 @@ import {
   type ReceiptEventRecord,
   type ReceiptEventType,
 } from "@/lib/local-db";
-import { makeLocalReference, type ReportDraft } from "@/lib/report-store";
+import {
+  makeLocalReference,
+  observationExtras,
+  type ReportDraft,
+} from "@/lib/report-store";
 
 export type RepositoryWriteResult =
   | { ok: true; id: string; savedAt: number }
@@ -56,7 +60,7 @@ function toUtcIso(dateValue: string | undefined) {
 }
 
 function normalizePayload(payload?: ReportDraft | null): ReportDraft {
-  const seed = payload ?? {
+  const seed: Partial<ReportDraft> = payload ?? {
     hazardType: "",
     description: "",
     observedAt: formatLocalDateTime(new Date()),
@@ -69,6 +73,8 @@ function normalizePayload(payload?: ReportDraft | null): ReportDraft {
     observedAt: seed.observedAt ?? formatLocalDateTime(new Date()),
     photo: seed.photo ?? null,
     location: seed.location ?? null,
+    // Optional observation details; missing or invalid values stay "unknown".
+    ...observationExtras(seed),
   };
 }
 
@@ -1068,4 +1074,27 @@ export function getActiveDraftPointer(scope: string) {
 export function setActiveDraftPointer(scope: string, id: string) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(activeDraftPointerKey(scope), id);
+}
+
+/**
+ * Reports in this account scope that the server has not received yet: local
+ * drafts and queued reports whose outbox entry is not "received". Rejected
+ * reports are excluded because they will not be sent again.
+ */
+export async function countUnsyncedDrafts(scope = getActiveAccountScope()) {
+  if (scope === "anonymous") return 0;
+  const [drafts, outbox] = await Promise.all([
+    localDb.drafts.where("accountScope").equals(scope).toArray(),
+    localDb.outbox.where("accountScope").equals(scope).toArray(),
+  ]);
+  const settled = new Set(
+    outbox
+      .filter((entry) => entry.state === "received" || entry.state === "rejected")
+      .map((entry) => entry.reportId),
+  );
+  const unsynced = new Set<string>();
+  for (const draft of drafts) if (!settled.has(draft.id)) unsynced.add(draft.id);
+  for (const entry of outbox)
+    if (!settled.has(entry.reportId)) unsynced.add(entry.reportId);
+  return unsynced.size;
 }
