@@ -28,9 +28,14 @@ export function DeliveryStepper({
   const { t } = usePrefs();
   const deliveryStatus = deriveDeliveryStatus(outbox);
 
+  // Photo upload is tracked separately from report (metadata) delivery.
   const attachmentSummary = useMemo(() => {
     if (!attachments.length) {
-      return { state: "not_applicable", label: "Not applicable", failed: false };
+      return {
+        state: "not_applicable",
+        label: t("report.noPhotos"),
+        failed: false,
+      };
     }
     const failed = attachments.some(
       (attachment) => attachment.uploadState === "failed",
@@ -38,20 +43,26 @@ export function DeliveryStepper({
     const uploading = attachments.some(
       (attachment) => attachment.uploadState === "uploading",
     );
-    const uploaded = attachments.some(
+    const allUploaded = attachments.every(
       (attachment) => attachment.uploadState === "uploaded",
     );
-    if (failed) return { state: "failed", label: "Photo upload failed", failed: true };
-    if (uploading) return { state: "uploading", label: "Uploading media", failed: false };
-    if (uploaded) return { state: "uploaded", label: "Media uploaded", failed: false };
-    return { state: "pending", label: "Media pending", failed: false };
-  }, [attachments]);
+    if (failed)
+      return { state: "failed", label: t("sync.photoFailed"), failed: true };
+    if (uploading)
+      return { state: "uploading", label: t("sync.uploading"), failed: false };
+    // "Uploaded" only when every photo is uploaded, never for a partial set.
+    if (allUploaded)
+      return { state: "uploaded", label: t("sync.uploaded"), failed: false };
+    return { state: "pending", label: t("sync.photoPending"), failed: false };
+  }, [attachments, t]);
 
   const stages = [
     {
       key: "saved",
       title: "Saved locally",
-      status: draft?.savedAt ? new Date(draft.savedAt).toLocaleString() : "Saved locally",
+      status: draft?.savedAt
+        ? new Date(draft.savedAt).toLocaleString()
+        : "Saved locally",
       active: !outbox || deliveryStatus === "saved_not_delivered",
       done: Boolean(draft?.savedAt),
       icon: Save,
@@ -96,7 +107,7 @@ export function DeliveryStepper({
     },
     {
       key: "media",
-      title: "Media",
+      title: t("review.detail.photos"),
       status: attachmentSummary.label,
       active: attachmentSummary.state !== "not_applicable",
       done: attachmentSummary.state === "uploaded",
@@ -122,7 +133,10 @@ export function DeliveryStepper({
 
   return (
     <div className="space-y-4">
-      <ol className="grid gap-3 md:grid-cols-2 xl:grid-cols-5" aria-label="Delivery stages">
+      <ol
+        className="grid gap-3 md:grid-cols-2 xl:grid-cols-5"
+        aria-label="Delivery stages"
+      >
         {finalStages.map((stage, index) => {
           const Icon = stage.icon;
           const isActive = index === activeIndex;
@@ -132,7 +146,9 @@ export function DeliveryStepper({
               <div
                 className={[
                   "flex h-full min-h-32 flex-col gap-2 rounded-xl border p-3",
-                  isActive ? "border-action-info bg-action-info/5" : "border-border bg-card/40",
+                  isActive
+                    ? "border-action-info bg-action-info/5"
+                    : "border-border bg-card/40",
                   isFailed ? "border-destructive/60 bg-destructive/5" : "",
                 ].join(" ")}
               >
@@ -142,20 +158,28 @@ export function DeliveryStepper({
                     <span className="text-sm font-medium">{stage.title}</span>
                   </div>
                   {isActive ? (
-                    <span aria-hidden className="text-xs uppercase tracking-wide text-muted-foreground">
+                    <span
+                      aria-hidden
+                      className="text-xs uppercase tracking-wide text-muted-foreground"
+                    >
                       Current
                     </span>
                   ) : null}
                 </div>
                 <div className="text-sm" role={isFailed ? "alert" : undefined}>
-                  <span aria-current={isActive ? "step" : undefined}>{stage.status}</span>
+                  <span aria-current={isActive ? "step" : undefined}>
+                    {stage.status}
+                  </span>
                 </div>
                 {stage.key === "received" && !outbox?.metadataReceipt ? (
-                  <p className="text-xs text-muted-foreground">{t("sync.notDeliveredYet")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("sync.notDeliveredYet")}
+                  </p>
                 ) : null}
                 {reviewStage && stage.key === "review" ? (
                   <p className="text-xs text-muted-foreground">
-                    Received and reviewed do not mean the hazard is verified or confirmed, and neither creates an official road closure.
+                    Received and reviewed do not mean the hazard is verified or
+                    confirmed, and neither creates an official road closure.
                   </p>
                 ) : null}
               </div>
