@@ -1,33 +1,61 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { DeliveryStepper } from "@/components/delivery-stepper";
+import { NotFoundPage } from "@/components/error-pages";
+import { ScreenError, ScreenLoading } from "@/components/screen-states";
 import { getActiveAccountScope } from "@/lib/account-scope";
-import { listReceiptEvents, listReportsForScope } from "@/lib/draft-repository";
+import {
+  getReportDetail,
+  listReceiptEvents,
+  observeReportDetail,
+} from "@/lib/draft-repository";
 
 export const Route = createFileRoute("/reports/$id")({
   component: ReportsDetailPage,
 });
 
-function ReportsDetailPage() {
+type Detail = NonNullable<Awaited<ReturnType<typeof getReportDetail>>>;
+type LoadState =
+  | { status: "loading" }
+  | { status: "missing" }
+  | { status: "error" }
+  | { status: "ready"; detail: Detail };
+
+export function ReportsDetailPage() {
   const { id } = Route.useParams();
+  return <ReportDetailView id={id} />;
+}
+
+/** Local, account-scoped report detail. Exported for tests. */
+export function ReportDetailView({ id }: { id: string }) {
   const scope = getActiveAccountScope();
-  const [report, setReport] = useState<
-    Awaited<ReturnType<typeof listReportsForScope>>[number] | null
-  >(null);
+  // Results are tagged with the id/scope they belong to, so a different report
+  // shows "loading" until its own data arrives (no stale detail).
+  const key = `${scope}|${id}`;
+  const [loaded, setLoaded] = useState<{
+    key: string;
+    state: LoadState;
+  } | null>(null);
+  const state: LoadState =
+    loaded?.key === key ? loaded.state : { status: "loading" };
   const [receiptEvents, setReceiptEvents] = useState<
     Awaited<ReturnType<typeof listReceiptEvents>>
   >([]);
 
+  // Live, so photo upload progress updates without a reload. The local
+  // database is read after mount (not during SSR).
   useEffect(() => {
-    let active = true;
-    void listReportsForScope(scope).then((entries) => {
-      if (!active) return;
-      const match = entries.find((entry) => entry.draft.id === id) ?? null;
-      setReport(match);
-    });
-    return () => {
-      active = false;
-    };
+    const subscription = observeReportDetail(
+      id,
+      scope,
+      (detail) =>
+        setLoaded({
+          key: `${scope}|${id}`,
+          state: detail ? { status: "ready", detail } : { status: "missing" },
+        }),
+      () => setLoaded({ key: `${scope}|${id}`, state: { status: "error" } }),
+    );
+    return () => subscription.unsubscribe();
   }, [id, scope]);
 
   useEffect(() => {
@@ -41,11 +69,13 @@ function ReportsDetailPage() {
     };
   }, [id, scope]);
 
-  if (!report) {
-    throw notFound();
-  }
+  if (state.status === "loading") return <ScreenLoading />;
+  if (state.status === "error")
+    return <ScreenError onRetry={() => window.location.reload()} />;
+  // Not in this account's local data (or another account's report).
+  if (state.status === "missing") return <NotFoundPage />;
 
-  const { draft, outbox } = report;
+  const { draft, outbox, attachments } = state.detail;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
@@ -88,7 +118,11 @@ function ReportsDetailPage() {
 
         <aside className="rounded-2xl border border-border bg-card p-5">
           <h2 className="mb-4 text-lg font-semibold">Delivery status</h2>
-          <DeliveryStepper draft={draft} outbox={outbox} attachments={[]} />
+          <DeliveryStepper
+            draft={draft}
+            outbox={outbox}
+            attachments={attachments}
+          />
         </aside>
       </div>
 
