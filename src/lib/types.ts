@@ -93,6 +93,10 @@ export interface CommunityReport {
   photoCount: number
   duplicateOf?: string
   conflictsWith?: string
+  /** Whether a reviewer recorded this report as independent of the others in its group. Absent means not recorded. */
+  independent?: boolean
+  /** The reviewer's stated reason for the independence call. */
+  independenceRationale?: string
   synthetic: true
 }
 

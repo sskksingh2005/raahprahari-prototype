@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Info } from "lucide-react";
 import { FreshnessChip, RoadCode } from "@/components/advisory";
@@ -14,6 +14,16 @@ import {
   relatedReports,
 } from "@/lib/review-queue";
 import type { CommunityReport } from "@/lib/types";
+import { ReviewActionDialog } from "./review-action-dialog";
+import {
+  REVIEW_ACTIONS,
+  type ReviewAction,
+  type ReviewDecisionAdapter,
+  type ReviewSnapshot,
+  type ReviewSnapshotLoader,
+} from "./review-decision";
+import { ObservationEvidence } from "./review-observations";
+import { ReviewTimeline } from "./review-timeline";
 import { AssignmentBadge, ReviewStatusBadge, SeverityLabel } from "./review-ui";
 import { useReviewClaims } from "./use-review-claims";
 
@@ -53,12 +63,46 @@ function RelatedList({
   );
 }
 
-export function ReviewDetailView({ report }: { report: CommunityReport }) {
+/**
+ * `onDecision` is the adapter to the review backend. Without one there is no
+ * service to store a decision, so no decision control is shown.
+ */
+export function ReviewDetailView({
+  report,
+  onDecision,
+  loadSnapshot,
+}: {
+  report: CommunityReport;
+  onDecision?: ReviewDecisionAdapter;
+  /** Loads the current version and authorised history. Without it no history is shown and no version is sent. */
+  loadSnapshot?: ReviewSnapshotLoader;
+}) {
   const { t, stamp, ago, place } = usePrefs();
   const { segments, reports } = useAppStore();
   const { claims, claim, release } = useReviewClaims();
   const [announcement, setAnnouncement] = useState("");
+  const [dialogAction, setDialogAction] = useState<ReviewAction | null>(null);
+  const [snapshot, setSnapshot] = useState<ReviewSnapshot | null>(null);
   const actionRef = useRef<HTMLButtonElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const reportRef = report.ref;
+  const refetch = useCallback(async () => {
+    if (loadSnapshot) setSnapshot(await loadSnapshot(reportRef));
+  }, [loadSnapshot, reportRef]);
+  useEffect(() => {
+    let live = true;
+    void loadSnapshot?.(reportRef).then(
+      (next) => {
+        if (live) setSnapshot(next);
+      },
+      () => {
+        if (live) setSnapshot(null);
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [loadSnapshot, reportRef]);
   const segment = segments.find((s) => s.id === report.segmentId);
   const { assignment, assignee } = assignmentOf(
     report,
@@ -68,6 +112,7 @@ export function ReviewDetailView({ report }: { report: CommunityReport }) {
   const claimable = canClaim(report, claims, SEEDED_ASSIGNMENTS);
   const related = relatedReports(report, reports);
   const pending = isPending(report.status);
+  const observationGroup = [report, ...related.linked];
 
   // The claim and release buttons replace each other, so focus follows.
   const act = (fn: () => void, message: string) => {
@@ -211,17 +256,45 @@ export function ReviewDetailView({ report }: { report: CommunityReport }) {
             <h2 id="review-decision-title">
               {t("review.detail.decisionTitle")}
             </h2>
-            <p className="flex items-start gap-2">
-              <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
-              <span>
-                {pending
-                  ? t("review.detail.decisionBlocked")
-                  : t("review.detail.decisionSettled").replace(
-                      "{status}",
-                      t(`status.${report.status}` as TranslationKey),
-                    )}
-              </span>
-            </p>
+            {pending && onDecision ? (
+              <>
+                <p className="flex items-start gap-2">
+                  <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
+                  <span>{t("review.act.note")}</span>
+                </p>
+                <div
+                  role="group"
+                  aria-label={t("review.act.group")}
+                  className="mt-3 flex flex-wrap gap-2"
+                >
+                  {REVIEW_ACTIONS.map((a) => (
+                    <Button
+                      key={a}
+                      type="button"
+                      variant="outline"
+                      onClick={(e) => {
+                        returnFocusRef.current = e.currentTarget;
+                        setDialogAction(a);
+                      }}
+                    >
+                      {t(`review.act.${a}` as TranslationKey)}
+                    </Button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="flex items-start gap-2">
+                <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
+                <span>
+                  {pending
+                    ? t("review.detail.decisionBlocked")
+                    : t("review.detail.decisionSettled").replace(
+                        "{status}",
+                        t(`status.${report.status}` as TranslationKey),
+                      )}
+                </span>
+              </p>
+            )}
           </section>
 
           {segment && (
@@ -249,6 +322,15 @@ export function ReviewDetailView({ report }: { report: CommunityReport }) {
         </div>
       </div>
 
+      <ObservationEvidence group={observationGroup} />
+
+      {snapshot && (
+        <ReviewTimeline
+          entries={snapshot.history}
+          version={snapshot.version}
+        />
+      )}
+
       <section
         aria-labelledby="review-related-title"
         className="rp-info-card glass"
@@ -269,6 +351,27 @@ export function ReviewDetailView({ report }: { report: CommunityReport }) {
           <p>{t("review.detail.noRelated")}</p>
         )}
       </section>
+      {onDecision && (
+        <ReviewActionDialog
+          action={dialogAction}
+          report={report}
+          mergeTargets={related.linked}
+          onSubmit={onDecision}
+          returnFocusRef={returnFocusRef}
+          version={snapshot?.version}
+          onConflict={refetch}
+          onClose={() => setDialogAction(null)}
+          onDone={(a) => {
+            setDialogAction(null);
+            setAnnouncement(
+              t("review.act.done").replace(
+                "{action}",
+                t(`review.act.${a}` as TranslationKey),
+              ),
+            );
+          }}
+        />
+      )}
     </div>
   );
 }
