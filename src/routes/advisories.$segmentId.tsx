@@ -95,7 +95,7 @@ function DetailNotFound() {
           aria-hidden
           className="mx-auto size-8 text-status-unknown"
         />
-        <h1 className="font-display text-2xl font-bold">
+        <h1 className="rp-page-title">
           Road information not found
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -152,7 +152,7 @@ export function Banner({
             <span className="font-mono tracking-normal">· {reportRef}</span>
           )}
         </p>
-        <h1 className="rp-wrap-anywhere max-w-4xl font-display text-2xl leading-tight font-bold sm:text-3xl">
+        <h1 className="rp-page-title rp-wrap-anywhere max-w-4xl">
           {title}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
@@ -685,7 +685,7 @@ function HazardDetail({
                 <p className="text-xs font-semibold text-muted-foreground">
                   Community report, not an official closure
                 </p>
-                <h2 className="mt-1 font-display text-2xl font-bold">
+                <h2 className="mt-1">
                   {t(`hazard.${report.hazardType}`)}
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">

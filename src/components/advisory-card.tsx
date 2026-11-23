@@ -68,7 +68,7 @@ export function AdvisoryCard({
           className="block rounded-[inherit] p-4 focus-visible:outline-offset-[-3px]"
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-semibold">
+            <h2 className="text-base leading-snug font-semibold">
               {t(`hazard.${communityReport.hazardType}`)}
             </h2>
             <ActionBadge level={level} />
@@ -178,7 +178,7 @@ export function AdvisoryCard({
             <RoadCode>
               {segment.code} · km {segment.kmStart}–{segment.kmEnd}
             </RoadCode>
-            <h2 className="rp-wrap-anywhere mt-1 font-semibold">
+            <h2 className="rp-wrap-anywhere mt-1 text-base leading-snug font-semibold">
               {place(segment.from)} – {place(segment.to)}
             </h2>
           </div>

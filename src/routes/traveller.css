@@ -60,12 +60,6 @@
 .traveller-search-panel h1 {
   margin: 0;
   color: var(--tone-f3f1e9);
-  font-family: var(--font-heading);
-  font-size: clamp(2.15rem, 3.25vw, 3rem);
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
-  text-wrap: balance;
 }
 
 .traveller-panel-description {
@@ -540,10 +534,6 @@
 .traveller-results-heading h1 {
   margin: 0.2rem 0 0;
   color: var(--tone-f2efe7);
-  font-family: var(--font-heading);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  font-weight: 700;
-  line-height: 1.1;
 }
 
 .traveller-results-heading > div:first-child > p {
@@ -1049,10 +1039,6 @@
     max-width: 38rem;
   }
 
-  .traveller-search-panel h1 {
-    font-size: clamp(2rem, 8vw, 2.55rem);
-  }
-
   .traveller-panel-description {
     margin-bottom: 1.3rem;
   }
@@ -1073,10 +1059,6 @@
   .traveller-results-heading {
     grid-template-columns: 1fr;
     gap: 0.75rem;
-  }
-
-  .traveller-results-heading h1 {
-    font-size: 1.85rem;
   }
 
   .traveller-results-search .traveller-search-form {

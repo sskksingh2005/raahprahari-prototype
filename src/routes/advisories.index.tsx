@@ -62,10 +62,9 @@ function AdvisoriesPage() {
       <header className="advisories-list-banner photo-surface">
         <div className="rp-container py-5">
           <p className="mb-1 inline-flex items-center gap-2 text-xs font-semibold text-[var(--orange-on-dark)]">
-            <span aria-hidden className="h-0.5 w-7 bg-brand-orange" />
             {t("hero.eyebrow")}
           </p>
-          <h1 className="max-w-4xl font-display text-2xl leading-tight font-bold text-[var(--photo-text)] sm:text-3xl">
+          <h1 className="rp-page-title max-w-4xl text-[var(--photo-text)]">
             {t("adv.title")}
           </h1>
           <p className="mt-2 max-w-3xl text-sm text-[var(--photo-text-muted)]">

@@ -523,6 +523,9 @@ describe("shell and home use the glass", () => {
   it("keeps the desktop top bar clear until content scrolls under it", () => {
     expect(bars).toMatch(/data-scrolled=\{scrolled\}/);
     expect(bars).toMatch(/rp-topbar sticky top-0 z-\(--z-header\) flex h-14/);
+    expect(bars).toMatch(
+      /rp-shell sticky top-0 z-\(--z-header\) flex h-14[^"]*glass-strong[^"]*lg:hidden/,
+    );
     expect(plain).toMatch(
       /\.rp-topbar\[data-scrolled="true"\]\s*\{\s*background-color: var\(--glass-panel-strong\);/,
     );
@@ -530,17 +533,41 @@ describe("shell and home use the glass", () => {
     expect(bars).toMatch(/glass-strong fixed inset-x-0 bottom-0/);
   });
 
-  it("styles the home hero from the mockup without changing its copy", () => {
-    expect(home).toMatch(/home-eyebrow glass-accent/);
+  it("keeps the home hero focused on search and report without route decoration", () => {
+    expect(home).not.toMatch(/home-eyebrow|home-underline|home-search-quick/);
     expect(home).toMatch(/home-search glass-strong/);
     expect(home).toMatch(/home-search-field glass/);
     expect(home).toMatch(/className="glass-btn-accent"/);
-    expect(home).toMatch(/home-action home-action-check glass-btn-frost/);
+    expect(home).not.toMatch(/home-action-check|MapIcon|QUICK_ROADS/);
+    expect(home).toMatch(/home-action home-action-report glass/);
+    expect(home).not.toMatch(/IllustrativeRoute|home-route-line|home-route-pin/);
+    expect(read("routes/home.css")).not.toMatch(/\.home-route/);
     expect(home).toMatch(/highlight=\{lang === 'en' \? 'you' : null\}/);
     expect(home).not.toMatch(/hero-mountain\.png|home-hero-overlay/);
+    const contributions = read("features/contributions/contribution-ui.tsx");
+    const levelBadge = contributions.slice(
+      contributions.indexOf("export function LevelBadge"),
+      contributions.indexOf("export function Card"),
+    );
+    expect(levelBadge).toContain("text-foreground");
+    expect(levelBadge).not.toContain("text-brand-orange");
+    const schematicMap = read("features/routes/schematic-map.tsx");
+    expect(schematicMap).toContain('terrain ? "var(--route-glow)"');
+    expect(schematicMap).toContain('color="var(--report-foreground)"');
+    expect(schematicMap).toContain('stroke="var(--report-foreground)"');
     expect(read("components/ui/button.tsx")).toMatch(
       /report: 'glass-btn-accent'/,
     );
+  });
+
+  it("removes redundant decorative bars while retaining their text", () => {
+    const advisories = read("routes/advisories.index.tsx");
+    expect(advisories).toContain('{t("hero.eyebrow")}');
+    expect(advisories).not.toMatch(/h-0\.5 w-7 bg-brand-orange/);
+    const help = read("routes/help.tsx");
+    expect(help).toContain('{t("help.reminderTitle")}');
+    expect(help).not.toContain("help-reminder-rule");
+    expect(read("routes/help.css")).not.toContain(".help-reminder-rule");
   });
 });
 

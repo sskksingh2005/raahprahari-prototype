@@ -27,7 +27,7 @@ function AuthPageShell({
       >
         <h1
           id="auth-page-title"
-          className="font-display text-2xl font-semibold"
+          className="rp-page-title"
         >
           {t(title)}
         </h1>

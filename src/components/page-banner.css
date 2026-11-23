@@ -80,9 +80,6 @@
   margin: 0;
   color: var(--foreground);
   font-family: var(--font-heading);
-  font-size: clamp(2rem, 4vw, 2.85rem);
-  font-weight: 700;
-  line-height: 1.08;
 }
 
 .rp-info-banner-description {
@@ -106,7 +103,7 @@
   margin: 0;
   color: var(--foreground);
   font-family: var(--font-heading);
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.35;
 }
@@ -235,10 +232,6 @@
 
 .rp-info-banner-content {
   min-height: 11rem;
-}
-
-.rp-info-banner h1 {
-  font-size: clamp(2.2rem, 4.4vw, 3.2rem);
 }
 
 .rp-info-eyebrow {

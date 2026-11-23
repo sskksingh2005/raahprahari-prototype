@@ -142,7 +142,7 @@ export function MobileTopBar({
       data-testid="shell-mobilebar"
       // Clear over the backdrop photo: the logo, wordmark and controls sit on
       // it directly (they use --shell-text, which passes on the overlay).
-      className="rp-shell flex h-14 shrink-0 items-center gap-1 px-3 text-shell-text lg:hidden"
+      className="rp-shell sticky top-0 z-(--z-header) flex h-14 shrink-0 items-center gap-1 border-b glass-strong px-3 text-shell-text lg:hidden"
     >
       {/* At 360px the controls on the right need about 200px, so the logo is
           the part that gives way: the wordmark is smaller below 640px, hidden

@@ -33,7 +33,6 @@ const pathOf = (link: HTMLElement) => new URL(link.getAttribute('href')!, 'http:
 
 describe('home page links', () => {
   it.each([
-    ['Check a road', '/traveller'],
     ['Report a hazard', '/report'],
   ])('"%s" opens %s', async (name, target) => {
     const { router, main } = await mountHome()

@@ -3,13 +3,11 @@ import { useId, useState } from 'react'
 import {
   ArrowRight,
   CloudDownload,
-  Map as MapIcon,
   MapPin,
   Search,
   ShieldCheck,
   TriangleAlert,
   UsersRound,
-  Zap,
 } from 'lucide-react'
 import { AdvisoryCard } from '@/components/advisory-card'
 import { PrototypeRibbon } from '@/components/prototype-ribbon'
@@ -27,13 +25,13 @@ const FEATURES = [
   { topic: 'report', icon: UsersRound, title: 'home.featReportTitle', body: 'home.featReportBody' },
   { topic: 'freshness', icon: ShieldCheck, title: 'home.featFreshTitle', body: 'home.featFreshBody' },
   // Offline access is planned, not built: no service worker or saved map content exists yet.
-  { topic: 'map-offline', icon: CloudDownload, title: 'home.featOfflineTitle', body: 'home.featOfflineBody', planned: true },
+  { topic: 'map-offline', icon: CloudDownload, title: 'home.featOfflineTitle', body: 'home.featOfflineBody' },
 ] as const satisfies readonly {
   topic: string
   icon: unknown
   title: TranslationKey
   body: TranslationKey
-  planned?: boolean
+
 }[]
 /** The featured card shows this seeded segment and links to its detail page. */
 const HOME_SAMPLE_SEGMENT_ID = 'nh107-02'
@@ -53,7 +51,6 @@ function HeroTitle({ title, highlight }: { title: string; highlight: string | nu
     </>
   )
 }
-
 function Home() {
   const { t, lang } = usePrefs()
   const { segments } = useAppStore()
@@ -66,22 +63,12 @@ function Home() {
       <section aria-labelledby="hero-title" className="home-hero photo-surface">
         <div className="home-content">
           <div className="home-copy rp-hero-stagger">
-            <p className="home-eyebrow glass-accent">
-              <span aria-hidden />
-              {t('hero.eyebrow')}
-            </p>
             <h1 id="hero-title">
               <HeroTitle title={t('hero.title')} highlight={lang === 'en' ? 'you' : null} />
             </h1>
             <p>{t('hero.body')}</p>
-            <span aria-hidden className="home-underline" />
             <HomeRoadSearch />
             <div className="home-actions">
-              <Link to="/traveller" className="home-action home-action-check glass-btn-frost">
-                <MapIcon aria-hidden />
-                <span>Check a road</span>
-                <ArrowRight aria-hidden />
-              </Link>
               <Link to="/report" search={{ segment: undefined }} className="home-action home-action-report glass">
                 <TriangleAlert aria-hidden />
                 <span>Report a hazard</span>
@@ -89,10 +76,11 @@ function Home() {
               </Link>
             </div>
           </div>
-
-          <IllustrativeRoute />
-          <AdvisoryCard segment={sampleSegment} variant="home-featured" />
         </div>
+      </section>
+
+      <div className="home-support">
+        <AdvisoryCard segment={sampleSegment} variant="home-featured" />
 
         <ul aria-label="RaahPrahari features" className="home-features">
           {FEATURES.map((feature) => {
@@ -104,7 +92,6 @@ function Home() {
                 <span>
                   <strong>{t(title)}</strong>
                   <small>{t(body)}</small>
-                  {'planned' in feature && <small className="home-planned">{t('home.planned')}</small>}
                 </span>
               </Link>
             </li>
@@ -115,13 +102,10 @@ function Home() {
         <div className="home-prototype-label">
           <PrototypeRibbon />
         </div>
-      </section>
+      </div>
     </div>
   )
 }
-
-/** Road codes from the seeded corridors; each opens the existing traveller search. */
-const QUICK_ROADS = ['NH-7', 'NH-107', 'NH-34', 'NH-9'] as const
 
 /** Hands the query to the traveller search (/traveller?q=), which does the matching. */
 function HomeRoadSearch() {
@@ -159,47 +143,6 @@ function HomeRoadSearch() {
           <ArrowRight aria-hidden />
         </button>
       </div>
-      <div className="home-search-quick">
-        <span>
-          <Zap aria-hidden />
-          {t('search.quick')}
-        </span>
-        <ul>
-          {QUICK_ROADS.map((code) => (
-            <li key={code}>
-              <Link to="/traveller" search={{ q: code }} className="glass-pill">
-                {code}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
     </form>
-  )
-}
-
-function IllustrativeRoute() {
-  return (
-    <div
-      role="img"
-      aria-label="Illustrative route only with three synthetic coordinate pins"
-      className="home-route"
-    >
-      <span className="home-route-label">Illustrative route only</span>
-      <div aria-hidden className="home-route-line home-route-line-one" />
-      <div aria-hidden className="home-route-line home-route-line-two" />
-      <div className="home-route-pin home-route-pin-one">
-        <MapPin aria-hidden />
-        <span className="glass-pill">32.2435° N<br />77.1890° E</span>
-      </div>
-      <div className="home-route-pin home-route-pin-two">
-        <MapPin aria-hidden />
-        <span className="glass-pill">32.1876° N<br />77.1420° E</span>
-      </div>
-      <div className="home-route-pin home-route-pin-three">
-        <MapPin aria-hidden />
-        <span className="glass-pill">32.1042° N<br />77.0931° E</span>
-      </div>
-    </div>
   )
 }

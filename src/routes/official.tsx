@@ -35,7 +35,7 @@ function OfficialPageRoute() {
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-xl font-bold text-foreground">
+            <h1 className="rp-page-title text-foreground">
               Restricted Official Portal
             </h1>
             <p className="text-sm text-muted-foreground">

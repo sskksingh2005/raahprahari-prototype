@@ -220,7 +220,7 @@ function MapPage() {
                 <div className="rp-map-list-heading">
                   <div>
                     <p className="rp-map-kicker">Road conditions</p>
-                    <h1>Road segments</h1>
+                    <h1 className="rp-page-title">Road segments</h1>
                   </div>
                   <span>{filteredSegments.length} segments</span>
                 </div>
