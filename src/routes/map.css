@@ -668,8 +668,6 @@
 .rp-map-list-heading h1 {
   margin: 3px 0 0;
   color: var(--tone-f0f3f5);
-  font-size: 22px;
-  font-weight: 600;
 }
 
 .rp-map-kicker {
@@ -818,10 +816,6 @@
     flex-direction: column;
     gap: 14px;
     padding: 14px 12px 22px;
-  }
-
-  .rp-map-list-heading h1 {
-    font-size: 20px;
   }
 
   .rp-map-list-cards {

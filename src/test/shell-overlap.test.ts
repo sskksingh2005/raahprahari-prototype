@@ -51,6 +51,9 @@ describe("viewport-height pages and the shell bars", () => {
 
 describe("mobile top bar fits at 360px", () => {
   it("lets the logo give way while the controls keep 44px", () => {
+    expect(bars).toMatch(
+      /rp-shell sticky top-0 z-\(--z-header\)[^"]*glass-strong[^"]*lg:hidden/,
+    );
     expect(bars).toMatch(/<ShellLogo\s+className="min-w-0 shrink"/);
     expect(bars).toMatch(
       /wordmarkClassName="min-w-0 truncate max-sm:text-base max-390:hidden"/,

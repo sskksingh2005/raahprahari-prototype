@@ -38,10 +38,7 @@ export function LevelBadge({ level }: { level: ReputationLevel }) {
     <span
       data-testid="reputation-level"
       data-level={level}
-      className={cn(
-        "glass-pill inline-flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap sm:gap-1.5 sm:px-2",
-        level === "trusted" ? "text-brand-orange" : "text-foreground",
-      )}
+      className="glass-pill inline-flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap text-foreground sm:gap-1.5 sm:px-2"
     >
       <Icon aria-hidden className="size-3.5" />
       {t(`contrib.level.${level}` as TranslationKey)}

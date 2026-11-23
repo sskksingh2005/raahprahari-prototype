@@ -147,7 +147,7 @@ function CheckPage() {
   return (
     <div className="rp-container space-y-8 py-8 md:py-10">
       <header className="space-y-3">
-        <h1 className="font-display text-3xl font-bold md:text-4xl">
+        <h1 className="rp-page-title">
           {journey ? (
             <span className="inline-flex flex-wrap items-center gap-x-3">
               {place(from)}{" "}

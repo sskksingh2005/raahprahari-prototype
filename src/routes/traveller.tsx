@@ -402,7 +402,9 @@ function TravellerPage() {
         >
           <div className="traveller-panel-content">
             <p className="traveller-eyebrow">Road advisories · Uttarakhand</p>
-            <h1 id="traveller-title">Where are you travelling?</h1>
+            <h1 id="traveller-title" className="rp-page-title">
+              Where are you travelling?
+            </h1>
             <p className="traveller-panel-description">
               Search reported road conditions, evidence freshness, and official
               restrictions.
@@ -453,7 +455,7 @@ function TravellerPage() {
               <ArrowLeft aria-hidden />
               Back to search
             </button>
-            <h1>{resultTitle}</h1>
+            <h1 className="rp-page-title">{resultTitle}</h1>
             <p>Here are the latest reports and advisories for your search.</p>
           </div>
           <div className="traveller-results-search">{searchForm}</div>

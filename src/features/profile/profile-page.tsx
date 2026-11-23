@@ -100,7 +100,7 @@ export function ProfilePage() {
   return (
     <div className="rp-container py-12">
       <div className="mx-auto max-w-reading space-y-6">
-        <h1 className="font-display text-3xl font-semibold">
+        <h1 className="rp-page-title">
           {t("profile.title")}
         </h1>
         <section

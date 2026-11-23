@@ -30,7 +30,7 @@ function HelpTopicPage() {
             <span aria-hidden />
             {t("help.eyebrow")}
           </p>
-          <h1>{t(topic.titleKey)}</h1>
+          <h1 className="rp-page-title">{t(topic.titleKey)}</h1>
           {topic.slug === "map-offline" && (
             <span className="help-planned help-planned-detail">
               {t("help.planned")}

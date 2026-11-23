@@ -385,6 +385,7 @@ describe("change order 9: synthetic and planned claims", () => {
       const offline = within(strip).getAllByRole("listitem")[2];
       expect(offline).toHaveTextContent("Offline-Aware Access");
       expect(offline).toHaveTextContent("Planned");
+      expect(offline.querySelector(".home-planned")).toBeNull();
       expect(strip.textContent).not.toMatch(/\d/);
     },
     TIMEOUT,

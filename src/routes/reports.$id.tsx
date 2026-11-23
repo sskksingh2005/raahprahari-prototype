@@ -81,14 +81,14 @@ export function ReportDetailView({ id }: { id: string }) {
     <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex flex-col gap-2">
         <p className="text-xs text-muted-foreground">Private detail</p>
-        <h1 className="font-display text-3xl font-semibold">
+        <h1 className="rp-page-title">
           Report #{draft.id.slice(0, 8)}
         </h1>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <section className="glass rounded-2xl border border-border p-5">
-          <h2 className="mb-3 text-lg font-semibold">Observation</h2>
+          <h2 className="mb-3 font-semibold">Observation</h2>
           <p className="mb-3 whitespace-pre-wrap text-sm text-muted-foreground">
             {draft.payload.description}
           </p>
@@ -115,7 +115,7 @@ export function ReportDetailView({ id }: { id: string }) {
         </section>
 
         <aside className="glass rounded-2xl border border-border p-5">
-          <h2 className="mb-4 text-lg font-semibold">Delivery status</h2>
+          <h2 className="mb-4 font-semibold">Delivery status</h2>
           <DeliveryStepper
             draft={draft}
             outbox={outbox}
@@ -125,7 +125,7 @@ export function ReportDetailView({ id }: { id: string }) {
       </div>
 
       <section className="glass mt-8 rounded-2xl border border-border p-5">
-        <h2 className="mb-4 text-lg font-semibold">Receipt history</h2>
+        <h2 className="mb-4 font-semibold">Receipt history</h2>
         {receiptEvents.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No receipt history is available for this report.

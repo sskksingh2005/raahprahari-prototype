@@ -158,7 +158,9 @@ export function SchematicMap({
                 y1={pa.y}
                 x2={pb.x}
                 y2={pb.y}
-                stroke={terrain ? "#149bff" : LEVEL_META[level].color}
+                stroke={
+                  terrain ? "var(--route-glow)" : LEVEL_META[level].color
+                }
                 strokeWidth={inRoute || selected ? 11 : 7}
                 strokeLinecap="round"
                 strokeDasharray={dashed ? "4 14" : undefined}
@@ -218,7 +220,7 @@ export function SchematicMap({
                     y={-10}
                     width={20}
                     height={20}
-                    color="#ffffff"
+                    color="var(--report-foreground)"
                   />
                 </g>
               )}
@@ -288,7 +290,7 @@ export function SchematicMap({
             <circle
               r={9}
               fill="var(--brand-orange)"
-              stroke="#111719"
+              stroke="var(--report-foreground)"
               strokeWidth={3}
             />
           </g>

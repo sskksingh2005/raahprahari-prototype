@@ -37,8 +37,8 @@ function ReportsIndexPage() {
 
   if (scope === "anonymous") {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        <h1 className="font-display text-3xl">My Reports</h1>
+      <div className="mx-auto max-w-3xl px-4 py-8">
+        <h1 className="rp-page-title">My Reports</h1>
         <p className="mt-3 text-muted-foreground">
           Sign in to see your saved reports here.
         </p>
@@ -53,8 +53,8 @@ function ReportsIndexPage() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        <h1 className="font-display text-3xl">My Reports</h1>
+      <div className="mx-auto max-w-3xl px-4 py-8">
+        <h1 className="rp-page-title">My Reports</h1>
         <p className="mt-3 text-destructive">{error}</p>
       </div>
     );
@@ -65,7 +65,7 @@ function ReportsIndexPage() {
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-muted-foreground">Traveller</p>
-          <h1 className="font-display text-3xl font-semibold">My Reports</h1>
+          <h1 className="rp-page-title">My Reports</h1>
         </div>
         <Button asChild variant="outline">
           <Link to="/report" search={{ segment: undefined }}>

@@ -16,7 +16,7 @@ export function PageBanner({
           <span aria-hidden />
           {eyebrow}
         </p>
-        <h1>{title}</h1>
+        <h1 className="rp-page-title">{title}</h1>
         {description && (
           <p className="rp-info-banner-description">{description}</p>
         )}

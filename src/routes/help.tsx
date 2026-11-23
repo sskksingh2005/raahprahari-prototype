@@ -66,7 +66,7 @@ function HelpPage() {
             <span aria-hidden />
             {t("help.eyebrow")}
           </p>
-          <h1>{t("help.title")}</h1>
+          <h1 className="rp-page-title">{t("help.title")}</h1>
           <p className="help-banner-description">{t("help.subtitle")}</p>
         </div>
       </header>
@@ -140,7 +140,6 @@ function HelpPage() {
             </p>
             <h2 id="help-reminder-title">{t("help.reminderTitle")}</h2>
             <p className="help-reminder-body">{t("help.reminderBody")}</p>
-            <span className="help-reminder-rule" aria-hidden />
             <ul className="help-reminder-items">
               <li>
                 <Mountain aria-hidden />

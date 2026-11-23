@@ -729,7 +729,7 @@ export function ReportStepPage({
           <div className="mt-1 flex flex-wrap items-end justify-between gap-5">
             <div>
               <p className="text-sm text-muted-foreground">Report a hazard</p>
-              <h1 className="font-display text-2xl font-bold sm:text-3xl">
+              <h1 className="rp-page-title">
                 {title}
               </h1>
               <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
@@ -1987,7 +1987,7 @@ function ReceivedReport({
         </div>
         <h1
           id="report-saved-heading"
-          className="mt-4 font-display text-2xl font-bold sm:text-3xl"
+          className="rp-page-title mt-4"
         >
           {t("sync.savedReportHeading")}
         </h1>

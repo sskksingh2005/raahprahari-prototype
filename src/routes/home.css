@@ -90,118 +90,6 @@
   color: var(--photo-text);
 }
 
-.home-route {
-  position: relative;
-  z-index: 1;
-  min-height: 22rem;
-  align-self: stretch;
-  overflow: hidden;
-  background-image:
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--tone-05141d) 52%, transparent),
-      color-mix(in srgb, var(--tone-05141d) 14%, transparent)
-    ),
-    url("/img/map-terrain.png");
-  background-position: center;
-  background-size: cover;
-  mask-image: radial-gradient(
-    ellipse at center,
-    var(--tone-mask-opaque) 28%,
-    transparent 78%
-  );
-}
-
-.home-route::after {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--tone-041119) 22%, transparent),
-    transparent 40%,
-    color-mix(in srgb, var(--tone-041119) 25%, transparent)
-  );
-  content: "";
-}
-
-.home-route-label {
-  position: absolute;
-  z-index: 2;
-  top: 0.75rem;
-  left: 50%;
-  transform: translateX(-50%);
-  color: var(--tone-d7e8f4);
-  font-family: var(--font-mono-rp);
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-
-.home-route-line {
-  position: absolute;
-  z-index: 1;
-  height: 2px;
-  border-radius: 999px;
-  background: var(--tone-36adff);
-  box-shadow: 0 0 4px 1px
-    color-mix(in srgb, var(--tone-1796ff) 45%, transparent);
-  transform-origin: left center;
-}
-
-.home-route-line-one {
-  top: 31%;
-  left: 17%;
-  width: 39%;
-  transform: rotate(36deg);
-}
-
-.home-route-line-two {
-  top: 57%;
-  left: 50%;
-  width: 38%;
-  transform: rotate(30deg);
-}
-
-.home-route-pin {
-  position: absolute;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--tone-f2f5f5);
-  font-family: var(--font-mono-rp);
-  font-size: 0.75rem;
-  line-height: 1.35;
-  text-shadow: var(--photo-text-shadow-tone);
-  white-space: nowrap;
-}
-
-.home-route-pin svg {
-  width: 1.35rem;
-  height: 1.35rem;
-  flex: none;
-  color: var(--tone-31a8ff);
-  fill: color-mix(in srgb, var(--tone-0b6db4) 45%, transparent);
-  filter: drop-shadow(
-    0 0 2px color-mix(in srgb, var(--tone-239eff) 50%, transparent)
-  );
-}
-
-.home-route-pin-one {
-  top: 19%;
-  left: 11%;
-}
-
-.home-route-pin-two {
-  top: 48%;
-  left: 48%;
-}
-
-.home-route-pin-three {
-  right: 2%;
-  bottom: 17%;
-}
-
 .home-advisory {
   position: relative;
   z-index: 2;
@@ -458,61 +346,6 @@
     font-size: 0.98rem;
   }
 
-  .home-route {
-    min-height: 9.5rem;
-    width: 100%;
-    align-self: auto;
-    mask-image: linear-gradient(
-      90deg,
-      transparent,
-      var(--tone-mask-opaque) 10%,
-      var(--tone-mask-opaque) 90%,
-      transparent
-    );
-  }
-
-  .home-route-label {
-    top: 0.2rem;
-  }
-
-  .home-route-pin {
-    font-size: 0.75rem;
-  }
-
-  .home-route-pin svg {
-    width: 1.1rem;
-    height: 1.1rem;
-  }
-
-  .home-route-pin-one {
-    top: 21%;
-    left: 4%;
-  }
-
-  .home-route-pin-two {
-    top: 43%;
-    left: 40%;
-  }
-
-  .home-route-pin-three {
-    right: 2%;
-    bottom: 7%;
-  }
-
-  .home-route-line-one {
-    top: 33%;
-    left: 13%;
-    width: 35%;
-    transform: rotate(27deg);
-  }
-
-  .home-route-line-two {
-    top: 57%;
-    left: 48%;
-    width: 35%;
-    transform: rotate(25deg);
-  }
-
   .home-advisory {
     max-width: none;
     justify-self: stretch;
@@ -574,23 +407,6 @@
     font-size: 2.65rem;
   }
 
-  .home-route {
-    min-height: 8.5rem;
-  }
-
-  .home-route-pin {
-    gap: 0.2rem;
-    font-size: 0.75rem;
-  }
-}
-
-.home-features .home-planned {
-  margin-top: 0.15rem;
-  color: var(--orange-on-dark);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 /* ── Unslop: hero hierarchy, road search, feature cards ─────────────────────
@@ -862,18 +678,6 @@
   font-size: 0.8rem;
 }
 
-.home-features .home-planned {
-  width: fit-content;
-  margin-top: 0.3rem;
-  border: 1px solid color-mix(in srgb, var(--link) 55%, transparent);
-  border-radius: 999px;
-  padding: 0.05rem 0.5rem;
-  color: var(--foreground);
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
 /* Featured advisory: a status-coloured top edge, matching its badge. */
 .home-advisory {
   border-top: 4px solid var(--level-accent, var(--status-unknown));
@@ -999,44 +803,6 @@
   gap: 0.35rem;
 }
 
-/* The route sits straight on the backdrop photo: no terrain tile, a glowing
-   blue line and glass coordinate labels. */
-.home-route {
-  background-image: none;
-  mask-image: none;
-}
-
-.home-route::after {
-  display: none;
-}
-
-.home-route-label {
-  color: var(--photo-text);
-}
-
-.home-route-line {
-  height: 3px;
-  background: var(--route-glow);
-  box-shadow: 0 0 8px var(--route-glow);
-  filter: drop-shadow(0 0 8px var(--route-glow));
-}
-
-.home-route-pin {
-  color: var(--foreground);
-  text-shadow: none;
-}
-
-.home-route-pin svg {
-  color: var(--route-glow);
-  fill: color-mix(in srgb, var(--route-glow) 35%, transparent);
-  filter: drop-shadow(0 0 6px var(--route-glow));
-}
-
-.home-route-pin > span {
-  padding: 0.35rem 0.65rem;
-  border-radius: 0.75rem;
-}
-
 /* Road advisory card (.glass-accent): theme text tokens, white/10 dividers. */
 .home-advisory-link {
   color: var(--foreground);
@@ -1119,18 +885,15 @@
   }
 }
 
-/* The copy column carries the headline, intro and search card, so it gets the
-   widest track (as in the mockup); the route illustration gives way. */
+/* Keep the search-led copy aligned with the content edge on desktop. */
 @container home (min-width: 769px) {
   .home-content {
-    grid-template-columns: minmax(22rem, 1.35fr) minmax(0, 0.65fr) minmax(
-        16rem,
-        0.85fr
-      );
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .home-copy {
     max-width: 36rem;
+    justify-self: start;
   }
 
   .home-copy h1 {
@@ -1142,19 +905,133 @@
   }
 }
 
-/* The route column is narrower now: keep every coordinate pill inside it. */
-@container home (min-width: 769px) {
-  .home-route-pin-two {
-    left: 30%;
+/* Keep the first view focused on the search, with supporting content below. */
+.home-hero {
+  overflow: visible;
+}
+
+.home-content {
+  display: grid;
+  width: min(100%, 84rem);
+  min-height: calc(100svh - var(--rp-top-h));
+  padding: clamp(2rem, 7vh, 5rem) clamp(1.25rem, 5vw, 5rem);
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1.5rem, 5vw, 5rem);
+}
+
+.home-copy {
+  width: min(100%, 42rem);
+  max-width: 42rem;
+  justify-self: start;
+}
+
+.home-copy h1 {
+  max-width: 11ch;
+  font-size: clamp(2.75rem, 5vw, 4.5rem);
+}
+
+.home-copy > p {
+  max-width: 34rem;
+  margin-top: 0.85rem;
+  font-size: 1rem;
+}
+
+.home-search {
+  max-width: 38rem;
+  margin-top: 1.5rem;
+}
+
+.home-actions {
+  margin-top: 0.75rem;
+}
+
+.home-action-report {
+  min-height: 2.75rem;
+}
+
+.home-advisory {
+  width: 100%;
+  max-width: none;
+  margin: 0 auto 1.5rem;
+}
+
+.home-support {
+  width: min(100%, 84rem);
+  margin-inline: auto;
+  padding: 1.5rem clamp(1.25rem, 5vw, 5rem);
+}
+
+.home-features {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  display: grid;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 0 1.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.home-prototype-label {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0.5rem 0 1rem;
+  text-align: left;
+}
+
+@container home (max-width: 768px) {
+  .home-support {
+    padding: 1.5rem 1.25rem 1rem;
   }
 
-  .home-route-pin-three {
-    right: auto;
-    left: 22%;
+  .home-content {
+    min-height: auto;
+    padding: 2rem 1.25rem 1.5rem;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
   }
 
-  .home-route-line-two {
-    left: 40%;
-    width: 30%;
+  .home-copy {
+    max-width: 38rem;
+  }
+
+  .home-copy h1 {
+    max-width: 12ch;
+    font-size: clamp(2.75rem, 11vw, 3.5rem);
+  }
+
+  .home-copy > p {
+    margin-top: 0.75rem;
+  }
+
+  .home-search {
+    padding: 0.85rem;
+  }
+
+  .home-advisory {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .home-features {
+    padding: 0 0 1rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container home (max-width: 390px) {
+  .home-content {
+    padding-inline: 1rem;
+  }
+
+  .home-support {
+    padding-inline: 1rem;
+  }
+
+  .home-advisory {
+    width: 100%;
   }
 }

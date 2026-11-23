@@ -32,7 +32,7 @@ export function NotFoundPage() {
             PAGE NOT FOUND
           </p>
         </div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">
+        <h1 className="rp-page-title">
           This page could not be found
         </h1>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -66,7 +66,7 @@ export function RouteErrorPage({ reset }: ErrorComponentProps) {
   return (
     <div className="rp-error-page">
       <div className="glass-strong w-full max-w-md space-y-6 rounded-3xl p-8 text-center sm:p-10">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">
+        <h1 className="rp-page-title">
           This page couldn’t load
         </h1>
         <p role="alert" className="text-muted-foreground">
