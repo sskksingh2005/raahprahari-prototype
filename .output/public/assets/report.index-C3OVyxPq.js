@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-dC67yryO.js";import{t}from"./useNavigate-B12D_bmu.js";import{t as n}from"./report-step-page-Bd4Vm64S.js";import{y as r}from"./index-DnFWZYe5.js";var i=e();function a(){let e=t(),{segment:a}=r.useSearch();return(0,i.jsx)(n,{step:`observation`,navigate:t=>{e(t===`/`?{to:t}:{to:t,search:{segment:void 0}})},prefillSegmentId:a})}export{a as component};

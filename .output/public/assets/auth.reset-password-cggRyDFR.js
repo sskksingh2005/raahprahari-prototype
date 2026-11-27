@@ -1,0 +1,1 @@
+import{n as e}from"./auth-pages-qvS-UbgK.js";var t=e;export{t as component};
