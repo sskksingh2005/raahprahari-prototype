@@ -9,10 +9,12 @@ import {
   buildPrompt,
   handleExtract,
   normalizeSuggestions,
+  parseJsonObject,
   resetModelCache,
   responseText,
   verifyWithSupabaseAuth,
   consumeQuotaViaRpc,
+  consumeGuestQuotaViaRpc,
   AI_QUOTA_LIMIT,
   AI_QUOTA_WINDOW_SECONDS,
   type HandlerDeps,
@@ -40,15 +42,21 @@ const NORMALIZED = {
 };
 
 const USER_TOKEN = "user-access-token";
+const USER_ID = "223e4567-e89b-42d3-a456-426614174001";
+const GUEST_ID = "123e4567-e89b-42d3-a456-426614174000";
 
 const post = (
   body: unknown,
   method = "POST",
   token: string | null = USER_TOKEN,
+  guestId: string | null = null,
 ) =>
   new Request("https://fn.test/extract-hazard", {
     method,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(guestId ? { "x-guest-id": guestId } : {}),
+    },
     body: method === "POST" ? JSON.stringify(body) : undefined,
   });
 
@@ -60,11 +68,21 @@ const consumeQuota = vi.fn<HandlerDeps["consumeQuota"]>(
     retryAfterSeconds: 0,
   }),
 );
+const consumeGuestQuota = vi.fn<HandlerDeps["consumeGuestQuota"]>(
+  async (): Promise<QuotaResult> => ({
+    ok: true,
+    allowed: true,
+    retryAfterSeconds: 0,
+  }),
+);
+const getGuestQuotaKey = vi.fn<HandlerDeps["getGuestQuotaKey"]>(
+  async () => "a".repeat(64),
+);
 
 /** Accepts only USER_TOKEN, like Supabase Auth accepts only real sessions. */
 const verifyUser = vi.fn(async (token: string): Promise<VerifyResult> =>
   token === USER_TOKEN
-    ? { ok: true, userId: "u1" }
+    ? { ok: true, userId: USER_ID }
     : { ok: false, reason: "invalid" },
 );
 
@@ -105,6 +123,8 @@ const deps = (
 ): HandlerDeps => ({
   verifyUser,
   consumeQuota,
+  consumeGuestQuota,
+  getGuestQuotaKey,
   apiKey: "secret-key",
   fetch,
   sleep: async () => undefined,
@@ -124,6 +144,8 @@ beforeEach(() => {
   resetModelCache();
   verifyUser.mockClear();
   consumeQuota.mockClear();
+  consumeGuestQuota.mockClear();
+  getGuestQuotaKey.mockClear();
 });
 
 describe("extract-hazard handler: quota", () => {
@@ -136,7 +158,7 @@ describe("extract-hazard handler: quota", () => {
     );
     expect(res.status).toBe(200);
     expect(consumeQuota).toHaveBeenCalledTimes(1);
-    expect(consumeQuota).toHaveBeenCalledWith("u1");
+    expect(consumeQuota).toHaveBeenCalledWith(USER_ID);
     expect(consumeQuota.mock.invocationCallOrder[0]).toBeLessThan(
       fetch.mock.invocationCallOrder[0],
     );
@@ -154,6 +176,31 @@ describe("extract-hazard handler: quota", () => {
       deps(vi.fn(), { apiKey: undefined }),
     );
     expect(consumeQuota).not.toHaveBeenCalled();
+    expect(consumeGuestQuota).not.toHaveBeenCalled();
+  });
+
+  it("allows guest requests through a dedicated opaque guest quota", async () => {
+    const fetch = fakeGemini({ [DEFAULT_MODEL]: ok(ANSWER) });
+    const request = post({ description: "Rocks" }, "POST", null, GUEST_ID);
+    const response = await handleExtract(request, deps(fetch));
+    expect(response.status).toBe(200);
+    expect(getGuestQuotaKey).toHaveBeenCalledWith(request);
+    expect(consumeGuestQuota).toHaveBeenCalledWith("a".repeat(64));
+    expect(consumeQuota).not.toHaveBeenCalled();
+  });
+
+  it("continues without quota enforcement if a guest key cannot be resolved", async () => {
+    const fetch = fakeGemini({ [DEFAULT_MODEL]: ok(ANSWER) });
+    const log = vi.fn();
+    const response = await handleExtract(
+      post({ description: "Rocks" }, "POST", null, GUEST_ID),
+      deps(fetch, { getGuestQuotaKey: async () => null, log }),
+    );
+    expect(response.status).toBe(200);
+    expect(consumeGuestQuota).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith(
+      "quota service unavailable; proceeding without quota check",
+    );
   });
 
   it("consumes once even when models fall back and retry, and keeps it on failure", async () => {
@@ -191,15 +238,30 @@ describe("extract-hazard handler: quota", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("fails closed with 503 when the quota service is unavailable", async () => {
-    const fetch = vi.fn();
+  it("continues when the quota RPC is unavailable", async () => {
+    const fetch = fakeGemini({ [DEFAULT_MODEL]: ok(ANSWER) });
+    const log = vi.fn();
     const res = await handleExtract(
       post({ description: "Rocks" }),
-      deps(fetch, { consumeQuota: async () => ({ ok: false }) }),
+      deps(fetch, { consumeQuota: async () => ({ ok: false }), log }),
     );
-    expect(res.status).toBe(503);
-    await expect(res.json()).resolves.toEqual({ error: "quota_unavailable" });
-    expect(fetch).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+    expect(log).toHaveBeenCalledWith(
+      "quota service unavailable; proceeding without quota check",
+    );
+  });
+
+  it("continues when the quota RPC throws a transient error", async () => {
+    const fetch = fakeGemini({ [DEFAULT_MODEL]: ok(ANSWER) });
+    const res = await handleExtract(
+      post({ description: "Rocks" }),
+      deps(fetch, {
+        consumeQuota: async () => {
+          throw new TypeError("temporary network failure");
+        },
+      }),
+    );
+    expect(res.status).toBe(200);
   });
 });
 
@@ -214,7 +276,7 @@ describe("consumeQuotaViaRpc", () => {
         ),
     );
     await expect(
-      consumeQuotaViaRpc(fetch, url, "service-key", "user-1"),
+      consumeQuotaViaRpc(fetch, url, "service-key", USER_ID),
     ).resolves.toEqual({
       ok: true,
       allowed: true,
@@ -232,7 +294,7 @@ describe("consumeQuotaViaRpc", () => {
       apikey: "service-key",
     });
     expect(JSON.parse(init.body as string)).toEqual({
-      p_user_id: "user-1",
+      p_user_id: USER_ID,
       p_limit: AI_QUOTA_LIMIT,
       p_window_seconds: AI_QUOTA_WINDOW_SECONDS,
     });
@@ -247,7 +309,7 @@ describe("consumeQuotaViaRpc", () => {
           JSON.stringify([{ allowed: false, retry_after_seconds: 12 }]),
         ),
     );
-    await expect(consumeQuotaViaRpc(fetch, url, "k", "u")).resolves.toEqual({
+    await expect(consumeQuotaViaRpc(fetch, url, "k", USER_ID)).resolves.toEqual({
       ok: true,
       allowed: false,
       retryAfterSeconds: 12,
@@ -281,30 +343,66 @@ describe("consumeQuotaViaRpc", () => {
   });
 });
 
+describe("consumeGuestQuotaViaRpc", () => {
+  it("uses the service-role-only guest RPC with an opaque key", async () => {
+    const fetch = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify([{ allowed: true, retry_after_seconds: 0 }]),
+        ),
+    );
+    await expect(
+      consumeGuestQuotaViaRpc(fetch, "https://proj.supabase.co", "service-key", "a".repeat(64)),
+    ).resolves.toEqual({
+      ok: true,
+      allowed: true,
+      retryAfterSeconds: 0,
+    });
+    const [called, init] = fetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(called).toBe(
+      "https://proj.supabase.co/rest/v1/rpc/consume_ai_guest_quota",
+    );
+    expect(init.headers).toMatchObject({
+      Authorization: "Bearer service-key",
+      apikey: "service-key",
+    });
+    expect(JSON.parse(init.body as string)).toEqual({
+      p_guest_key: "a".repeat(64),
+      p_limit: AI_QUOTA_LIMIT,
+      p_window_seconds: AI_QUOTA_WINDOW_SECONDS,
+    });
+  });
+});
+
 describe("extract-hazard handler: sign-in gate", () => {
   it.each([
-    ["no Authorization header", null],
-    ["the public anon key", "anon-public-key"],
+    ["no guest identity", null],
+    ["the public anon key as a bearer token", "anon-public-key"],
     ["an expired or forged token", "forged"],
-  ])("returns 401 for %s before any Gemini call", async (_label, token) => {
+  ])("rejects %s before any Gemini call", async (_label, token) => {
     const fetch = vi.fn();
     const res = await handleExtract(
       post({ description: "Rocks on road" }, "POST", token),
       deps(fetch),
     );
-    expect(res.status).toBe(401);
-    await expect(res.json()).resolves.toEqual({ error: "auth_required" });
+    expect(res.status).toBe(token === null ? 400 : 401);
+    await expect(res.json()).resolves.toEqual({
+      error: token === null ? "invalid_input" : "auth_required",
+    });
     expect(fetch).not.toHaveBeenCalled();
   });
 
   it("checks sign-in before validating input or reading secrets", async () => {
     const fetch = vi.fn();
     const res = await handleExtract(
-      post({}, "POST", null),
+      post({}, "POST", "forged"),
       deps(fetch, { apiKey: undefined }),
     );
     expect(res.status).toBe(401);
-    expect(verifyUser).not.toHaveBeenCalled();
+    expect(verifyUser).toHaveBeenCalledWith("forged");
   });
 
   it("returns 503 when Supabase Auth cannot be reached, without calling Gemini", async () => {
@@ -331,13 +429,13 @@ describe("verifyWithSupabaseAuth", () => {
 
   it("asks /auth/v1/user and accepts only a response with a user id", async () => {
     const fetch = vi.fn(
-      async () => new Response(JSON.stringify({ id: "user-1" })),
+      async () => new Response(JSON.stringify({ id: USER_ID })),
     );
     await expect(
       verifyWithSupabaseAuth(fetch, url, "anon", "tok"),
     ).resolves.toEqual({
       ok: true,
-      userId: "user-1",
+      userId: USER_ID,
     });
     const [called, init] = fetch.mock.calls[0] as unknown as [
       string,
@@ -414,6 +512,9 @@ describe("extract-hazard handler: request handling", () => {
     expect(preflight.headers.get("Access-Control-Allow-Headers")).toContain(
       "authorization",
     );
+    expect(preflight.headers.get("Access-Control-Allow-Headers")).toContain(
+      "x-guest-id",
+    );
     expect((await handleExtract(post(null, "GET"), deps(fetch))).status).toBe(
       405,
     );
@@ -478,8 +579,11 @@ describe("extract-hazard handler: Gemini call", () => {
     ).toContain("unknown");
   });
 
-  it("does not use the retired gemini-2.5-flash name", () => {
-    expect(MODEL_CHAIN).not.toContain("gemini-2.5-flash");
+  it("uses documented stable Gemini model IDs", () => {
+    expect(MODEL_CHAIN).toEqual([
+      "gemini-3.5-flash-lite",
+      "gemini-3.8-flash",
+    ]);
   });
 
   it("falls back to the next model when a name is retired (404)", async () => {
@@ -539,24 +643,19 @@ describe("extract-hazard handler: Gemini call", () => {
     expect(fetch).toHaveBeenCalledTimes(MODEL_CHAIN.length * 2);
   });
 
-  it("uses only a pinned GEMINI_MODEL and reports the provider reason", async () => {
-    const fetch = fakeGemini({});
+  it("falls back when a pinned GEMINI_MODEL is retired", async () => {
+    const fetch = fakeGemini({ [MODEL_CHAIN[0]]: ok(ANSWER) });
     const d = deps(fetch, { model: "gemini-pinned" });
     expect(await run(d)).toEqual({
-      status: 502,
-      body: {
-        error: "upstream_error",
-        detail: {
-          stage: "provider",
-          providerStatus: 404,
-          providerReason: "NOT_FOUND",
-          model: "gemini-pinned",
-        },
-      },
+      status: 200,
+      body: { suggestions: NORMALIZED },
     });
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch.mock.calls.map(([url]) => modelOf(String(url)))).toEqual([
+      "gemini-pinned",
+      MODEL_CHAIN[0],
+    ]);
     expect(d.log).toHaveBeenCalledWith(
-      expect.stringContaining("no longer available"),
+      expect.stringContaining("trying the next model"),
     );
     expect(
       JSON.stringify((d.log as ReturnType<typeof vi.fn>).mock.calls),
@@ -653,5 +752,38 @@ describe("extract-hazard handler: helpers", () => {
       vehicleApplicability: "unknown",
       source: "unknown",
     });
+  });
+
+  it("parses fenced or prose-wrapped JSON and leaves missing fields unknown", async () => {
+    const response = new Response(
+      JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: 'Here are the supported details:\n```JSON\n{"hazardType":"landslide"}\n```',
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    );
+    const fetch = vi.fn(async () => response.clone());
+    expect(await run(deps(fetch))).toEqual({
+      status: 200,
+      body: {
+        suggestions: {
+          hazardType: "landslide",
+          laneDirection: "unknown",
+          vehicleApplicability: "unknown",
+          source: "unknown",
+        },
+      },
+    });
+    expect(
+      parseJsonObject('prefix {"hazardType":"flooding"} trailing'),
+    ).toEqual({ hazardType: "flooding" });
   });
 });

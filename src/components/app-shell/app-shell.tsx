@@ -9,7 +9,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { FeatureSearchModal } from "@/components/feature-search-modal";
 import { LoginDialog } from "@/components/login-dialog";
 import { cn } from "@/lib/utils";
-import { activeNavTarget, sectionLabel, shellSearchHidden } from "./nav";
+import { activeNavTarget, sectionLabel } from "./nav";
 import { Rail } from "./rail";
 import {
   ShellStatusBanner,
@@ -67,7 +67,6 @@ export function AppShell({
   const paletteReturnRef = useRef<HTMLElement | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
 
-  const hideSearch = shellSearchHidden(pathname);
   const isMap = pathname === "/map";
 
   const openPalette = useCallback(() => {
@@ -76,8 +75,8 @@ export function AppShell({
     setPaletteOpen(true);
   }, []);
 
-  // Ctrl/Cmd+K focuses the road search field. Where that field is hidden
-  // (small screens, /traveller, /map) it opens the page palette instead.
+  // Ctrl/Cmd+K focuses the rail road-search field when it is visible; on
+  // small screens or with the rail collapsed, it opens the page palette.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (!isSearchShortcut(event) || event.repeat || paletteOpen) return;
@@ -105,6 +104,7 @@ export function AppShell({
         onGuard={requestSignIn}
         onOpenLogin={openLogin}
         onOpenSearch={openPalette}
+        searchRef={searchRef}
       />
 
       {/* Bottom padding equals the fixed tab bar (64px + safe area), so the
@@ -122,11 +122,7 @@ export function AppShell({
           onOpenLogin={openLogin}
           onOpenSearch={openPalette}
         />
-        <DesktopTopBar
-          status={status}
-          showSearch={!hideSearch}
-          searchRef={searchRef}
-        />
+        <DesktopTopBar status={status} />
         <ShellStatusBanner
           status={status}
           onOpenDetails={() => setStatusOpen(true)}

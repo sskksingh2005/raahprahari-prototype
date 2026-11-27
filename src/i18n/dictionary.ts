@@ -27,6 +27,7 @@ export const en = {
   'shell.collapse': 'Collapse navigation',
   'shell.expand': 'Expand navigation',
   'shell.search': 'Search road or place',
+  'shell.searchCompact': 'Search roads…',
   'shell.reportHazard': 'Report hazard',
   'shell.reportAHazard': 'Report a hazard',
   'shell.tabMap': 'Map',
@@ -77,6 +78,8 @@ export const en = {
   "login.emailInvalid": "Enter a valid email address.",
   "login.passwordRequired": "Enter your password.",
   "login.invalidCredentials": "The email or password is incorrect.",
+  "login.credentialsOrConfirmation":
+    "We couldn't sign you in. Check your email and password, and confirm your email address if needed.",
   "login.networkError":
     "Could not reach the sign-in service. Check your connection and try again.",
   "login.notConfigured":
@@ -103,6 +106,7 @@ export const en = {
   "signup.passwordMismatch": "The passwords do not match.",
   "signup.submit": "Create account",
   "signup.submitting": "Creating account…",
+  "signup.error": "Account creation failed. Please try again.",
   "signup.checkEmail":
     "Check your email for a confirmation link to finish creating your account. If you already have an account, sign in instead.",
   "signup.signedIn": "Your account is ready and you are signed in.",
@@ -768,7 +772,7 @@ export const en = {
   'aboutPage.privacyDeliveryConfigured':
     'This build has a report service configured. While you are signed in, submitted reports are sent to it and attached photos are uploaded separately. Until then they stay on this device.',
   'aboutPage.privacyAi':
-    'AI suggestions are optional and run only when you press "Suggest details with AI" while signed in. Your description is cleaned automatically, then sent through Supabase to Google Gemini. Photos are never sent to AI. Automatic cleaning catches common email and phone number patterns but cannot guarantee that all personal information is removed, so please leave out names, contact details and identifying addresses.',
+    'AI suggestions are optional and run only when you press "Suggest details with AI". Your description is cleaned automatically, then sent through Supabase to Google Gemini. Photos are never sent to AI. Automatic cleaning catches common email and phone number patterns but cannot guarantee that all personal information is removed, so please leave out names, contact details and identifying addresses.',
   'aboutPage.termsTitle': 'Terms',
   'aboutPage.termsBody':
     'The information shown is synthetic and provided for demonstration only. Do not rely on it for travel decisions. Follow official instructions and local authorities.',
@@ -1443,6 +1447,7 @@ export const hi: Record<TranslationKey, string> = {
   'shell.collapse': 'नेविगेशन छोटा करें',
   'shell.expand': 'नेविगेशन बड़ा करें',
   'shell.search': 'सड़क या जगह खोजें',
+  'shell.searchCompact': 'सड़क खोजें…',
   'shell.reportHazard': 'ख़तरा बताएँ',
   'shell.reportAHazard': 'कोई ख़तरा बताएँ',
   'shell.tabMap': 'मानचित्र',
@@ -1491,6 +1496,8 @@ export const hi: Record<TranslationKey, string> = {
   "login.emailInvalid": "मान्य ईमेल पता दर्ज करें।",
   "login.passwordRequired": "अपना पासवर्ड दर्ज करें।",
   "login.invalidCredentials": "ईमेल या पासवर्ड गलत है।",
+  "login.credentialsOrConfirmation":
+    "साइन इन नहीं हो सका। अपना ईमेल और पासवर्ड जाँचें, और ज़रूरत हो तो ईमेल की पुष्टि करें।",
   "login.networkError":
     "साइन-इन सेवा से संपर्क नहीं हो सका। अपना कनेक्शन जाँचें और फिर कोशिश करें।",
   "login.notConfigured":
@@ -1517,6 +1524,7 @@ export const hi: Record<TranslationKey, string> = {
   "signup.passwordMismatch": "दोनों पासवर्ड मेल नहीं खाते।",
   "signup.submit": "खाता बनाएँ",
   "signup.submitting": "खाता बन रहा है…",
+  "signup.error": "खाता नहीं बन सका। कृपया फिर कोशिश करें।",
   "signup.checkEmail":
     "खाता बनाना पूरा करने के लिए अपने ईमेल में पुष्टि लिंक देखें। अगर आपका खाता पहले से है, तो साइन इन करें।",
   "signup.signedIn": "आपका खाता तैयार है और आप साइन इन हैं।",

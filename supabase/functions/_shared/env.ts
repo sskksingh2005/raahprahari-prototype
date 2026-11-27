@@ -31,7 +31,7 @@ export function loadServerEnv(): ServerEnv {
   const appEnv = read("APP_ENV");
   const supabaseUrl = read("SUPABASE_URL");
   const serviceRoleKey = read("SUPABASE_SERVICE_ROLE_KEY");
-  const aiApiKey = read("AI_API_KEY");
+  const aiApiKey = read("GEMINI_API_KEY");
 
   if (!appEnv) {
     errors.push(`APP_ENV is missing. Allowed: ${APP_ENVS.join(" | ")}`);

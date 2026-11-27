@@ -110,21 +110,19 @@ describe("shell breakpoints (1024px)", () => {
     expect(classes(screen.getByTestId("shell-mobilebar"))).toContain("h-14");
   });
 
-  it("orders the desktop top bar: search, space, status, report", () => {
+  it("keeps only the status and report controls in the desktop top bar", () => {
     mount();
     const bar = screen.getByTestId("shell-topbar");
-    const kids = Array.from(bar.children).map(
-      (el) =>
-        el.getAttribute("role") ??
-        el.getAttribute("data-testid") ??
-        el.textContent ??
-        "",
-    );
-    expect(kids[0]).toBe("search");
-    expect(kids.at(-2)).toBe("status-chip");
+    expect(bar.children).toHaveLength(3);
+    expect(within(bar).queryByRole("search")).toBeNull();
+    expect(within(bar).getByTestId("status-chip")).toBeInTheDocument();
     expect(
       within(bar).getByRole("link", { name: "Report hazard" }),
     ).toBeInTheDocument();
+    const rail = screen.getByTestId("shell-rail");
+    const help = within(rail).getByRole("link", { name: "Help" }).closest("li");
+    const search = within(rail).getByRole("search").closest("li");
+    expect(help?.nextElementSibling).toBe(search);
   });
 
   it("makes /map full bleed with no shell search bar", () => {
@@ -134,19 +132,30 @@ describe("shell breakpoints (1024px)", () => {
       expect.arrayContaining(["rp-shell-map", "flex", "min-h-0", "flex-col"]),
     );
     expect(main).not.toHaveClass("dark");
-    expect(screen.queryByRole("search")).toBeNull();
-    expect(screen.queryByLabelText("Search road or place")).toBeNull();
+    expect(
+      within(screen.getByTestId("shell-topbar")).queryByRole("search"),
+    ).toBeNull();
+    expect(
+      within(screen.getByTestId("shell-rail")).getByRole("search"),
+    ).toBeInTheDocument();
     // The column is exactly one viewport tall so the map page fills the remainder.
     expect(classes(main.parentElement!)).toEqual(
       expect.arrayContaining(["h-svh", "overflow-hidden"]),
     );
   });
 
-  it("hides the shell search on /traveller (it has its own) and shows it elsewhere", () => {
+  it("keeps road search in the rail, never in the top bar", () => {
     mount("/traveller");
-    expect(screen.queryByLabelText("Search road or place")).toBeNull();
+    expect(
+      within(screen.getByTestId("shell-rail")).getByRole("search"),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("shell-topbar")).queryByRole("search"),
+    ).toBeNull();
     cleanup();
     mount("/advisories");
-    expect(screen.getByLabelText("Search road or place")).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("shell-rail")).getByRole("search"),
+    ).toBeInTheDocument();
   });
 });

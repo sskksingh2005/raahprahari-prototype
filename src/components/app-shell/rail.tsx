@@ -1,9 +1,17 @@
-import type { MouseEvent, ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import {
+  Fragment,
+  useState,
+  type FormEvent,
+  type MouseEvent,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ChevronDown,
   ChevronsLeft,
   ChevronsRight,
+  Search,
   Settings,
   UserRound,
 } from "lucide-react";
@@ -92,6 +100,7 @@ export function Rail({
   onGuard,
   onOpenLogin,
   onOpenSearch,
+  searchRef,
 }: {
   active: ShellPath | null;
   collapsed: boolean;
@@ -100,8 +109,11 @@ export function Rail({
   onGuard: (to: ShellPath) => boolean;
   onOpenLogin: () => void;
   onOpenSearch: () => void;
+  searchRef: RefObject<HTMLInputElement | null>;
 }) {
   const { t, lang, setLang } = usePrefs();
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
   const session = useAccountSession();
   const signedIn = session.status === "authenticated";
   const items: ShellNavItem[] = [
@@ -110,6 +122,21 @@ export function Rail({
   ];
   const name = signedIn ? displayName(session.email) : "";
   const initial = (name || "?").charAt(0).toUpperCase();
+
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = query.trim();
+    void navigate({
+      to: "/traveller",
+      search: {
+        q: value || undefined,
+        from: undefined,
+        to: undefined,
+        view: undefined,
+        seg: undefined,
+      },
+    });
+  };
 
   const avatarButton: ReactNode = (
     <button
@@ -167,14 +194,60 @@ export function Rail({
 
       <ul className="m-0 flex flex-1 list-none flex-col gap-1 overflow-y-auto p-2">
         {items.map((item) => (
-          <li key={item.to}>
-            <RailItem
-              item={item}
-              active={active === item.to}
-              collapsed={collapsed}
-              onGuard={onGuard}
-            />
-          </li>
+          <Fragment key={item.to}>
+            <li>
+              <RailItem
+                item={item}
+                active={active === item.to}
+                collapsed={collapsed}
+                onGuard={onGuard}
+              />
+            </li>
+            {item.to === "/help" ? (
+              <li className="min-w-0">
+                {collapsed ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        to="/traveller"
+                        aria-label={t("shell.search")}
+                        className="rp-shell-transition mx-auto flex size-11 items-center justify-center rounded-xl text-shell-muted hover:bg-(--glass-hover) hover:text-shell-text"
+                      >
+                        <Search aria-hidden className="size-5" />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      {t("shell.search")}
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <form
+                    role="search"
+                    onSubmit={submitSearch}
+                    className="relative min-w-0 px-1 py-1"
+                  >
+                    <label htmlFor="rail-search" className="sr-only">
+                      {t("shell.search")}
+                    </label>
+                    <Search
+                      aria-hidden
+                      className="pointer-events-none absolute top-1/2 left-3 z-(--z-content) size-4 -translate-y-1/2 text-shell-muted"
+                    />
+                    <input
+                      id="rail-search"
+                      ref={searchRef}
+                      type="search"
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      placeholder={t("shell.searchCompact")}
+                      aria-keyshortcuts="Control+K Meta+K"
+                      className="glass h-9 w-full min-w-0 rounded-xl pr-2 pl-8 text-xs text-shell-text placeholder:text-shell-muted"
+                    />
+                  </form>
+                )}
+              </li>
+            ) : null}
+          </Fragment>
         ))}
       </ul>
 

@@ -40,7 +40,7 @@ describe("signUpWithEmail", () => {
       error: null,
     });
     await expect(
-      signUpWithEmail("a@example.com", "longpassword"),
+      signUpWithEmail(" A@Example.com ", "longpassword"),
     ).resolves.toEqual({
       kind: "signed_in",
     });

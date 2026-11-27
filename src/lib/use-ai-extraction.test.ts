@@ -27,22 +27,48 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   invoke.mockReset();
   configured.value = true;
   setAccountSession({ status: "signed_out", userId: null });
+  window.localStorage.removeItem("raahprahari.ai-guest-id");
 });
 
-describe("sign-in requirement", () => {
-  it("does not send the description while signed out or loading", async () => {
-    for (const session of [
-      { status: "signed_out", userId: null },
-      { status: "loading", userId: null },
-    ] as const) {
-      setAccountSession(session);
-      await expect(requestAiSuggestions("Rocks on road")).resolves.toEqual({
-        status: "signin_required",
-      });
-    }
+describe("guest and signed-in access", () => {
+  it("allows guests with a stable guest quota ID", async () => {
+    setAccountSession({ status: "signed_out", userId: null });
+    invoke.mockResolvedValue({
+      data: {
+        suggestions: {
+          hazardType: "landslide",
+          laneDirection: "unknown",
+          vehicleApplicability: "unknown",
+          source: "unknown",
+        },
+      },
+      error: null,
+    });
+    await expect(requestAiSuggestions("Rocks on road")).resolves.toMatchObject({
+      status: "success",
+      suggestions: { hazardType: "landslide" },
+    });
+    const [, options] = invoke.mock.calls[0];
+    expect(options).toMatchObject({
+      body: { description: "Rocks on road" },
+      headers: { "x-guest-id": expect.stringMatching(/^[0-9a-f-]{36}$/i) },
+      timeout: AI_CLIENT_TIMEOUT_MS,
+    });
+    expect(options.headers).not.toHaveProperty("Authorization");
+    expect(window.localStorage.getItem("raahprahari.ai-guest-id")).toBe(
+      options.headers["x-guest-id"],
+    );
+  });
+
+  it("does not send the description while the account session is loading", async () => {
+    setAccountSession({ status: "loading", userId: null });
+    await expect(requestAiSuggestions("Rocks on road")).resolves.toEqual({
+      status: "signin_required",
+    });
     expect(invoke).not.toHaveBeenCalled();
   });
 
@@ -111,6 +137,7 @@ describe("requestAiSuggestions", () => {
     });
     expect(invoke).toHaveBeenCalledWith("extract-hazard", {
       body: { description: "Water over road, call [removed] or [removed]" },
+      headers: undefined,
       timeout: AI_CLIENT_TIMEOUT_MS,
     });
   });
@@ -215,6 +242,27 @@ describe("requestAiSuggestions", () => {
       status: "error",
       kind: "network",
     });
+  });
+
+  it("logs safe request diagnostics in development without logging report data", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    invoke.mockResolvedValue({
+      data: null,
+      error: httpError(502, {
+        error: "upstream_error",
+        message: "private report text must not be logged",
+      }),
+    });
+    await expect(
+      requestAiSuggestions("Rocks at 9876543210"),
+    ).resolves.toMatchObject({ status: "error", kind: "failed" });
+    expect(log).toHaveBeenCalledWith("[ai-suggestions] request failed", {
+      status: 502,
+      code: "upstream_error",
+      message: "The suggestion provider failed.",
+    });
+    expect(JSON.stringify(log.mock.calls)).not.toContain("private report text");
+    expect(JSON.stringify(log.mock.calls)).not.toContain("9876543210");
   });
 
   it("does not call the service when only personal data was entered", async () => {

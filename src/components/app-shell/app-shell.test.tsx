@@ -233,6 +233,10 @@ describe("rail collapse", () => {
       "data-collapsed",
       "true",
     );
+    expect(within(rail()).queryByRole("search")).toBeNull();
+    expect(
+      within(rail()).getByRole("link", { name: "Search road or place" }),
+    ).toHaveAttribute("href", "/traveller");
     expect(window.localStorage.getItem(RAIL_COLLAPSED_KEY)).toBe("true");
     // Icon-only, but every item keeps an accessible name.
     expect(

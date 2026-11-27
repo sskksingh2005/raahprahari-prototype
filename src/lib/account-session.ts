@@ -113,20 +113,22 @@ export function applyAuthSession(authSession: AuthSessionLike | null) {
  */
 export function connectSupabaseSession(auth: SupabaseAuthLike) {
   let active = true;
+  let receivedAuthEvent = false;
   setAccountSession({ status: "loading", userId: null });
 
   const { data } = auth.onAuthStateChange((_event, authSession) => {
+    receivedAuthEvent = true;
     if (active) applyAuthSession(authSession);
   });
 
   void auth
     .getSession()
     .then(({ data: restored, error }) => {
-      if (!active) return;
+      if (!active || receivedAuthEvent) return;
       applyAuthSession(error ? null : restored.session);
     })
     .catch(() => {
-      if (active) applyAuthSession(null);
+      if (active && !receivedAuthEvent) applyAuthSession(null);
     });
 
   setAccessTokenProvider(async () => {
