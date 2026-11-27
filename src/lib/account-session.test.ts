@@ -12,7 +12,11 @@ type Listener = Parameters<SupabaseAuthLike["onAuthStateChange"]>[0];
 type FakeSession = {
   access_token: string;
   expires_at?: number;
-  user: { id: string };
+  user: {
+    id: string;
+    app_metadata?: Record<string, unknown>;
+    user_metadata?: Record<string, unknown>;
+  };
 };
 
 function fakeAuth(initial: FakeSession | null) {
@@ -100,6 +104,29 @@ describe("Supabase account session bridge", () => {
       user: { id: "u2" },
     });
     expect(getAccountSession().status).toBe("signed_out");
+  });
+
+  it("uses the protected profile role instead of either auth metadata field", async () => {
+    const fake = fakeAuth({
+      access_token: "role-token",
+      expires_at: inOneHour(),
+      user: {
+        id: "ordinary-user",
+        app_metadata: { role: "admin" },
+        user_metadata: { role: "official" },
+      },
+    });
+    const loadProfileRole = vi.fn(async () => "traveller");
+    disconnect = connectSupabaseSession(fake.auth, loadProfileRole);
+
+    await vi.waitFor(() =>
+      expect(getAccountSession()).toMatchObject({
+        status: "authenticated",
+        userId: "ordinary-user",
+        role: "traveller",
+      }),
+    );
+    expect(loadProfileRole).toHaveBeenCalledWith("ordinary-user");
   });
 
   it("does not let a stale session restore overwrite a newer auth event", async () => {

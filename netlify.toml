@@ -1,10 +1,10 @@
 [build]
-  command = "vite build"
-  publish = "dist/client"
+  command = "pnpm build"
+  publish = "dist"
 [build.environment]
   NODE_VERSION = "24"
 [dev]
   framework = "#custom"
-  command = "npm run dev"
+  command = "pnpm dev"
   targetPort = 3000
   port = 8888

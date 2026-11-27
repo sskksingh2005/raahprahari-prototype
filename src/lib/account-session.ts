@@ -9,10 +9,7 @@ export type AccountSession =
       expiresAt?: number | null;
       /** Display only; never used for access decisions. */
       email?: string | null;
-      /**
-       * Role from the provider's server-controlled app metadata, shown
-       * read-only. The backend enforces roles; the UI never grants them.
-       */
+      /** Role loaded from the user's protected profile row; UI-only convenience. */
       role?: string | null;
     };
 
@@ -67,9 +64,8 @@ type AuthSessionLike = {
   user: {
     id: string;
     email?: string | null;
-    // Only app_metadata is server-controlled; user_metadata is user-editable
-    // and must never be read as a role.
     app_metadata?: Record<string, unknown> | null;
+    user_metadata?: Record<string, unknown> | null;
   };
 };
 
@@ -84,6 +80,8 @@ export type SupabaseAuthLike = {
   signOut(): Promise<{ error: unknown }>;
 };
 
+export type ProfileRoleLoader = (userId: string) => Promise<string | null>;
+
 let signOutHandler: (() => Promise<void>) | null = null;
 
 /** Mirrors a provider session into the account session (null signs out). */
@@ -92,7 +90,12 @@ export function applyAuthSession(authSession: AuthSessionLike | null) {
     setAccountSession({ status: "signed_out", userId: null });
     return;
   }
-  const role = authSession.user.app_metadata?.role;
+  const previous = getAccountSession();
+  const role =
+    previous.status === "authenticated" &&
+    previous.userId === authSession.user.id
+      ? (previous.role ?? null)
+      : null;
   setAccountSession({
     status: "authenticated",
     userId: authSession.user.id,
@@ -111,21 +114,65 @@ export function applyAuthSession(authSession: AuthSessionLike | null) {
  * authenticated when Supabase returns a session with a user and access token.
  * Returns a disconnect function.
  */
-export function connectSupabaseSession(auth: SupabaseAuthLike) {
+export function connectSupabaseSession(
+  auth: SupabaseAuthLike,
+  loadProfileRole?: ProfileRoleLoader,
+) {
   let active = true;
   let receivedAuthEvent = false;
+  let profileRoleRequest = 0;
   setAccountSession({ status: "loading", userId: null });
+
+  const applyConnectedSession = (authSession: AuthSessionLike | null) => {
+    const request = ++profileRoleRequest;
+    applyAuthSession(authSession);
+    if (!loadProfileRole) return;
+
+    const current = getAccountSession();
+    if (current.status !== "authenticated") return;
+    const userId = current.userId;
+    setAccountSession({ ...current, role: null });
+
+    void Promise.resolve()
+      .then(() => loadProfileRole(userId))
+      .then((role) => {
+        const latest = getAccountSession();
+        if (
+          !active ||
+          request !== profileRoleRequest ||
+          latest.status !== "authenticated" ||
+          latest.userId !== userId
+        ) {
+          return;
+        }
+        setAccountSession({
+          ...latest,
+          role: typeof role === "string" && role.trim() ? role.trim() : null,
+        });
+      })
+      .catch((error: unknown) => {
+        const latest = getAccountSession();
+        if (
+          active &&
+          request === profileRoleRequest &&
+          latest.status === "authenticated" &&
+          latest.userId === userId
+        ) {
+          console.error("[auth] profile role lookup failed", error);
+        }
+      });
+  };
 
   const { data } = auth.onAuthStateChange((_event, authSession) => {
     receivedAuthEvent = true;
-    if (active) applyAuthSession(authSession);
+    if (active) applyConnectedSession(authSession);
   });
 
   void auth
     .getSession()
     .then(({ data: restored, error }) => {
       if (!active || receivedAuthEvent) return;
-      applyAuthSession(error ? null : restored.session);
+      applyConnectedSession(error ? null : restored.session);
     })
     .catch(() => {
       if (active && !receivedAuthEvent) applyAuthSession(null);
@@ -149,6 +196,7 @@ export function connectSupabaseSession(auth: SupabaseAuthLike) {
 
   return () => {
     active = false;
+    profileRoleRequest++;
     data.subscription.unsubscribe();
     setAccessTokenProvider(null);
     signOutHandler = null;

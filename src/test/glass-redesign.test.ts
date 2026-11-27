@@ -531,7 +531,7 @@ describe("shell and home use the glass", () => {
     expect(plain).toMatch(
       /\.rp-topbar\[data-scrolled="true"\]\s*\{\s*background-color: var\(--glass-panel-strong\);/,
     );
-    expect(bars).toMatch(/glass h-11 w-full rounded-2xl/);
+    expect(bars).toMatch(/min-h-11 gap-2 rounded-xl px-4 font-semibold/);
     expect(bars).toMatch(/glass-strong fixed inset-x-0 bottom-0/);
   });
 

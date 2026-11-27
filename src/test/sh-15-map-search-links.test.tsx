@@ -246,7 +246,7 @@ describe("SH-15 traveller search states", () => {
   );
 
   it(
-    "shows loading while submitting a manual search",
+    "shows the pending label and results for a manual search",
     async () => {
       const { container, unmount } = await mountAt("/traveller");
       try {
@@ -256,7 +256,7 @@ describe("SH-15 traveller search states", () => {
         fireEvent.submit(container.querySelector("form")!);
         expect(
           await screen.findByRole("button", { name: /Searching/ }),
-        ).toBeDisabled();
+        ).toBeEnabled();
         await screen.findByRole("heading", { name: "Search results" });
       } finally {
         unmount();

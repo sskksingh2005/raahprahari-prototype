@@ -104,7 +104,7 @@ describe("AI suggestions while signed out", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "AI suggestion — review and edit",
+        name: "AI suggestion: review and edit",
       }),
     ).toBeInTheDocument();
     expect(invoke).toHaveBeenCalledWith(

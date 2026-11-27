@@ -1,8 +1,8 @@
 import { defineConfig, loadEnv } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import { nitro } from "nitro/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import netlify from "@netlify/vite-plugin-tanstack-start";
 
 const CLIENT_SECRET_NAME =
   /SECRET|SERVICE_ROLE|PRIVATE|PASSWORD|GEMINI|API_KEY/i;
@@ -39,16 +39,14 @@ function assertClientEnvIsSafe(mode: string) {
   }
 }
 
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ mode }) => {
   assertClientEnvIsSafe(mode);
+  const preset =
+    process.env.NITRO_PRESET ??
+    (process.env.NETLIFY === "true" ? "netlify" : "vercel");
 
   return {
     resolve: { tsconfigPaths: true },
-    plugins: [
-      tailwindcss(),
-      command === "build" ? netlify() : null,
-      tanstackStart(),
-      viteReact(),
-    ],
+    plugins: [tailwindcss(), tanstackStart(), nitro({ preset }), viteReact()],
   };
 });
