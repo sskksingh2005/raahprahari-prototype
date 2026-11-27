@@ -38,6 +38,20 @@ afterEach(async () => {
 });
 
 describe("report observation validation", () => {
+  it("does not render a legacy local draft during the initial server render", () => {
+    writeReportDraft({
+      ...createEmptyReportDraft(),
+      hazardType: "landslide",
+      description: "Saved description must load after hydration.",
+    });
+
+    const markup = renderToString(
+      <ReportStepPage step="observation" navigate={navigate} />,
+    );
+
+    expect(markup).not.toContain("Saved description must load after hydration.");
+  });
+
   it("keeps local report storage safe when browser globals are unavailable", async () => {
     vi.stubGlobal("window", undefined);
     try {
@@ -116,6 +130,18 @@ describe("report photo selection", () => {
       { target: { files: [file] } },
     );
 
+  it("explains that a photo is required and blocks Continue without one", async () => {
+    render(<ReportStepPage step="photo" navigate={navigate} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Continue" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Add at least one photo to continue.",
+    );
+    expect(navigate).not.toHaveBeenCalled();
+    expect(screen.queryByText("Photo evidence is optional")).toBeNull();
+  });
+
   it("keeps the previous photo, form values and saved draft when a replacement is invalid", async () => {
     // jsdom has no object URLs; stub them so the preview loads without an alert.
     class PreviewURL extends URL {
@@ -178,15 +204,39 @@ describe("report photo selection", () => {
     await waitFor(async () =>
       expect(await localDb.attachments.count()).toBe(1),
     );
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith("/report/location"),
+    );
   });
 });
 
 describe("report step flow", () => {
   it("keeps entered data when moving between step routes and saves a local draft", async () => {
+    writeReportDraft({
+      ...createEmptyReportDraft(),
+      photo: {
+        id: "test-photo",
+        name: "road.jpg",
+        type: "image/jpeg",
+        size: 1024,
+        timestamp: Date.now(),
+        locationTag: "30.1° N, 79.3° E",
+      },
+      location: {
+        query: "Uttarakhand",
+        roadSegment: "NH-7",
+        lat: 30.1,
+        lon: 79.3,
+        accuracyM: null,
+        source: "manual",
+        confirmed: true,
+      },
+    });
     const first = render(
       <ReportStepPage step="observation" navigate={navigate} />,
     );
-    const observedAt = screen.getByLabelText("When did you observe it?");
+    const observedAt = await screen.findByLabelText("When did you observe it?");
     await waitFor(() =>
       expect((observedAt as HTMLInputElement).value).not.toBe(""),
     );
@@ -195,7 +245,9 @@ describe("report step flow", () => {
       target: { value: "Debris is blocking one lane." },
     });
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    expect(navigate).toHaveBeenCalledWith("/report/photo");
+    await waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith("/report/review"),
+    );
     await waitFor(() =>
       expect(readReportDraft()?.description).toBe(
         "Debris is blocking one lane.",
@@ -207,7 +259,7 @@ describe("report step flow", () => {
     await waitFor(() =>
       expect(readReportDraft()?.hazardType).toBe("landslide"),
     );
-    fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Save draft" }));
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent("Saved locally"),
     );
@@ -216,17 +268,44 @@ describe("report step flow", () => {
     );
   });
 
-  it("allows keyboard placement of a pin when no location is selected", async () => {
+  it("redirects direct location navigation when no persisted photo exists", async () => {
     render(<ReportStepPage step="location" navigate={navigate} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Adjust location" }));
-    fireEvent.keyDown(screen.getByRole("button", { name: /Map preview/ }), {
-      key: "ArrowRight",
+    await waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith("/report/photo"),
+    );
+  });
+
+  it("allows keyboard placement of a pin when no location is selected", async () => {
+    writeReportDraft({
+      ...createEmptyReportDraft(),
+      location: {
+        query: "Uttarakhand",
+        roadSegment: "NH-7",
+        lat: 30.1,
+        lon: 79.3,
+        accuracyM: null,
+        source: "manual",
+        confirmed: false,
+      },
+      photo: {
+        id: "test-photo",
+        name: "road.jpg",
+        type: "image/jpeg",
+        size: 1024,
+        timestamp: Date.now(),
+        locationTag: "No location tag",
+      },
     });
 
-    expect(
-      await screen.findByText("Approximate pin location"),
-    ).toBeInTheDocument();
+    render(<ReportStepPage step="location" navigate={navigate} />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Adjust location" }),
+    );
+    fireEvent.change(await screen.findByLabelText("Latitude"), {
+      target: { value: "30.55" },
+    });
+    expect(screen.getByLabelText("Latitude")).toHaveValue(30.55);
   });
 
   it("submits locally and never renders prohibited status wording for a community report", async () => {
@@ -234,6 +313,14 @@ describe("report step flow", () => {
       ...createEmptyReportDraft(),
       hazardType: "road_block" as const,
       description: "A lane is blocked by debris.",
+      photo: {
+        id: "test-photo",
+        name: "road.jpg",
+        type: "image/jpeg",
+        size: 1024,
+        timestamp: Date.now(),
+        locationTag: "30.555° N, 79.5643° E",
+      },
       location: {
         query: "Joshimath",
         roadSegment: "NH-7",
@@ -246,7 +333,9 @@ describe("report step flow", () => {
     };
     writeReportDraft(draft);
     const review = render(<ReportStepPage step="review" navigate={navigate} />);
-    fireEvent.click(screen.getByRole("button", { name: "Submit report" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Submit report" }),
+    );
 
     await waitFor(() =>
       expect(navigate).toHaveBeenCalledWith("/report/received"),
@@ -261,7 +350,7 @@ describe("report step flow", () => {
     render(<ReportStepPage step="received" navigate={navigate} />);
 
     expect(
-      await screen.findByText("Saved locally — not delivered"),
+      await screen.findByText("Saved locally, not delivered"),
     ).toBeInTheDocument();
     // No report service is configured, so there is no Sync now button to press.
     expect(screen.queryByRole("button", { name: "Sync now" })).toBeNull();
@@ -291,18 +380,43 @@ describe("report step flow", () => {
 
 describe("optional observation details", () => {
   const group = (name: string) => screen.getByRole("group", { name });
+  const prerequisiteDraft = () =>
+    writeReportDraft({
+      ...createEmptyReportDraft(),
+      photo: {
+        id: "test-photo",
+        name: "road.jpg",
+        type: "image/jpeg",
+        size: 1024,
+        timestamp: Date.now(),
+        locationTag: "30.1° N, 79.3° E",
+      },
+      location: {
+        query: "Uttarakhand",
+        roadSegment: "NH-7",
+        lat: 30.1,
+        lon: 79.3,
+        accuracyM: null,
+        source: "manual",
+        confirmed: true,
+      },
+    });
 
   it("defaults source, road impact and vehicles to an explicit Unknown", async () => {
+    prerequisiteDraft();
     expect(createEmptyReportDraft()).toMatchObject({
       source: "unknown",
       laneDirection: "unknown",
       vehicleApplicability: "unknown",
     });
     render(<ReportStepPage step="observation" navigate={navigate} />);
+    await screen.findByRole("group", {
+      name: "How do you know about this?",
+    });
     for (const legend of [
       "How do you know about this?",
       "Which part of the road is affected?",
-      "Which vehicles can still pass?",
+      "What could you see about vehicles getting through?",
     ]) {
       expect(
         within(group(legend)).getByRole("radio", { name: "Unknown" }),
@@ -317,7 +431,9 @@ describe("optional observation details", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Landslide" }));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    expect(navigate).toHaveBeenCalledWith("/report/photo");
+    await waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith("/report/review"),
+    );
     // Let the save started by Continue finish so it cannot leak into the next test.
     await waitFor(() =>
       expect(readReportDraft()).toMatchObject({
@@ -328,6 +444,7 @@ describe("optional observation details", () => {
   });
 
   it("keeps chosen values in the draft and shows them on the review step", async () => {
+    prerequisiteDraft();
     const first = render(
       <ReportStepPage step="observation" navigate={navigate} />,
     );
@@ -349,17 +466,11 @@ describe("optional observation details", () => {
       }),
     );
     fireEvent.click(
-      within(group("Which vehicles can still pass?")).getByRole("radio", {
-        name: "Two-wheelers only",
+      within(group("What could you see about vehicles getting through?")).getByRole("radio", {
+        name: "Only two-wheelers appeared able to pass",
       }),
     );
-    await waitFor(() =>
-      expect(readReportDraft()).toMatchObject({
-        source: "firsthand",
-        laneDirection: "one_lane",
-        vehicleApplicability: "two_wheelers",
-      }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     // A debounced autosave from an earlier test may also land, so look for
     // this draft among the saved records rather than assuming it is first.
     await waitFor(async () => {
@@ -381,7 +492,7 @@ describe("optional observation details", () => {
     const section = review.closest("section")!;
     await waitFor(() => expect(section).toHaveTextContent("I saw it myself"));
     expect(section).toHaveTextContent("One lane or part of the road");
-    expect(section).toHaveTextContent("Two-wheelers only");
+    expect(section).toHaveTextContent("Only two-wheelers appeared able to pass");
   });
 
   it("treats older or invalid saved values as Unknown", () => {

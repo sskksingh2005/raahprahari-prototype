@@ -215,7 +215,7 @@ export function MobileTopBar({
             <button
               type="button"
               aria-label={t("shell.accountMenu")}
-              className="rp-shell-transition grid min-h-11 min-w-11 shrink-0 place-items-center rounded-full text-shell-text hover:bg-shell-surface"
+              className="rp-shell-transition grid min-h-11 min-w-11 shrink-0 place-items-center rounded-md text-shell-text hover:bg-shell-surface"
             >
               <span
                 aria-hidden
@@ -279,7 +279,7 @@ export function BottomTabs({
                   search={{ segment: undefined }}
                   aria-label={t("shell.reportAHazard")}
                   aria-current={isActive ? "page" : undefined}
-                  className="-mt-5 grid size-14 place-items-center self-start rounded-full bg-report text-report-foreground shadow-sm"
+                  className="-mt-5 grid size-14 place-items-center self-start rounded-lg bg-report text-report-foreground shadow-sm"
                 >
                   <Icon aria-hidden className="size-7" />
                 </Link>

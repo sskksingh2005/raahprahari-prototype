@@ -159,7 +159,7 @@ export function StatusChip({
               : undefined
           }
           className={cn(
-            "glass-pill inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 text-sm text-shell-text",
+            "glass inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-md text-sm text-shell-text",
             compact ? "px-0" : "px-3",
           )}
         >

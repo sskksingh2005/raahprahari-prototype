@@ -202,7 +202,7 @@ describe("SH-15 traveller search states", () => {
         expect(
           await screen.findByText("Report saved on this device"),
         ).toBeVisible();
-        expect(screen.getByText("Saved locally — not delivered")).toBeVisible();
+        expect(screen.getByText("Saved locally, not delivered")).toBeVisible();
         expect(screen.queryByText(/^Verified$/i)).not.toBeInTheDocument();
       } finally {
         unmount();

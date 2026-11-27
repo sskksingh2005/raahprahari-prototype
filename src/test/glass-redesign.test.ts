@@ -253,7 +253,9 @@ describe("phase 3B advisories and reports glass surfaces", () => {
   });
 
   it("uses the requested glass surfaces on advisories, report details, and each wizard step", () => {
-    expect(advisoryList).toMatch(/advisories-filter-pill glass-pill/);
+    expect(advisoryList).toMatch(
+      /advisories-filter-pill glass min-h-11 shrink-0 rounded-md/,
+    );
     expect(advisoryList).toMatch(/className="glass"/);
     expect(advisoryDetail).toMatch(/className="glass-strong sm:col-span-3"/);
     expect(advisoryDetail).toMatch(/className="glass-accent rounded-xl/);
@@ -317,7 +319,7 @@ describe("phase 3C remaining page glass surfaces", () => {
 
   it("uses existing glass utilities for page panels, cards, selections, and controls", () => {
     expect(check).toMatch(/glass-strong rounded-2xl p-5/);
-    expect(check).toMatch(/glass-pill min-h-10/);
+    expect(check).toMatch(/glass inline-flex rounded-lg p-1/);
     expect(check).toMatch(/glass-accent text-foreground/);
     expect(routeCard).toMatch(/selected && "glass-accent"/);
     expect(help).toMatch(/rp-card glass/);

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { List, Map as MapIcon, Search, X } from "lucide-react";
+import { Check, List, Map as MapIcon, Search, X } from "lucide-react";
 import { AdvisoryCard } from "@/components/advisory-card";
 import { useSlidingHighlight } from "@/components/motion";
 import {
@@ -246,7 +246,7 @@ function MapPage() {
                               : "Select segment"}
                           </span>
                           {segment.id === selectedSegmentId && (
-                            <span aria-hidden>✓</span>
+                            <Check aria-hidden className="size-4" />
                           )}
                         </button>
                         <AdvisoryCard segment={segment} />

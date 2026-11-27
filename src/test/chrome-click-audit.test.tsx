@@ -15,6 +15,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { routeTree } from "@/routeTree.gen";
 import { NotFoundPage } from "@/components/error-pages";
+import { createEmptyReportDraft, writeReportDraft } from "@/lib/report-store";
 
 /**
  * Click audit for the shared chrome (header, menu, bottom nav, footer, login
@@ -285,8 +286,32 @@ describe("page forms and inputs", () => {
     expect(select.value).toBe(select.options[select.options.length - 1].value);
   }, 30_000);
 
-  it("report flow: hazard type, description and Continue reach the photo step", async () => {
+  it("report flow: hazard type, description and Continue reach Review", async () => {
+    writeReportDraft({
+      ...createEmptyReportDraft(),
+      photo: {
+        id: "test-photo",
+        name: "road.jpg",
+        type: "image/jpeg",
+        size: 1024,
+        timestamp: Date.now(),
+        locationTag: "30.1° N, 79.3° E",
+      },
+      location: {
+        query: "Uttarakhand",
+        roadSegment: "NH-7",
+        lat: 30.1,
+        lon: 79.3,
+        accuracyM: null,
+        source: "manual",
+        confirmed: true,
+      },
+    });
     const router = await mountAt("/report");
+    await screen.findByRole("heading", {
+      name: "Describe the hazard",
+      level: 1,
+    });
     const main = document.getElementById("main")!;
     const next = within(main).getByRole("button", { name: "Continue" });
     fireEvent.click(within(main).getByRole("button", { name: "Landslide" }));
@@ -296,8 +321,14 @@ describe("page forms and inputs", () => {
     await waitFor(() => expect(next).toBeEnabled());
     fireEvent.click(next);
     await waitFor(() =>
-      expect(router.state.location.pathname).toBe("/report/photo"),
+      expect(router.state.location.pathname).toBe("/report/review"),
     );
+    expect(
+      await screen.findByRole("heading", {
+        name: "Review your report",
+        level: 1,
+      }),
+    ).toBeVisible();
   }, 30_000);
 
   it("route search swap is disabled until a place is chosen, then swaps", async () => {

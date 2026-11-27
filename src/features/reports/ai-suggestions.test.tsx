@@ -5,7 +5,11 @@ import { AiSuggestionAssist } from "@/features/reports/ai-suggestions";
 import { setAccountSession } from "@/lib/account-session";
 import { ReportStepPage } from "@/features/reports/report-step-page";
 import { localDb } from "@/lib/local-db";
-import { readReportDraft } from "@/lib/report-store";
+import {
+  createEmptyReportDraft,
+  readReportDraft,
+  writeReportDraft,
+} from "@/lib/report-store";
 
 const invoke = vi.hoisted(() => vi.fn());
 
@@ -35,6 +39,29 @@ const success = {
   error: null,
 };
 
+function seedReportPrerequisites() {
+  writeReportDraft({
+    ...createEmptyReportDraft(),
+    photo: {
+      id: "test-photo",
+      name: "road.jpg",
+      type: "image/jpeg",
+      size: 1024,
+      timestamp: Date.now(),
+      locationTag: "30.1° N, 79.3° E",
+    },
+    location: {
+      query: "Uttarakhand",
+      roadSegment: "NH-7",
+      lat: 30.1,
+      lon: 79.3,
+      accuracyM: null,
+      source: "manual",
+      confirmed: true,
+    },
+  });
+}
+
 function mount(description = "Rocks fell, one lane open") {
   const onApply = vi.fn();
   const view = render(
@@ -62,9 +89,11 @@ afterEach(async () => {
 describe("AI suggestions while signed out", () => {
   it("explains sign-in is required, sends nothing and keeps manual reporting", async () => {
     setAccountSession({ status: "signed_out", userId: null });
+    seedReportPrerequisites();
     const navigate = vi.fn();
     const user = userEvent.setup();
     render(<ReportStepPage step="observation" navigate={navigate} />);
+    await screen.findByRole("button", { name: "Landslide" });
     await user.click(screen.getByRole("button", { name: "Landslide" }));
     const description = screen.getByLabelText("Describe the condition");
     await user.type(description, "Rocks on the road");
@@ -79,7 +108,7 @@ describe("AI suggestions while signed out", () => {
     expect(description).toHaveValue("Rocks on the road");
 
     await user.click(screen.getByRole("button", { name: "Continue" }));
-    expect(navigate).toHaveBeenCalledWith("/report/photo");
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/report/review"));
     await waitFor(() =>
       expect(readReportDraft()).toMatchObject({
         hazardType: "landslide",
@@ -113,7 +142,7 @@ describe("AI suggestion assist", () => {
 
     const panel = (
       await screen.findByRole("heading", {
-        name: "AI suggestion — review and edit",
+        name: "AI suggestion: review and edit",
       })
     ).closest("section")!;
     // Only fields the AI suggested (vehicle stayed unknown).
@@ -224,9 +253,11 @@ describe("AI suggestions in the observation step", () => {
         },
       },
     });
+    seedReportPrerequisites();
     const navigate = vi.fn();
     const user = userEvent.setup();
     render(<ReportStepPage step="observation" navigate={navigate} />);
+    await screen.findByRole("button", { name: "Flooding" });
     await user.click(screen.getByRole("button", { name: "Flooding" }));
     const description = screen.getByLabelText("Describe the condition");
     await user.type(description, "Water across the road");
@@ -245,7 +276,7 @@ describe("AI suggestions in the observation step", () => {
     // Manual entry still works and the step can be completed.
     await user.click(screen.getByRole("radio", { name: "I saw it myself" }));
     await user.click(screen.getByRole("button", { name: "Continue" }));
-    expect(navigate).toHaveBeenCalledWith("/report/photo");
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/report/review"));
     await waitFor(() =>
       expect(readReportDraft()).toMatchObject({
         hazardType: "flooding",
@@ -257,15 +288,16 @@ describe("AI suggestions in the observation step", () => {
 
   it("keeps the description and changes the draft only on accept", async () => {
     invoke.mockResolvedValue(success);
+    seedReportPrerequisites();
     const user = userEvent.setup();
     render(<ReportStepPage step="observation" navigate={vi.fn()} />);
-    const description = screen.getByLabelText("Describe the condition");
+    const description = await screen.findByLabelText("Describe the condition");
     await user.type(description, "Rocks fell, one lane open");
     await user.click(
       screen.getByRole("button", { name: "Suggest details with AI" }),
     );
     await screen.findByRole("heading", {
-      name: "AI suggestion — review and edit",
+      name: "AI suggestion: review and edit",
     });
     expect(screen.getByRole("button", { name: "Landslide" })).toHaveAttribute(
       "aria-pressed",

@@ -90,7 +90,7 @@ function AdvisoriesPage() {
                   variant={filter === value ? "secondary" : "outline"}
                   aria-pressed={filter === value}
                   className={cn(
-                    "advisories-filter-pill glass-pill min-h-11 shrink-0",
+                    "advisories-filter-pill glass min-h-11 shrink-0 rounded-md",
                     filter === value && "text-link",
                   )}
                   onClick={() => setFilter(value)}

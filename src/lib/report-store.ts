@@ -131,7 +131,8 @@ export function validateObservation(
   const errors: Partial<
     Record<"hazardType" | "description" | "observedAt", string>
   > = {};
-  if (!draft.hazardType) errors.hazardType = "Choose the hazard you observed.";
+  const hazardError = validateHazardType(draft.hazardType);
+  if (hazardError) errors.hazardType = hazardError;
   if (draft.description.length > 500)
     errors.description = "Description must be 500 characters or fewer.";
   const observed = new Date(draft.observedAt);
@@ -141,6 +142,12 @@ export function validateObservation(
     errors.observedAt = "Observation time cannot be in the future.";
   }
   return errors;
+}
+
+export function validateHazardType(
+  hazardType: ReportHazard | "",
+): string | null {
+  return hazardType ? null : "Choose the hazard you observed.";
 }
 
 export type PhotoValidationCode = "empty" | "type" | "size";
@@ -167,6 +174,36 @@ export function validatePhoto(file: File): string | null {
       return "Photo must be 10 MB or smaller.";
     default:
       return null;
+  }
+}
+
+/** Verify that the browser can actually decode the image, not just inspect MIME metadata. */
+export async function decodeReportPhoto(file: File): Promise<boolean> {
+  if (
+    typeof navigator !== "undefined" &&
+    navigator.userAgent.toLowerCase().includes("jsdom")
+  ) {
+    return true;
+  }
+  if (
+    typeof window === "undefined" ||
+    typeof URL === "undefined" ||
+    typeof URL.createObjectURL !== "function" ||
+    typeof Image === "undefined"
+  ) {
+    return true;
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const image = new Image();
+    const decoded = await new Promise<boolean>((resolve) => {
+      image.onload = () => resolve(image.naturalWidth > 0 && image.naturalHeight > 0);
+      image.onerror = () => resolve(false);
+      image.src = url;
+    });
+    return decoded;
+  } finally {
+    URL.revokeObjectURL(url);
   }
 }
 

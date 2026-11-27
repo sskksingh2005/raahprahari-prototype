@@ -41,13 +41,13 @@ interface Props {
 }
 
 export function ReviewActionDialog({ action, ...rest }: Props) {
-  const busy = useRef(false);
+  const busyRef = useRef(false);
   return (
     <Dialog
       open={action !== null}
       onOpenChange={(open) => {
         // Closing mid-request would hide the outcome.
-        if (!open && !busy.current) rest.onClose();
+        if (!open && !busyRef.current) rest.onClose();
       }}
     >
       <DialogContent
@@ -57,7 +57,7 @@ export function ReviewActionDialog({ action, ...rest }: Props) {
           rest.returnFocusRef.current?.focus();
         }}
       >
-        {action && <DialogForm action={action} busy={busy} {...rest} />}
+        {action && <DialogForm action={action} busyRef={busyRef} {...rest} />}
       </DialogContent>
     </Dialog>
   );
@@ -72,8 +72,8 @@ function DialogForm({
   onDone,
   version,
   onConflict,
-  busy,
-}: Props & { action: ReviewAction; busy: React.MutableRefObject<boolean> }) {
+  busyRef,
+}: Props & { action: ReviewAction; busyRef: React.MutableRefObject<boolean> }) {
   const { t } = usePrefs();
   const [rationale, setRationale] = useState("");
   const [targetRef, setTargetRef] = useState("");
@@ -93,7 +93,7 @@ function DialogForm({
   const showReasonError = submitted && reasonMissing;
 
   const run = async () => {
-    if (busy.current) return;
+    if (busyRef.current) return;
     setSubmitted(true);
     if (rationaleMissing || targetMissing || reasonMissing) return;
     // After a conflict the reviewer must explicitly confirm against the new version.
@@ -106,12 +106,12 @@ function DialogForm({
       ...(action === "escalate" ? { reason: reason.trim() } : {}),
       ...(version !== undefined ? { expectedVersion: version } : {}),
     };
-    busy.current = true;
+    busyRef.current = true;
     setPending(true);
     setError(null);
     try {
       await onSubmit(input);
-      busy.current = false;
+      busyRef.current = false;
       onDone(action);
     } catch (e) {
       if (e instanceof ReviewVersionConflictError) {
@@ -128,11 +128,11 @@ function DialogForm({
               : t("review.act.errorGeneric"),
           );
         }
-        busy.current = false;
+        busyRef.current = false;
         setPending(false);
         return;
       }
-      busy.current = false;
+      busyRef.current = false;
       setPending(false);
       setError(
         e instanceof Error && e.message

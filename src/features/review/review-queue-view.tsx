@@ -207,7 +207,7 @@ export function ReviewQueueView({
                   search={{ queue: name }}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "glass-pill flex min-h-14 items-center justify-between gap-2 border-b-4 px-4 py-2 text-sm font-semibold transition-colors motion-reduce:transition-none",
+                    "glass flex min-h-14 items-center justify-between gap-2 rounded-md border-b-4 px-4 py-2 text-sm font-semibold transition-colors motion-reduce:transition-none",
                     active
                       ? "glass-accent border-brand-orange/50 border-b-brand-orange text-foreground"
                       : "border-border border-b-border text-muted-foreground hover:border-b-brand-orange/50 hover:text-foreground",

@@ -224,7 +224,7 @@ function SegmentOverview({ segment }: { segment: Segment }) {
     <div className="advisory-detail-page pb-8">
       <Banner
         segment={segment}
-        title={`${segment.code.split(" · ")[0]} — ${place(segment.from)} to ${place(segment.to)}`}
+        title={`${segment.code.split(" · ")[0]}: ${place(segment.from)} to ${place(segment.to)}`}
       />
       <div className="rp-container grid gap-5 py-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(19rem,0.8fr)] lg:py-6">
         <div className="min-w-0">

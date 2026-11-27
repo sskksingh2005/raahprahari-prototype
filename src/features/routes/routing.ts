@@ -5,6 +5,7 @@
 // The browser never calls a routing API directly or holds its keys.
 
 import { SEGMENTS, placeById } from '@/data/fixtures'
+import { en, hi } from '@/i18n/dictionary'
 import type { Segment } from '@/lib/types'
 
 export interface RouteOption {
@@ -66,8 +67,15 @@ export const seededRoutingProvider: RoutingProvider = {
 }
 
 export function routeLabel(r: RouteOption, lang: 'en' | 'hi'): string {
+  if (r.via.length === 0)
+    return lang === 'hi' ? hi['results.direct'] : en['results.direct']
+
   const names = r.via
     .filter((_, i, arr) => arr.length <= 3 || i % Math.ceil(arr.length / 3) === 0)
     .map((id) => (lang === 'hi' ? placeById(id)?.nameHi : placeById(id)?.name))
-  return names.length ? names.join(' · ') : '—'
+  return names.length
+    ? names.join(' · ')
+    : lang === 'hi'
+      ? hi['common.notAvailable']
+      : en['common.notAvailable']
 }

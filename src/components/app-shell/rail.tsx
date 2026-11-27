@@ -115,9 +115,9 @@ export function Rail({
     <button
       type="button"
       aria-label={t("shell.accountMenu")}
-      // Profile row: a glass pill with the avatar, name and a chevron.
+      // Profile row: a glass button with the avatar, name and a chevron.
       className={cn(
-        "glass-pill flex min-h-11 w-full items-center gap-3 px-1.5 text-left text-sm text-shell-text",
+        "glass flex min-h-11 w-full items-center gap-3 rounded-md px-1.5 text-left text-sm text-shell-text",
         collapsed && "justify-center px-0",
       )}
     >

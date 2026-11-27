@@ -37,7 +37,7 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--link) 30%, transparent);
 }
 
-.advisories-filter-pill.glass-pill:not([aria-pressed="true"]) {
+.advisories-filter-pill.glass:not([aria-pressed="true"]) {
   background-color: var(--glass-panel);
 }
 

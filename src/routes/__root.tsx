@@ -47,7 +47,7 @@ if (
   });
 }
 
-const siteName = "RaahPrahari — Know before you go";
+const siteName = "RaahPrahari: Know before you go";
 
 const siteDescription =
   "Check reported road hazards, information freshness, and official restrictions across Uttarakhand before your journey.";

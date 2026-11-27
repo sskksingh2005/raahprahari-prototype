@@ -281,7 +281,7 @@ export function SyncStatusIndicator({ className }: { className?: string }) {
             type="button"
             aria-label={t("sync.chip.label").replace("{status}", label)}
             className={cn(
-              "rp-press inline-flex h-11 max-w-full min-w-11 items-center justify-center gap-2 rounded-full border px-3 text-sm font-medium whitespace-nowrap xl:w-full xl:justify-start",
+              "rp-press inline-flex h-11 max-w-full min-w-11 items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium whitespace-nowrap xl:w-full xl:justify-start",
               TONE_CLASS[tone],
               // Healthy on a phone: a quiet dot, not a ringed button.
               !attention && "max-sm:border-transparent max-sm:bg-transparent",
