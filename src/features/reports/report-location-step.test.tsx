@@ -15,7 +15,6 @@ import { getCurrentPosition, segmentCandidates } from "@/lib/geo";
 import { localDb } from "@/lib/local-db";
 import {
   createEmptyReportDraft,
-  readReportDraft,
   writeReportDraft,
 } from "@/lib/report-store";
 
@@ -54,6 +53,25 @@ function pick(name: string) {
   fireEvent.click(option);
 }
 
+function attachPhotoDraft() {
+  writeReportDraft({
+    ...createEmptyReportDraft(),
+    photo: {
+      id: "test-photo",
+      name: "road.jpg",
+      type: "image/jpeg",
+      size: 1024,
+      timestamp: Date.now(),
+      locationTag: "No location tag",
+    },
+  });
+}
+
+async function renderLocationPage() {
+  render(<ReportStepPage step="location" navigate={navigate} />);
+  await screen.findByLabelText("Search road or place");
+}
+
 afterEach(async () => {
   navigate.mockClear();
   window.localStorage.clear();
@@ -64,12 +82,13 @@ afterEach(async () => {
 
 describe("device location permission", () => {
   it("reports an unsupported browser separately from an unavailable position", async () => {
+    attachPhotoDraft();
     delete (navigator as { geolocation?: unknown }).geolocation;
     await expect(getCurrentPosition()).resolves.toEqual({
       ok: false,
       reason: "unsupported",
     });
-    render(<ReportStepPage step="location" navigate={navigate} />);
+    await renderLocationPage();
     fireEvent.click(
       screen.getByRole("button", { name: "Use current location" }),
     );
@@ -81,13 +100,14 @@ describe("device location permission", () => {
   });
 
   it("explains a denied permission and keeps manual search", async () => {
+    attachPhotoDraft();
     setGeolocation({
       getCurrentPosition: (
         _ok: PositionCallback,
         fail: PositionErrorCallback,
       ) => fail({ code: 1, PERMISSION_DENIED: 1 } as GeolocationPositionError),
     });
-    render(<ReportStepPage step="location" navigate={navigate} />);
+    await renderLocationPage();
     fireEvent.click(
       screen.getByRole("button", { name: "Use current location" }),
     );
@@ -98,6 +118,7 @@ describe("device location permission", () => {
   });
 
   it("shows coordinates with the device accuracy and still needs confirming", async () => {
+    attachPhotoDraft();
     setGeolocation({
       getCurrentPosition: (ok: PositionCallback) =>
         ok({
@@ -108,7 +129,7 @@ describe("device location permission", () => {
           },
         } as GeolocationPosition),
     });
-    render(<ReportStepPage step="location" navigate={navigate} />);
+    await renderLocationPage();
     fireEvent.click(
       screen.getByRole("button", { name: "Use current location" }),
     );
@@ -120,20 +141,22 @@ describe("device location permission", () => {
 });
 
 describe("segment ambiguity", () => {
-  it("says when several places or roads match", () => {
-    render(<ReportStepPage step="location" navigate={navigate} />);
+  it("says when several places or roads match", async () => {
+    attachPhotoDraft();
+    await renderLocationPage();
     search("NH");
     expect(
-      screen.getByText("Multiple matches found — please choose one."),
+      screen.getByText("Multiple matches found, please choose one."),
     ).toBeInTheDocument();
   });
 
   it("never auto-selects among several nearby segments and requires an explicit choice", async () => {
+    attachPhotoDraft();
     const candidates = segmentCandidates(
       ambiguousPlace.lat,
       ambiguousPlace.lon,
     );
-    render(<ReportStepPage step="location" navigate={navigate} />);
+    await renderLocationPage();
     search(ambiguousPlace.name);
     pick(ambiguousPlace.name);
 
@@ -162,16 +185,20 @@ describe("segment ambiguity", () => {
       screen.getByRole("button", { name: "Confirm this location" }),
     );
     await waitFor(() =>
-      expect(navigate).toHaveBeenCalledWith("/report/review"),
+      expect(navigate).toHaveBeenCalledWith("/report"),
     );
-    expect(readReportDraft()?.location).toMatchObject({
-      roadSegment: candidates[1].label,
-      confirmed: true,
+    await waitFor(async () => {
+      const saved = await localDb.drafts.orderBy("updatedAt").last();
+      expect(saved?.payload.location).toMatchObject({
+        roadSegment: candidates[1].label,
+        confirmed: true,
+      });
     });
   });
 
   it("pre-fills a single nearby segment but still waits for confirmation", async () => {
-    render(<ReportStepPage step="location" navigate={navigate} />);
+    attachPhotoDraft();
+    await renderLocationPage();
     search(singlePlace.name);
     pick(singlePlace.name);
     expect(
@@ -188,7 +215,7 @@ describe("segment ambiguity", () => {
       screen.getByRole("button", { name: "Confirm this location" }),
     );
     await waitFor(() =>
-      expect(navigate).toHaveBeenCalledWith("/report/review"),
+      expect(navigate).toHaveBeenCalledWith("/report"),
     );
   });
 });
@@ -212,7 +239,7 @@ describe("confirmation reset", () => {
         confirmed: true,
       },
     });
-    render(<ReportStepPage step="location" navigate={navigate} />);
+    await renderLocationPage();
     expect(await screen.findByText("Location confirmed")).toBeInTheDocument();
     // Wait for the saved draft to finish restoring before editing.
     await screen.findByText("Draft restored from this device");

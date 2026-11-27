@@ -7,6 +7,7 @@ import {
   Copy,
   GitCompare,
   MapPin,
+  Mountain,
   Route as RouteIcon,
   ShieldCheck,
   TriangleAlert,
@@ -194,7 +195,7 @@ export function SegmentDetail({
           <Button
             variant="ghost"
             size="icon-lg"
-            className="-mt-1 -mr-2 rounded-full"
+            className="-mt-1 -mr-2 rounded-md"
             onClick={onClose}
             aria-label={t("segment.close")}
           >
@@ -222,7 +223,7 @@ export function SegmentDetail({
           {latestHazard ? (
             <p>
               {t(`hazard.${latestHazard.hazardType}`)} ·{" "}
-              {t(`sev.${latestHazard.severity}`)} — {latestHazard.description}
+              {t(`sev.${latestHazard.severity}`)}: {latestHazard.description}
             </p>
           ) : adv.basis === "community_clear" ? (
             <p>{t("basis.community_clear")}</p>
@@ -246,7 +247,7 @@ export function SegmentDetail({
                   aria-hidden
                   className="size-4 text-status-official"
                 />
-                {t(`restriction.${r.type}`)} — {r.title}
+                {t(`restriction.${r.type}`)}: {r.title}
               </p>
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
                 <dt className="text-muted-foreground">
@@ -306,7 +307,7 @@ export function SegmentDetail({
           <CacheTimeLabel timestamp={cacheTimestamp} />
           {sources.size > 0 && (
             <p className="text-muted-foreground">
-              {[...sources].map((s) => t(`source.${s}`)).join(" · ")} —{" "}
+              {[...sources].map((s) => t(`source.${s}`)).join(" · ")}.{" "}
               {adv.evidence.length} {t("segment.reportsCount")}
             </p>
           )}
@@ -492,9 +493,7 @@ export function MapSegmentDetail({
     >
       <div className="rp-map-detail-heading">
         <div className="rp-map-detail-heading-label">
-          <span aria-hidden className="rp-map-mountain-mark">
-            ⌁
-          </span>
+          <Mountain aria-hidden className="size-4" />
           <span>Selected road segment</span>
         </div>
         {onClose && (

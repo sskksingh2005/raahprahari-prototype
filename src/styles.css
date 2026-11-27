@@ -729,14 +729,10 @@ a:active > .rp-ripple::after {
 /* Sections reveal once when scrolled into view (see RevealObserver). */
 [data-reveal-state="hidden"] {
   opacity: 0;
-  translate: 0 12px;
 }
 [data-reveal-state="visible"] {
   opacity: 1;
-  translate: 0 0;
-  transition:
-    opacity var(--motion-slow) var(--ease-out),
-    translate var(--motion-slow) var(--ease-out);
+  transition: opacity 180ms var(--ease-out);
 }
 
 /* Home hero: text staggers in, background zooms at most 3% once. */
@@ -1725,9 +1721,8 @@ a.rp-hover-card:focus-visible {
    Muted text therefore belongs inside a glass panel, not on the background.
    ===================================================================== */
 :root {
-  /* Fallback if the photo is missing: navy to purple to orange. */
+  /* Fallback if the photo is missing: navy to orange. */
   --backdrop-fallback-a: #0b1220;
-  --backdrop-fallback-b: #3b2a5c;
   --backdrop-fallback-c: #c2571a;
   --backdrop-a: rgb(239 236 228 / 0.58);
   --backdrop-b: rgb(243 238 228 / 0.58);
@@ -1816,7 +1811,6 @@ a.rp-hover-card:focus-visible {
     linear-gradient(
       135deg,
       var(--backdrop-fallback-a),
-      var(--backdrop-fallback-b) 55%,
       var(--backdrop-fallback-c)
     );
   background-position: center;

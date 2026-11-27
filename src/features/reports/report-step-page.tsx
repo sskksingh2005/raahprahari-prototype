@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AiSuggestionAssist } from "@/features/reports/ai-suggestions";
+import { ReportLocationMap } from "@/features/reports/report-location-map";
 import { Textarea } from "@/components/ui/textarea";
 import { PLACES, SEGMENTS, placeById } from "@/data/fixtures";
 import type { TranslationKey } from "@/i18n/dictionary";
@@ -56,17 +57,20 @@ import {
   readReportDraft,
   toLocalDateTime,
   validateObservation,
+  validateHazardType,
   photoValidationCode,
   withObservationDefaults,
   LANE_DIRECTIONS,
   OBSERVATION_SOURCES,
   VEHICLE_APPLICABILITY,
   writeReportDraft,
+  decodeReportPhoto,
   type ReportDraft,
   type ReportHazard,
   type ReportLocation,
 } from "@/lib/report-store";
 import { inCoverage, getCurrentPosition, segmentCandidates } from "@/lib/geo";
+import { readPhotoGps } from "@/lib/photo-gps";
 
 export type ReportStep =
   "observation" | "photo" | "location" | "review" | "received";
@@ -79,8 +83,9 @@ export type ReportPath =
   | "/report/received";
 
 const STEPS = [
-  { label: "Observation", path: "/report" },
+  { label: "Photo", path: "/report/photo" },
   { label: "Location", path: "/report/location" },
+  { label: "Describe", path: "/report" },
   { label: "Review & send", path: "/report/review" },
 ] as const;
 
@@ -198,11 +203,14 @@ export function ReportStepPage({
 }) {
   const { t } = usePrefs();
   const { setSaving, setSaved, setError, ...saveStatus } = useLocalSaveStatus();
-  const [draft, setDraft] = useState<ReportDraft>(() => {
-    const legacyDraft = readReportDraft();
-    return legacyDraft ?? { ...createEmptyReportDraft(), observedAt: "" };
-  });
+  const [draft, setDraft] = useState<ReportDraft>(() => ({
+    ...createEmptyReportDraft(),
+    observedAt: "",
+  }));
   const [draftId, setDraftId] = useState<string | null>(null);
+  const draftIdRef = useRef<string | null>(null);
+  const confirmedLocationRef = useRef<ReportLocation | null>(null);
+  const mountedRef = useRef(false);
   const [loaded, setLoaded] = useState(false);
   const [storageError, setStorageError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -217,6 +225,7 @@ export function ReportStepPage({
   const [gpsError, setGpsError] = useState("");
   const [locating, setLocating] = useState(false);
   const [adjustingPin, setAdjustingPin] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [submittedReportId] = useState(() => {
     if (step !== "received" || typeof window === "undefined") return null;
     return getLastSubmittedReportId();
@@ -225,6 +234,23 @@ export function ReportStepPage({
     useState<SubmittedReport | null>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
   const libraryInput = useRef<HTMLInputElement>(null);
+
+  const setCurrentDraftId = useCallback((id: string | null) => {
+    draftIdRef.current = id;
+    setDraftId(id);
+  }, []);
+  const getOrCreateDraftId = useCallback(() => {
+    const id = draftIdRef.current ?? draftId ?? newReportId();
+    draftIdRef.current = id;
+    return id;
+  }, [draftId]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   // Read the latest translator through a ref so a language switch does not
   // re-run the restore effect below and overwrite edits not yet autosaved.
@@ -237,33 +263,47 @@ export function ReportStepPage({
     const t = tRef.current;
     let active = true;
     const loadSavedDraft = async () => {
-      // Default the observation time to now right after mount (not during
-      // render, to keep server and client markup identical), so the form is
-      // usable before the saved draft finishes loading.
-      setDraft((current) =>
-        current.observedAt
-          ? current
-          : { ...current, observedAt: toLocalDateTime(new Date()) },
-      );
+      const legacyDraft = readReportDraft();
+      if (legacyDraft) {
+        confirmedLocationRef.current = legacyDraft.location?.confirmed
+          ? legacyDraft.location
+          : null;
+        setDraft(
+          legacyDraft.observedAt
+            ? legacyDraft
+            : { ...legacyDraft, observedAt: toLocalDateTime(new Date()) },
+        );
+        setLocationSearch(legacyDraft.location?.query ?? "");
+      }
       try {
         const scope = getActiveAccountScope();
         const saved = await loadActiveDraft(scope);
         if (!active) return;
         if (saved) {
-          setDraft(withObservationDefaults(saved.payload));
-          setDraftId(saved.id);
+          const restoredDraft = withObservationDefaults(saved.payload);
+          confirmedLocationRef.current = restoredDraft.location?.confirmed
+            ? restoredDraft.location
+            : null;
+          setDraft(
+            restoredDraft.observedAt
+              ? restoredDraft
+              : { ...restoredDraft, observedAt: toLocalDateTime(new Date()) },
+          );
+          setCurrentDraftId(saved.id);
           setLocationSearch(saved.payload.location?.query ?? "");
           setNotice(t("saveStatus.draftRestored"));
         } else {
-          const legacyDraft = readReportDraft();
           if (legacyDraft) {
-            setDraft(legacyDraft);
-            setDraftId(null);
-            setLocationSearch(legacyDraft.location?.query ?? "");
+            setCurrentDraftId(null);
             setNotice(t("saveStatus.draftRestored"));
           } else {
             // Nothing saved: keep anything entered while this was loading.
-            setDraftId(null);
+            setDraft((current) =>
+              current.observedAt
+                ? current
+                : { ...current, observedAt: toLocalDateTime(new Date()) },
+            );
+            setCurrentDraftId(null);
             const segment = prefillSegmentId
               ? SEGMENTS.find((item) => item.id === prefillSegmentId)
               : undefined;
@@ -286,8 +326,14 @@ export function ReportStepPage({
           }
         }
       } catch {
-        if (active)
+        if (active) {
           setStorageError("Could not read the saved draft from this device.");
+          setDraft((current) =>
+            current.observedAt
+              ? current
+              : { ...current, observedAt: toLocalDateTime(new Date()) },
+          );
+        }
       } finally {
         if (active) setLoaded(true);
       }
@@ -298,7 +344,7 @@ export function ReportStepPage({
     return () => {
       active = false;
     };
-  }, [prefillSegmentId, step]);
+  }, [prefillSegmentId, setCurrentDraftId, step]);
 
   useEffect(() => {
     if (step !== "received" || !submittedReportId) return;
@@ -314,6 +360,36 @@ export function ReportStepPage({
 
   useEffect(() => {
     if (!loaded || step === "received") return;
+    if (step === "location" && !draft.photo) {
+      navigate("/report/photo");
+      return;
+    }
+    if (step === "observation" && (!draft.photo || !draft.location?.confirmed)) {
+      navigate(draft.photo ? "/report/location" : "/report/photo");
+      return;
+    }
+    if (step === "review") {
+      const target = !draft.photo
+        ? "/report/photo"
+        : !draft.location?.confirmed
+          ? "/report/location"
+          : validateHazardType(draft.hazardType)
+            ? "/report"
+            : null;
+      if (target) navigate(target);
+    }
+  }, [
+    draft.photo,
+    draft.location?.confirmed,
+    draft.hazardType,
+    loaded,
+    navigate,
+    step,
+  ]);
+
+  useEffect(() => {
+    if (!loaded || step === "received") return;
+    let active = true;
     const timer = window.setTimeout(() => {
       void (async () => {
         if (
@@ -325,26 +401,41 @@ export function ReportStepPage({
         )
           return;
         const scope = getActiveAccountScope();
+        const id = getOrCreateDraftId();
         setSaving();
         const result = await saveDraftRecord({
-          id: draftId ?? newReportId(),
+          id,
           accountScope: scope,
           status: "draft",
           payload: draft,
           eventTime: isoFromLocalDate(draft.observedAt),
           observedAtLocal: draft.observedAt,
         });
+        if (!active || !mountedRef.current || draftIdRef.current !== id) return;
         if (!result.ok) {
           setError(result.code);
           return;
         }
-        setDraftId(result.id);
+        setCurrentDraftId(result.id);
         writeReportDraft(draft);
         setSaved(result.savedAt);
       })();
     }, 500);
-    return () => window.clearTimeout(timer);
-  }, [draft, loaded, step, draftId, setSaving, setError, setSaved]);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [
+    draft,
+    loaded,
+    step,
+    draftId,
+    getOrCreateDraftId,
+    setCurrentDraftId,
+    setSaving,
+    setError,
+    setSaved,
+  ]);
 
   useEffect(() => {
     let active = true;
@@ -386,11 +477,13 @@ export function ReportStepPage({
   const photoLoadError = currentPhotoAsset?.error ?? "";
 
   const updateDraft = (patch: Partial<ReportDraft>) => {
+    if (!loaded) return;
     setDraft((current) => ({ ...current, ...patch }));
     setNotice("");
   };
 
   const updateLocation = (location: ReportLocation) => {
+    if (!loaded) return;
     setDraft((current) => ({
       ...current,
       location,
@@ -404,26 +497,29 @@ export function ReportStepPage({
           }
         : null,
     }));
+    confirmedLocationRef.current = location.confirmed ? location : null;
     setNotice("");
   };
 
   const persistDraft = async (nextDraft: ReportDraft = draft) => {
     const scope = getActiveAccountScope();
+    const id = getOrCreateDraftId();
     setSaving();
     const result = await saveDraftRecord({
-      id: draftId ?? newReportId(),
+      id,
       accountScope: scope,
       status: "draft",
       payload: nextDraft,
       eventTime: isoFromLocalDate(nextDraft.observedAt),
       observedAtLocal: nextDraft.observedAt,
     });
+    if (!mountedRef.current || draftIdRef.current !== id) return null;
     if (!result.ok) {
       setError(result.code);
       setStorageError(result.message);
       return null;
     }
-    setDraftId(result.id);
+    setCurrentDraftId(result.id);
     writeReportDraft(nextDraft);
     setStorageError("");
     setSaved(result.savedAt);
@@ -438,20 +534,42 @@ export function ReportStepPage({
     return persistDraft(nextDraft);
   };
 
+  const persistAndGo = async (path: ReportPath) => {
+    if (!loaded) return;
+    if (
+      draftIdRef.current ||
+      draft.hazardType ||
+      draft.description ||
+      draft.location ||
+      draft.photo
+    ) {
+      const saved = await ensureDraftIsPersisted(draft);
+      if (!saved) return;
+    }
+    go(path);
+  };
+
   const go = (path: ReportPath) => {
     navigate(path);
     scrollContentToTop();
   };
 
-  const continueObservation = () => {
+  const continueObservation = async () => {
+    if (!loaded) return;
     const nextErrors = validateObservation(draft);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
-    void ensureDraftIsPersisted(draft);
-    go("/report/photo");
+    if (!draft.photo || !draft.location?.confirmed) {
+      go(!draft.photo ? "/report/photo" : "/report/location");
+      return;
+    }
+    const saved = await ensureDraftIsPersisted(draft);
+    if (!saved) return;
+    go("/report/review");
   };
 
   const choosePhoto = async (file?: File) => {
+    if (!loaded) return;
     setPhotoError("");
     if (!file) return;
     // Client-side check before anything is persisted. A rejected file leaves
@@ -469,31 +587,66 @@ export function ReportStepPage({
       );
       return;
     }
+    const decoded = await decodeReportPhoto(file);
+    if (!mountedRef.current) return;
+    if (!decoded) {
+      setPhotoError("This image is corrupt or could not be decoded. Choose another JPG or PNG.");
+      return;
+    }
+    const gpsCoordinates = await readPhotoGps(file);
+    if (!mountedRef.current) return;
+    const photoLocation =
+      gpsCoordinates && inCoverage(gpsCoordinates.lat, gpsCoordinates.lon)
+        ? makeLocation(
+            gpsCoordinates.lat,
+            gpsCoordinates.lon,
+            "Photo GPS location",
+            "",
+            "device",
+          )
+        : null;
+    const confirmedLocation =
+      confirmedLocationRef.current ??
+      (draft.location?.confirmed ? draft.location : null);
+    const draftBeforePhoto = confirmedLocation
+      ? { ...draft, location: confirmedLocation }
+      : draft;
     const scope = getActiveAccountScope();
-    const nextDraftId = draftId ?? newReportId();
+    const nextDraftId = getOrCreateDraftId();
     // Keep the current photo reference in the saved record until the new
     // attachment has been stored.
     const persisted = await saveDraftRecord({
       id: nextDraftId,
       accountScope: scope,
       status: "draft",
-      payload: draft,
-      eventTime: isoFromLocalDate(draft.observedAt),
-      observedAtLocal: draft.observedAt,
+      payload: draftBeforePhoto,
+      eventTime: isoFromLocalDate(draftBeforePhoto.observedAt),
+      observedAtLocal: draftBeforePhoto.observedAt,
     });
+    if (!mountedRef.current || draftIdRef.current !== nextDraftId) return;
     if (!persisted.ok) {
       setError(persisted.code);
       setPhotoError(t("report.photoSaveErr"));
       return;
     }
-    const location = draft.location;
+    const location =
+      confirmedLocationRef.current ??
+      (draft.location?.confirmed ? draft.location : null) ??
+      photoLocation ??
+      draftBeforePhoto.location;
     const attachmentResult = await saveAttachment(persisted.id, scope, file);
+    if (!mountedRef.current || draftIdRef.current !== nextDraftId) {
+      if (attachmentResult.ok) {
+        await removeAttachment(attachmentResult.id, scope);
+      }
+      return;
+    }
     if (!attachmentResult.ok) {
       setPhotoError(t("report.photoSaveErr"));
       setError(attachmentResult.code);
       return;
     }
-    setDraftId(persisted.id);
+    setCurrentDraftId(persisted.id);
     const nextPhoto = {
       id: attachmentResult.id,
       name: file.name,
@@ -507,15 +660,32 @@ export function ReportStepPage({
           ? formatCoordinates(location.lat, location.lon)
           : "No location tag",
     };
-    writeReportDraft({ ...draft, photo: nextPhoto });
-    updateDraft({ photo: nextPhoto });
+    const nextDraft = { ...draftBeforePhoto, photo: nextPhoto, location };
+    const photoSaved = await saveDraftRecord({
+      id: persisted.id,
+      accountScope: scope,
+      status: "draft",
+      payload: nextDraft,
+      eventTime: isoFromLocalDate(nextDraft.observedAt),
+      observedAtLocal: nextDraft.observedAt,
+    });
+    if (!photoSaved.ok) {
+      await removeAttachment(attachmentResult.id, scope);
+      if (mountedRef.current && draftIdRef.current === nextDraftId) {
+        setError(photoSaved.code);
+        setPhotoError(t("report.photoSaveErr"));
+      }
+      return;
+    }
+    if (!mountedRef.current || draftIdRef.current !== nextDraftId) return;
+    updateDraft({ photo: nextPhoto, location });
     if (draft.photo) {
       await removeAttachment(draft.photo.id, scope);
     }
   };
 
   const removePhoto = async () => {
-    if (!draft.photo) return;
+    if (!loaded || !draft.photo) return;
     const scope = getActiveAccountScope();
     const result = await removeAttachment(draft.photo.id, scope);
     if (!result.ok) {
@@ -527,6 +697,7 @@ export function ReportStepPage({
   };
 
   const chooseSearchOption = (option: SearchOption) => {
+    if (!loaded) return;
     setLocationSearch(option.label);
     updateLocation(
       makeLocation(
@@ -541,9 +712,11 @@ export function ReportStepPage({
   };
 
   const useDeviceLocation = async () => {
+    if (!loaded) return;
     setLocating(true);
     setGpsError("");
     const result = await getCurrentPosition();
+    if (!mountedRef.current) return;
     setLocating(false);
     if (!result.ok) {
       setGpsError(
@@ -574,6 +747,7 @@ export function ReportStepPage({
   };
 
   const setMapPoint = (lat: number, lon: number) => {
+    if (!loaded) return;
     const location = makeLocation(
       lat,
       lon,
@@ -586,12 +760,13 @@ export function ReportStepPage({
 
   /** An explicit segment choice; any location edit clears confirmation. */
   const chooseSegment = (label: string) => {
-    if (!draft.location) return;
+    if (!loaded || !draft.location) return;
     updateLocation({ ...draft.location, roadSegment: label, confirmed: false });
     setErrors((current) => ({ ...current, location: "" }));
   };
 
   const confirmLocation = async () => {
+    if (!loaded) return;
     if (
       !draft.location ||
       draft.location.lat === null ||
@@ -608,29 +783,38 @@ export function ReportStepPage({
       return;
     }
     const next = { ...draft, location: { ...draft.location, confirmed: true } };
+    confirmedLocationRef.current = next.location;
     setDraft(next);
     const scope = getActiveAccountScope();
+    const id = getOrCreateDraftId();
     const result = await saveDraftRecord({
-      id: draftId ?? newReportId(),
+      id,
       accountScope: scope,
       status: "draft",
       payload: next,
       eventTime: isoFromLocalDate(next.observedAt),
       observedAtLocal: next.observedAt,
     });
+    if (!mountedRef.current || draftIdRef.current !== id) return;
     if (!result.ok) {
       setError(result.code);
       setStorageError(result.message);
       return;
     }
-    setDraftId(result.id);
+    setCurrentDraftId(result.id);
     writeReportDraft(next);
     setStorageError("");
     setErrors({});
-    go("/report/review");
+    go("/report");
   };
 
   const submitReport = async () => {
+    if (!loaded || submitting) return;
+    if (!draft.photo) {
+      setErrors({ photo: "Add at least one photo before submitting." });
+      go("/report/photo");
+      return;
+    }
     const observationErrors = validateObservation(draft);
     if (Object.keys(observationErrors).length) {
       setErrors(observationErrors);
@@ -645,7 +829,8 @@ export function ReportStepPage({
       ...draft,
       location: { ...draft.location, confirmed: true },
     };
-    const id = draftId ?? newReportId();
+    const id = getOrCreateDraftId();
+    setSubmitting(true);
     setSaving();
     const saved = await saveDraftRecord({
       id,
@@ -655,20 +840,25 @@ export function ReportStepPage({
       eventTime: isoFromLocalDate(savedReportDraft.observedAt),
       observedAtLocal: savedReportDraft.observedAt,
     });
+    if (!mountedRef.current || draftIdRef.current !== id) return;
     if (!saved.ok) {
+      setSubmitting(false);
       setError(saved.code);
       setStorageError(saved.message);
       return;
     }
-    setDraftId(saved.id);
+    setCurrentDraftId(saved.id);
     const queued = await queueReportForSync(saved.id);
+    if (!mountedRef.current || draftIdRef.current !== id) return;
     if (!queued.ok) {
+      setSubmitting(false);
       setError(queued.code);
       setStorageError(queued.message);
       return;
     }
     setStorageError("");
     setSaved(saved.savedAt);
+    setSubmitting(false);
     go("/report/received");
   };
 
@@ -690,11 +880,13 @@ export function ReportStepPage({
     [locLat, locLon],
   );
   const currentStep =
-    step === "observation" || step === "photo"
+    step === "photo"
       ? 1
       : step === "location"
         ? 2
-        : 3;
+        : step === "observation"
+          ? 3
+          : 4;
 
   if (step === "received") {
     return (
@@ -707,17 +899,27 @@ export function ReportStepPage({
     );
   }
 
+  if (!loaded) {
+    return (
+      <div className="rp-container max-w-content py-12">
+        <p role="status" aria-live="polite">
+          {t("saveStatus.restoringDraft")}
+        </p>
+      </div>
+    );
+  }
+
   const title =
-    step === "observation"
-      ? "What did you observe?"
-      : step === "photo"
-        ? "Add photo evidence"
-        : step === "location"
-          ? "Confirm the location"
+    step === "photo"
+      ? "Add photo evidence"
+      : step === "location"
+        ? "Confirm the location"
+        : step === "observation"
+          ? "Describe the hazard"
           : "Review your report";
 
   return (
-    <div className="dark min-h-full overflow-x-clip">
+    <div className="min-h-full overflow-x-clip">
       <section
         className="photo-surface relative border-b border-border bg-cover bg-center"
         style={{
@@ -738,7 +940,7 @@ export function ReportStepPage({
             </div>
             <ol
               aria-label="Report steps"
-              className="grid min-w-64 grid-cols-3 gap-3 sm:min-w-80"
+              className="grid min-w-72 grid-cols-4 gap-2 sm:min-w-[26rem]"
             >
               {STEPS.map((item, index) => {
                 const number = index + 1;
@@ -1047,32 +1249,6 @@ export function ReportStepPage({
                   />
                 </div>
 
-                <div className="mt-5 rounded-xl border-2 border-dashed border-brand-orange/45 bg-brand-orange/5">
-                  <div className="flex flex-wrap items-center justify-between gap-3 p-4">
-                    <span
-                      aria-hidden
-                      className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-brand-orange/15 text-brand-orange"
-                    >
-                      <ImagePlus className="size-6" />
-                    </span>
-                    <div className="mr-auto min-w-0">
-                      <p className="text-sm font-medium">
-                        Photo evidence is optional
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        JPG or PNG, up to 10 MB
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => go("/report/photo")}
-                    >
-                      <ImagePlus aria-hidden />
-                      Add photo
-                    </Button>
-                  </div>
-                </div>
                 <p className="mt-4 flex items-start gap-3 rounded-xl border border-status-caution/50 border-l-4 border-l-status-caution bg-status-caution/10 p-3 text-sm">
                   <TriangleAlert
                     aria-hidden
@@ -1084,7 +1260,7 @@ export function ReportStepPage({
                   </span>
                 </p>
                 <StepActions
-                  back={() => go("/")}
+                  back={() => void persistAndGo("/report/location")}
                   continueLabel="Continue"
                   onContinue={continueObservation}
                   onSave={saveDraft}
@@ -1279,13 +1455,24 @@ export function ReportStepPage({
                   </aside>
                 </div>
                 <p className="mt-5 rounded-xl border border-status-caution/50 bg-status-caution/10 p-3 text-sm">
-                  Capture evidence only when you are away from traffic. Location
-                  tagging depends on your device permissions.
+                  {t("report.photoGpsInfo")}
                 </p>
                 <StepActions
-                  back={() => go("/report")}
+                  back={() => void persistAndGo("/")}
                   continueLabel="Continue"
-                  onContinue={() => go("/report/location")}
+                  onContinue={async () => {
+                    if (!draft.photo || photoLoadError) {
+                      setPhotoError(
+                        !draft.photo
+                          ? "Add at least one photo to continue."
+                          : "The saved photo is unavailable. Remove it or choose another photo.",
+                      );
+                      return;
+                    }
+                    const saved = await ensureDraftIsPersisted(draft);
+                    if (!saved) return;
+                    go("/report/location");
+                  }}
                   onSave={saveDraft}
                 />
               </section>
@@ -1336,24 +1523,26 @@ export function ReportStepPage({
                       value={locationSearch}
                       onChange={(event) => {
                         setLocationSearch(event.target.value);
-                        setDraft((current) => ({
-                          ...current,
-                          location: current.location
-                            ? {
-                                ...current.location,
-                                query: event.target.value,
-                                confirmed: false,
-                              }
-                            : {
-                                query: event.target.value,
-                                roadSegment: "",
-                                lat: null,
-                                lon: null,
-                                accuracyM: null,
-                                source: null,
-                                confirmed: false,
-                              },
-                        }));
+                        if (loaded) {
+                          setDraft((current) => ({
+                            ...current,
+                            location: current.location
+                              ? {
+                                  ...current.location,
+                                  query: event.target.value,
+                                  confirmed: false,
+                                }
+                              : {
+                                  query: event.target.value,
+                                  roadSegment: "",
+                                  lat: null,
+                                  lon: null,
+                                  accuracyM: null,
+                                  source: null,
+                                  confirmed: false,
+                                },
+                          }));
+                        }
                       }}
                       aria-describedby={`location-search-help${gpsError ? " location-error" : ""}${errors.location ? " location-validation-error" : ""}`}
                       aria-invalid={Boolean(errors.location)}
@@ -1415,103 +1604,11 @@ export function ReportStepPage({
 
                 <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(15rem,0.6fr)]">
                   <div>
-                    <div className="relative h-64 overflow-hidden rounded-xl border border-border sm:h-80">
-                      <img
-                        src="/img/map-terrain.png"
-                        alt=""
-                        className="absolute inset-0 size-full object-cover"
-                      />
-                      <div
-                        aria-hidden
-                        className="absolute inset-0 bg-scrim/50"
-                      />
-                      <button
-                        type="button"
-                        disabled={!adjustingPin}
-                        aria-label="Map preview. When location adjustment is enabled, click or use arrow keys to move the pin."
-                        onClick={(event) => {
-                          const bounds =
-                            event.currentTarget.getBoundingClientRect();
-                          const x =
-                            event.detail === 0
-                              ? 0.5
-                              : Math.min(
-                                  1,
-                                  Math.max(
-                                    0,
-                                    (event.clientX - bounds.left) /
-                                      bounds.width,
-                                  ),
-                                );
-                          const y =
-                            event.detail === 0
-                              ? 0.5
-                              : Math.min(
-                                  1,
-                                  Math.max(
-                                    0,
-                                    (event.clientY - bounds.top) /
-                                      bounds.height,
-                                  ),
-                                );
-                          setMapPoint(
-                            31.5 - y * (31.5 - 28.7),
-                            77.5 + x * (81.1 - 77.5),
-                          );
-                        }}
-                        onKeyDown={(event) => {
-                          if (
-                            ![
-                              "ArrowUp",
-                              "ArrowDown",
-                              "ArrowLeft",
-                              "ArrowRight",
-                            ].includes(event.key)
-                          )
-                            return;
-                          event.preventDefault();
-                          const lat = draft.location?.lat ?? 30.1;
-                          const lon = draft.location?.lon ?? 79.3;
-                          const delta = 0.005;
-                          setMapPoint(
-                            lat +
-                              (event.key === "ArrowUp"
-                                ? delta
-                                : event.key === "ArrowDown"
-                                  ? -delta
-                                  : 0),
-                            lon +
-                              (event.key === "ArrowRight"
-                                ? delta
-                                : event.key === "ArrowLeft"
-                                  ? -delta
-                                  : 0),
-                          );
-                        }}
-                        className="absolute inset-0 w-full cursor-crosshair disabled:cursor-default"
-                      >
-                        {draft.location?.lat !== null &&
-                          draft.location?.lat !== undefined &&
-                          draft.location.lon !== null && (
-                            <MapPin
-                              aria-hidden
-                              className="absolute size-8 -translate-x-1/2 -translate-y-full fill-brand-orange text-foreground drop-shadow-lg"
-                              style={{
-                                left: `${Math.min(96, Math.max(4, ((draft.location.lon - 77.5) / (81.1 - 77.5)) * 100))}%`,
-                                top: `${Math.min(96, Math.max(8, ((31.5 - draft.location.lat) / (31.5 - 28.7)) * 100))}%`,
-                              }}
-                            />
-                          )}
-                        {!draft.location?.lat && (
-                          <span className="glass-pill absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1 text-xs">
-                            Choose a place or adjust the pin
-                          </span>
-                        )}
-                      </button>
-                      <span className="glass-pill pointer-events-none absolute bottom-2 left-2 px-2 py-1 text-xs">
-                        Terrain preview · synthetic map
-                      </span>
-                    </div>
+                    <ReportLocationMap
+                      lat={draft.location?.lat ?? null}
+                      lon={draft.location?.lon ?? null}
+                      onChange={setMapPoint}
+                    />
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button
                         type="button"
@@ -1710,7 +1807,7 @@ export function ReportStepPage({
                   manually or place the pin on the map.
                 </p>
                 <StepActions
-                  back={() => go("/report/photo")}
+                  back={() => void persistAndGo("/report/photo")}
                   continueLabel={t("loc.confirm")}
                   onContinue={confirmLocation}
                   onSave={saveDraft}
@@ -1851,8 +1948,13 @@ export function ReportStepPage({
                     >
                       Save draft
                     </Button>
-                    <Button type="button" onClick={submitReport}>
-                      <Send aria-hidden /> Submit report
+                    <Button
+                      type="button"
+                      onClick={submitReport}
+                      disabled={submitting}
+                    >
+                      <Send aria-hidden />{" "}
+                      {submitting ? "Submitting…" : "Submit report"}
                     </Button>
                   </div>
                 </div>
@@ -1972,7 +2074,7 @@ function ReceivedReport({
 
   return (
     <div
-      className="dark photo-surface relative flex min-h-[70svh] items-center justify-center overflow-hidden bg-cover bg-center px-4 py-10"
+      className="photo-surface relative flex min-h-[70svh] items-center justify-center overflow-hidden bg-cover bg-center px-4 py-10"
       style={{
         backgroundImage:
           "linear-gradient(90deg, var(--photo-scrim-a), var(--photo-scrim-b) 60%, var(--photo-scrim-c)), url('/img/hero-mountain.png')",

@@ -41,6 +41,7 @@ export type DraftInput = {
   schemaVersion?: number;
 };
 
+const draftSaveQueues = new Map<string, Promise<RepositoryWriteResult>>();
 const ACTIVE_DRAFT_KEY_PREFIX = "rp.activeDraftId.";
 
 function activeDraftPointerKey(scope: string) {
@@ -193,18 +194,23 @@ async function legacyPhotoBlob(photoId: string): Promise<Blob | null> {
     const request = window.indexedDB.open("raahprahari-report-evidence", 1);
     request.onsuccess = () => {
       const db = request.result;
-      const tx = db.transaction("photos", "readonly");
-      const store = tx.objectStore("photos");
-      const fileRequest = store.get(photoId);
-      fileRequest.onsuccess = () => {
-        const blob = fileRequest.result as Blob | undefined;
-        db.close();
-        resolve(blob ?? null);
-      };
-      fileRequest.onerror = () => {
+      try {
+        const tx = db.transaction("photos", "readonly");
+        const store = tx.objectStore("photos");
+        const fileRequest = store.get(photoId);
+        fileRequest.onsuccess = () => {
+          const blob = fileRequest.result as Blob | undefined;
+          db.close();
+          resolve(blob ?? null);
+        };
+        fileRequest.onerror = () => {
+          db.close();
+          resolve(null);
+        };
+      } catch {
         db.close();
         resolve(null);
-      };
+      }
     };
     request.onerror = () => resolve(null);
   });
@@ -582,11 +588,11 @@ export async function createDraft(
   }
 }
 
-export async function saveDraft(
-  input: DraftInput = {},
+async function writeDraft(
+  input: DraftInput,
+  scope: string,
+  id: string,
 ): Promise<RepositoryWriteResult> {
-  const scope = input.accountScope ?? getActiveAccountScope();
-  const id = input.id ?? newReportId();
   const payload = normalizePayload(input.payload ?? input.draft);
   const now = Date.now();
 
@@ -647,6 +653,29 @@ export async function saveDraft(
     return { ok: true, id, savedAt: next.savedAt ?? now };
   } catch (error) {
     return mapStorageError(error);
+  }
+}
+
+export async function saveDraft(
+  input: DraftInput = {},
+): Promise<RepositoryWriteResult> {
+  const scope = input.accountScope ?? getActiveAccountScope();
+  const id = input.id ?? newReportId();
+  const key = `${scope}:${id}`;
+  const previous = draftSaveQueues.get(key);
+  const ready = previous
+    ? previous.then(
+        () => undefined,
+        () => undefined,
+      )
+    : Promise.resolve();
+  const current = ready
+    .then(() => writeDraft(input, scope, id));
+  draftSaveQueues.set(key, current);
+  try {
+    return await current;
+  } finally {
+    if (draftSaveQueues.get(key) === current) draftSaveQueues.delete(key);
   }
 }
 

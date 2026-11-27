@@ -395,7 +395,7 @@ function TravellerPage() {
 
   if (!hasSearch && searchStatus !== "failure") {
     return (
-      <div className="traveller-page traveller-landing dark">
+      <div className="traveller-page traveller-landing">
         <section
           className="traveller-search-panel glass"
           aria-labelledby="traveller-title"
@@ -443,7 +443,7 @@ function TravellerPage() {
         : undefined;
 
   return (
-    <div className="traveller-page traveller-results-page dark">
+    <div className="traveller-page traveller-results-page">
       <section className="traveller-results-banner photo-surface">
         <div className="traveller-results-heading">
           <div>
@@ -473,7 +473,7 @@ function TravellerPage() {
               key={key}
               aria-pressed={filter === key}
               className={cn(
-                "traveller-filter-chip glass-pill",
+                "traveller-filter-chip glass",
                 filter === key && "is-active",
               )}
               onClick={() => setFilter(key)}
@@ -755,7 +755,7 @@ function RecentSearches({
           <li key={query}>
             <button
               type="button"
-              className="glass-pill"
+              className="glass rounded-md"
               onClick={() => onChoose(query)}
             >
               <RotateCcw aria-hidden />
@@ -776,7 +776,7 @@ function RecentSearches({
             <span>Illustrative example</span>
             <button
               type="button"
-              className="glass-pill"
+              className="glass rounded-md"
               onClick={() => onChoose(example)}
             >
               <RotateCcw aria-hidden />

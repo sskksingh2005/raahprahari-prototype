@@ -141,7 +141,7 @@ export const en = {
     "Optional, and only when you press the button. Your description is sent through Supabase to Google Gemini; photos are not sent. Common email and phone patterns are removed automatically, but not all personal details can be caught, so please leave out names, contact details and identifying addresses.",
   "ai.signinRequired": "Sign in to use AI suggestions.",
   "ai.loading": "Getting suggestions…",
-  "ai.suggestionTitle": "AI suggestion — review and edit",
+  "ai.suggestionTitle": "AI suggestion: review and edit",
   "ai.suggestionHelp":
     "Nothing is added to your report until you accept a field. You can change a value before accepting it.",
   "ai.field.hazard": "Hazard",
@@ -165,7 +165,7 @@ export const en = {
     "This browser does not support device location. Search for a road or place, or adjust the pin manually.",
   "loc.gpsOutside":
     "Device location is outside this prototype coverage area. Search for a road or place manually.",
-  "loc.multipleMatches": "Multiple matches found — please choose one.",
+  "loc.multipleMatches": "Multiple matches found, please choose one.",
   "loc.placeOption": "Place · choose the road segment next",
   "loc.chooseSegment":
     "Several road segments are nearby. Choose the one you were on:",
@@ -190,12 +190,12 @@ export const en = {
   "obs.lane.full_width": "The whole width of the road",
   "obs.lane.one_lane": "One lane or part of the road",
   "obs.lane.roadside": "Roadside or shoulder only",
-  "obs.vehicle.legend": "Which vehicles can still pass?",
+  "obs.vehicle.legend": "What could you see about vehicles getting through?",
   "obs.vehicle.unknown": "Unknown",
-  "obs.vehicle.all_vehicles": "All vehicles",
-  "obs.vehicle.light_vehicles": "Cars and smaller vehicles only",
-  "obs.vehicle.two_wheelers": "Two-wheelers only",
-  "obs.vehicle.no_vehicles": "No vehicles",
+  "obs.vehicle.all_vehicles": "All vehicle types appeared able to pass",
+  "obs.vehicle.light_vehicles": "Only light vehicles appeared able to pass",
+  "obs.vehicle.two_wheelers": "Only two-wheelers appeared able to pass",
+  "obs.vehicle.no_vehicles": "No vehicles appeared able to pass",
   "obs.review.title": "Road impact and source",
   "obs.review.source": "Source",
   "obs.review.lane": "Road affected",
@@ -286,7 +286,7 @@ export const en = {
   "s3.body":
     "Conditions on mountain roads change quickly. People on the road often see a problem first. RaahPrahari puts those observations next to official information, and labels each one by source and age.",
   "s3.a": "Community reports are never shown as official closures.",
-  "s3.b": "Missing information is shown as Unknown — never as Clear.",
+  "s3.b": "Missing information is shown as Unknown, never as Clear.",
   "s3.c": "Old information is marked Stale with its age.",
   "final.title": "Travel information, not a guarantee",
   "final.body":
@@ -324,7 +324,7 @@ export const en = {
   "basis.official": "Official restriction in force",
   "basis.corroborated": "Several reports, at least one reviewed",
   "basis.single_report": "Community report awaiting or after review",
-  "basis.conflicting": "Conflicting reports — under review",
+  "basis.conflicting": "Conflicting reports, under review",
   "basis.community_clear":
     "Community reports describe passable conditions; no official confirmation",
   "basis.stale_only": "Only old observations",
@@ -336,8 +336,9 @@ export const en = {
   "copy.savedLocal": "Saved on this device, not yet received.",
   "saveStatus.saving": "Saving on this device…",
   "saveStatus.savedLocally": "Saved locally",
-  "saveStatus.notDelivered": "Not delivered — not sent to the server yet",
+  "saveStatus.notDelivered": "Not delivered, not sent to the server yet",
   "saveStatus.draftRestored": "Draft restored from this device",
+  "saveStatus.restoringDraft": "Restoring your saved draft…",
   "saveStatus.errorQuota":
     "Device storage is full. Free up space and try again. Your report was NOT saved.",
   "saveStatus.errorUnavailable":
@@ -357,18 +358,18 @@ export const en = {
     "Some reports could not be sent. Review their status and retry.",
   "sync.accountChanged": "Sync stopped because the account changed.",
   "sync.deliveryLimits":
-    "Reports are sent while this app is open and you’re online. Your browser may also retry in the background, but this isn’t guaranteed — especially when the app is closed.",
+    "Reports are sent while this app is open and you’re online. Your browser may also retry in the background, but this isn’t guaranteed, especially when the app is closed.",
   "sync.resultError":
     "Sync could not be completed. Review the report status and retry.",
   "sync.received": "Server received",
-  "sync.savedNotDelivered": "Saved locally — not delivered",
+  "sync.savedNotDelivered": "Saved locally, not delivered",
   "sync.waitingForSignIn": "Waiting for sign-in",
   "sync.sendingStatus": "Sending…",
   "sync.retryingAt": "Retrying at {time}",
   "sync.signInToContinue": "Sign in again to continue sending",
   "sync.rejected": "Rejected: {reason}",
   "sync.photoPending": "Photo upload pending",
-  "sync.photoFailed": "Photo upload failed — retry",
+  "sync.photoFailed": "Photo upload failed. Retry.",
   "sync.observed": "Observed",
   "sync.serverReceived": "Server received",
   "sync.notDeliveredYet": "Not delivered yet",
@@ -397,12 +398,13 @@ export const en = {
     "Review time has passed. This restriction remains in force until an authorised update.",
 
   "results.title": "Route options",
-  "results.seeded": "Seeded corridor data — not a live routing service",
+  "results.seeded": "Seeded corridor data, not a live routing service",
   "results.sort": "Sort by",
   "sort.fastest": "Fastest",
   "sort.shortest": "Shortest distance",
   "sort.current": "Most current information",
   "results.via": "Via",
+  "results.direct": "Direct",
   "results.distance": "Distance",
   "results.duration": "Typical duration",
   "results.coverage": "Information coverage",
@@ -425,7 +427,7 @@ export const en = {
   "view.map": "Map",
   "view.list": "List",
   "map.schematic":
-    "Schematic map — positions are approximate, no basemap configured",
+    "Schematic map. Positions are approximate; no basemap is configured.",
   "map.legend": "Legend",
   "map.description":
     "Explore seeded route segments and distinguish reported hazards from official restrictions.",
@@ -482,6 +484,7 @@ export const en = {
   'common.reportRoad': 'Report this road',
   'common.searching': 'Searching…',
   'common.unknown': 'Unknown',
+  'common.notAvailable': 'Not available',
   'time.cached': 'Cached:',
   'home.featReportTitle': 'Community Reporting',
   'home.featReportBody': 'Observations submitted by community contributors.',
@@ -561,11 +564,13 @@ export const en = {
   "report.draftRestored": "Restored your saved draft.",
   "report.discard": "Discard draft",
   "report.photosTitle": "Add a photo (optional)",
+  "report.photoGpsInfo":
+    "Valid photo GPS data can suggest a location for you to confirm. A location you already confirmed is kept. If no GPS data is found, use device location or search manually.",
   "report.photosHint": "One photo · JPG or PNG · up to 10 MB",
   "report.addPhotos": "Choose photo",
   "report.photosEmpty":
     "No photo attached. Reports without a photo are still reviewed.",
-  "report.photoLocal": "Selected on this device — not uploaded",
+  "report.photoLocal": "Selected on this device, not uploaded",
   "report.photoRemove": "Remove",
   "report.photoTypeErr": "Choose a JPG or PNG image.",
   "report.photoSizeErr": "Photo must be 10 MB or smaller.",
@@ -599,7 +604,7 @@ export const en = {
     "Your report will be subject to review and is not an official road closure.",
   "report.submit": "Submit report",
   "report.simulated":
-    "Simulated submission — local demo mode, no server is connected",
+    "Simulated submission. Local demo mode, no server is connected",
   "report.ref": "Demo reference",
   "report.refNote":
     "Generated on this device. It is not a server-issued reference.",
@@ -619,7 +624,7 @@ export const en = {
   "delivery.offlineQueued":
     "You are offline. The report is queued on this device and will not be sent until you are back online.",
   "delivery.demoStop":
-    "In local demo mode there is no server, so the report stops here — saved on this device, not received by anyone. Review happens once a backend is connected.",
+    "In local demo mode there is no server, so the report stops here: saved on this device, not received by anyone. Review happens once a backend is connected.",
   "offline.lastSync": "Last successful sync",
   "offline.pending": "Reports awaiting delivery",
   "offline.notSynced": "Not synced on this device yet",
@@ -1311,7 +1316,7 @@ export const en = {
   'status.channel.seededData': 'Bundled sample data, not a live feed',
   'status.disclaimer':
     'This page reports configuration and the last results seen on this device. It does not probe any service, and a connection does not confirm report delivery.',
-  'nav.homeLabel': 'RaahPrahari — home',
+  'nav.homeLabel': 'RaahPrahari home',
   'nav.footer': 'Footer',
   'nav.contributions': 'Contributions',
   'nav.section': 'Current section',
@@ -1549,7 +1554,7 @@ export const hi: Record<TranslationKey, string> = {
     "वैकल्पिक, और केवल बटन दबाने पर। आपका विवरण Supabase के ज़रिए Google Gemini को भेजा जाता है; फ़ोटो नहीं भेजी जातीं। सामान्य ईमेल और फ़ोन नंबर अपने-आप हटाए जाते हैं, पर हर निजी जानकारी पकड़ी नहीं जा सकती, इसलिए कृपया नाम, संपर्क विवरण और पहचान बताने वाले पते न लिखें।",
   "ai.signinRequired": "AI सुझाव के लिए साइन इन करें।",
   "ai.loading": "सुझाव लाए जा रहे हैं…",
-  "ai.suggestionTitle": "AI सुझाव — जाँचें और बदलें",
+  "ai.suggestionTitle": "AI सुझाव: जाँचें और बदलें",
   "ai.suggestionHelp":
     "जब तक आप किसी फ़ील्ड को स्वीकार नहीं करते, रिपोर्ट में कुछ नहीं जुड़ता। स्वीकार करने से पहले आप मान बदल सकते हैं।",
   "ai.field.hazard": "ख़तरा",
@@ -1573,7 +1578,7 @@ export const hi: Record<TranslationKey, string> = {
     "यह ब्राउज़र डिवाइस स्थान का समर्थन नहीं करता। सड़क या जगह खोजें, या पिन खुद लगाएँ।",
   "loc.gpsOutside":
     "डिवाइस का स्थान इस प्रोटोटाइप के क्षेत्र से बाहर है। सड़क या जगह खुद खोजें।",
-  "loc.multipleMatches": "कई परिणाम मिले — कृपया एक चुनें।",
+  "loc.multipleMatches": "कई परिणाम मिले, कृपया एक चुनें।",
   "loc.placeOption": "जगह · इसके बाद सड़क का हिस्सा चुनें",
   "loc.chooseSegment":
     "पास में सड़क के कई हिस्से हैं। जिस पर आप थे, वह चुनें:",
@@ -1598,12 +1603,12 @@ export const hi: Record<TranslationKey, string> = {
   "obs.lane.full_width": "सड़क की पूरी चौड़ाई",
   "obs.lane.one_lane": "एक लेन या सड़क का कुछ हिस्सा",
   "obs.lane.roadside": "केवल सड़क का किनारा",
-  "obs.vehicle.legend": "कौन से वाहन अब भी निकल सकते हैं?",
+  "obs.vehicle.legend": "वाहनों के निकलने के बारे में आपको क्या दिखाई दिया?",
   "obs.vehicle.unknown": "अज्ञात",
-  "obs.vehicle.all_vehicles": "सभी वाहन",
-  "obs.vehicle.light_vehicles": "केवल कार और छोटे वाहन",
-  "obs.vehicle.two_wheelers": "केवल दोपहिया वाहन",
-  "obs.vehicle.no_vehicles": "कोई वाहन नहीं",
+  "obs.vehicle.all_vehicles": "सभी प्रकार के वाहन निकलते दिखाई दिए",
+  "obs.vehicle.light_vehicles": "केवल हल्के वाहन निकलते दिखाई दिए",
+  "obs.vehicle.two_wheelers": "केवल दोपहिया वाहन निकलते दिखाई दिए",
+  "obs.vehicle.no_vehicles": "कोई वाहन निकलता दिखाई नहीं दिया",
   "obs.review.title": "सड़क पर असर और स्रोत",
   "obs.review.source": "स्रोत",
   "obs.review.lane": "प्रभावित सड़क",
@@ -1691,7 +1696,7 @@ export const hi: Record<TranslationKey, string> = {
   "s3.body":
     "पहाड़ी सड़कों पर हालात जल्दी बदलते हैं। सड़क पर मौजूद लोग अक्सर समस्या पहले देखते हैं। राहप्रहरी उनके अवलोकनों को आधिकारिक जानकारी के साथ रखता है, और हर एक पर स्रोत और समय दिखाता है।",
   "s3.a": "समुदाय रिपोर्ट को कभी आधिकारिक बंदी नहीं दिखाया जाता।",
-  "s3.b": 'जानकारी न होने पर "अज्ञात" दिखता है — कभी "साफ़" नहीं।',
+  "s3.b": 'जानकारी न होने पर "अज्ञात" दिखता है, कभी "साफ़" नहीं।',
   "s3.c": 'पुरानी जानकारी पर उसकी उम्र के साथ "पुरानी" लिखा होता है।',
   "final.title": "यात्रा जानकारी, कोई गारंटी नहीं",
   "final.body":
@@ -1729,7 +1734,7 @@ export const hi: Record<TranslationKey, string> = {
   "basis.official": "आधिकारिक प्रतिबंध लागू",
   "basis.corroborated": "कई रिपोर्ट, कम से कम एक समीक्षित",
   "basis.single_report": "समुदाय रिपोर्ट, समीक्षा लंबित या पूर्ण",
-  "basis.conflicting": "विरोधाभासी रिपोर्ट — समीक्षा जारी",
+  "basis.conflicting": "विरोधाभासी रिपोर्ट, समीक्षा जारी",
   "basis.community_clear":
     "समुदाय की रिपोर्ट में रास्ता चलने योग्य है; आधिकारिक पुष्टि नहीं",
   "basis.stale_only": "केवल पुराने अवलोकन",
@@ -1741,8 +1746,9 @@ export const hi: Record<TranslationKey, string> = {
   "copy.savedLocal": "इस डिवाइस पर सहेजा गया, अभी प्राप्त नहीं हुआ।",
   "saveStatus.saving": "इस डिवाइस पर सहेजा जा रहा है…",
   "saveStatus.savedLocally": "स्थानीय रूप से सहेजा गया",
-  "saveStatus.notDelivered": "प्रेषित नहीं हुआ — सर्वर तक अभी नहीं भेजा गया",
+  "saveStatus.notDelivered": "प्रेषित नहीं हुआ, सर्वर तक अभी नहीं भेजा गया",
   "saveStatus.draftRestored": "यह डिवाइस से ड्राफ़्ट पुनर्स्थापित किया गया",
+  "saveStatus.restoringDraft": "आपका सहेजा ड्राफ़्ट वापस लाया जा रहा है…",
   "saveStatus.errorQuota":
     "डिवाइस की जगह भर गई है। जगह खाली करें और फिर से कोशिश करें। आपकी रिपोर्ट सहेजी नहीं गई।",
   "saveStatus.errorUnavailable":
@@ -1763,18 +1769,18 @@ export const hi: Record<TranslationKey, string> = {
     "कुछ रिपोर्ट नहीं भेजी जा सकीं। उनकी स्थिति देखें और फिर कोशिश करें।",
   "sync.accountChanged": "खाता बदलने के कारण सिंक रोक दिया गया।",
   "sync.deliveryLimits":
-    "रिपोर्ट तब भेजी जाती हैं जब ऐप खुला हो और आप ऑनलाइन हों। आपका ब्राउज़र पृष्ठभूमि में फिर कोशिश कर सकता है, लेकिन इसकी गारंटी नहीं है — खासकर ऐप बंद होने पर।",
+    "रिपोर्ट तब भेजी जाती हैं जब ऐप खुला हो और आप ऑनलाइन हों। आपका ब्राउज़र पृष्ठभूमि में फिर कोशिश कर सकता है, लेकिन इसकी गारंटी नहीं है, खासकर ऐप बंद होने पर।",
   "sync.resultError":
     "सिंक पूरा नहीं हो सका। रिपोर्ट की स्थिति देखें और फिर कोशिश करें।",
   "sync.received": "सर्वर ने प्राप्त किया",
-  "sync.savedNotDelivered": "स्थानीय रूप से सहेजा — वितरित नहीं",
+  "sync.savedNotDelivered": "स्थानीय रूप से सहेजा, वितरित नहीं",
   "sync.waitingForSignIn": "साइन इन की प्रतीक्षा",
   "sync.sendingStatus": "भेजा जा रहा है…",
   "sync.retryingAt": "{time} पर फिर कोशिश होगी",
   "sync.signInToContinue": "भेजना जारी रखने के लिए फिर से साइन इन करें",
   "sync.rejected": "अस्वीकृत: {reason}",
   "sync.photoPending": "फ़ोटो अपलोड लंबित",
-  "sync.photoFailed": "फ़ोटो अपलोड विफल — फिर कोशिश करें",
+  "sync.photoFailed": "फ़ोटो अपलोड विफल। फिर कोशिश करें।",
   "sync.observed": "देखा गया",
   "sync.serverReceived": "सर्वर ने प्राप्त किया",
   "sync.notDeliveredYet": "अभी वितरित नहीं हुआ",
@@ -1803,12 +1809,13 @@ export const hi: Record<TranslationKey, string> = {
     "समीक्षा का समय बीत चुका है। अधिकृत अद्यतन तक यह प्रतिबंध लागू रहेगा।",
 
   "results.title": "मार्ग विकल्प",
-  "results.seeded": "पूर्व-निर्धारित मार्ग डेटा — लाइव रूटिंग सेवा नहीं",
+  "results.seeded": "पूर्व-निर्धारित मार्ग डेटा, लाइव रूटिंग सेवा नहीं",
   "results.sort": "क्रम",
   "sort.fastest": "सबसे तेज़",
   "sort.shortest": "सबसे कम दूरी",
   "sort.current": "सबसे ताज़ा जानकारी",
   "results.via": "होकर",
+  "results.direct": "सीधा मार्ग",
   "results.distance": "दूरी",
   "results.duration": "सामान्य अवधि",
   "results.coverage": "जानकारी कवरेज",
@@ -1830,7 +1837,7 @@ export const hi: Record<TranslationKey, string> = {
 
   "view.map": "मानचित्र",
   "view.list": "सूची",
-  "map.schematic": "रेखाचित्र मानचित्र — स्थिति अनुमानित, कोई बेसमैप नहीं",
+  "map.schematic": "रेखाचित्र मानचित्र। स्थिति अनुमानित है; बेसमैप नहीं है।",
   "map.legend": "संकेत",
   "map.description":
     "पूर्व-निर्धारित मार्ग खंड देखें और समुदाय की रिपोर्टों को आधिकारिक प्रतिबंधों से अलग पहचानें।",
@@ -1843,7 +1850,7 @@ export const hi: Record<TranslationKey, string> = {
 
   'adv.title': 'सड़क परामर्श',
   'adv.body':
-    'उत्तराखंड के हर पूर्व-निर्धारित मार्ग का हिस्सा-दर-हिस्सा विवरण। क्या देखा गया, क्या करें और किसने बताया — यह जानने के लिए कोई हिस्सा चुनें।',
+    'उत्तराखंड के हर पूर्व-निर्धारित मार्ग का हिस्सा-दर-हिस्सा विवरण। क्या देखा गया, क्या करें और किसने बताया, यह जानने के लिए कोई हिस्सा चुनें।',
   'adv.filter': 'दिखाएँ',
   'adv.filterAll': 'सभी हिस्से',
   'adv.filterIssues': 'परामर्श वाले हिस्से',
@@ -1886,6 +1893,7 @@ export const hi: Record<TranslationKey, string> = {
   'common.reportRoad': 'इस सड़क की रिपोर्ट करें',
   'common.searching': 'खोज रहे हैं…',
   'common.unknown': 'अज्ञात',
+  'common.notAvailable': 'उपलब्ध नहीं',
   'time.cached': 'कैश किया गया:',
   'home.featReportTitle': 'सामुदायिक रिपोर्टिंग',
   'home.featReportBody': 'समुदाय के योगदानकर्ताओं द्वारा प्रस्तुत अवलोकन।',
@@ -1965,11 +1973,13 @@ export const hi: Record<TranslationKey, string> = {
   "report.draftRestored": "आपका सहेजा ड्राफ़्ट वापस लाया गया।",
   "report.discard": "ड्राफ़्ट हटाएँ",
   "report.photosTitle": "फ़ोटो जोड़ें (वैकल्पिक)",
+  "report.photoGpsInfo":
+    "फ़ोटो में वैध GPS डेटा होने पर स्थान पुष्टि के लिए सुझाया जाएगा। पहले से पुष्ट स्थान बना रहेगा। GPS डेटा न मिले तो डिवाइस लोकेशन लें या मैन्युअल खोजें।",
   "report.photosHint": "एक फ़ोटो · JPG या PNG · अधिकतम 10 MB",
   "report.addPhotos": "फ़ोटो चुनें",
   "report.photosEmpty":
     "कोई फ़ोटो नहीं। बिना फ़ोटो वाली रिपोर्ट की भी समीक्षा होती है।",
-  "report.photoLocal": "इस डिवाइस पर चुनी गई — अपलोड नहीं हुई",
+  "report.photoLocal": "इस डिवाइस पर चुनी गई, अपलोड नहीं हुई",
   "report.photoRemove": "हटाएँ",
   "report.photoTypeErr": "JPG या PNG चित्र चुनें।",
   "report.photoSizeErr": "फ़ोटो 10 MB या उससे छोटी होनी चाहिए।",
@@ -2002,7 +2012,7 @@ export const hi: Record<TranslationKey, string> = {
   "report.reviewNote":
     "आपकी रिपोर्ट की समीक्षा होगी और यह आधिकारिक सड़क बंदी नहीं है।",
   "report.submit": "रिपोर्ट भेजें",
-  "report.simulated": "नक़ली जमा — स्थानीय डेमो मोड, कोई सर्वर जुड़ा नहीं",
+  "report.simulated": "नक़ली जमा। स्थानीय डेमो मोड, कोई सर्वर जुड़ा नहीं",
   "report.ref": "डेमो संदर्भ",
   "report.refNote": "इसी डिवाइस पर बना। यह सर्वर द्वारा जारी संदर्भ नहीं है।",
   "report.another": "एक और ख़तरा बताएँ",
@@ -2021,7 +2031,7 @@ export const hi: Record<TranslationKey, string> = {
   "delivery.offlineQueued":
     "आप ऑफ़लाइन हैं। रिपोर्ट इस डिवाइस पर कतार में है और ऑनलाइन होने तक नहीं भेजी जाएगी।",
   "delivery.demoStop":
-    "स्थानीय डेमो मोड में कोई सर्वर नहीं है, इसलिए रिपोर्ट यहीं रुकती है — इस डिवाइस पर सहेजी गई, किसी को प्राप्त नहीं हुई। बैकएंड जुड़ने पर समीक्षा होगी।",
+    "स्थानीय डेमो मोड में कोई सर्वर नहीं है, इसलिए रिपोर्ट यहीं रुकती है: इस डिवाइस पर सहेजी गई, किसी को प्राप्त नहीं हुई। बैकएंड जुड़ने पर समीक्षा होगी।",
   "offline.lastSync": "अंतिम सफल सिंक",
   "offline.pending": "भेजे जाने की प्रतीक्षा में रिपोर्टें",
   "offline.notSynced": "इस डिवाइस पर अभी तक सिंक नहीं हुआ",
@@ -2712,7 +2722,7 @@ export const hi: Record<TranslationKey, string> = {
   'status.channel.seededData': 'साथ में दिया नमूना डेटा, लाइव फ़ीड नहीं',
   'status.disclaimer':
     'यह पृष्ठ कॉन्फ़िगरेशन और इस डिवाइस पर दिखे अंतिम परिणाम बताता है। यह किसी सेवा को जाँचता नहीं, और कनेक्शन से रिपोर्ट भेजे जाने की पुष्टि नहीं होती।',
-  'nav.homeLabel': 'राहप्रहरी — होम',
+  'nav.homeLabel': 'राहप्रहरी होम',
   'nav.footer': 'फ़ुटर',
   'nav.contributions': 'योगदान',
   'nav.section': 'वर्तमान भाग',

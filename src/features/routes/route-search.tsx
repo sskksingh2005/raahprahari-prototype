@@ -133,7 +133,7 @@ export function RouteSearchCard({
             type="button"
             variant="outline"
             size="icon-lg"
-            className="size-11 rounded-full"
+            className="size-11 rounded-md"
             onClick={() => {
               setFrom(to);
               setTo(from);
@@ -156,7 +156,7 @@ export function RouteSearchCard({
           <Button
             type="submit"
             disabled={!valid}
-            className="h-12 rounded-xl px-6 text-base font-semibold"
+            className="h-12 rounded-md px-6 text-base font-semibold"
           >
             <Search />
             {t("search.submit")}
@@ -191,7 +191,7 @@ export function RouteSearchCard({
         <Button
           type="submit"
           disabled={!valid}
-          className="h-12 w-full rounded-xl text-base font-semibold"
+          className="h-12 w-full rounded-md text-base font-semibold"
         >
           <Search />
           {t("search.submit")}
@@ -212,7 +212,7 @@ export function RouteSearchCard({
                 onClick={() => pick(id)}
                 aria-pressed={selected}
                 className={cn(
-                  "rp-press min-h-11 rounded-full border px-3 text-sm",
+                  "rp-press min-h-11 rounded-md border px-3 text-sm",
                   selected
                     ? "border-brand-orange bg-brand-orange/15 text-foreground"
                     : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
@@ -254,7 +254,7 @@ export function RouteSearchCard({
                     setFrom(r.from);
                     setTo(r.to);
                   }}
-                  className="glass-pill inline-flex min-h-11 items-center gap-1.5 px-3 text-sm hover:bg-(--glass-hover)"
+                  className="glass inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm hover:bg-(--glass-hover)"
                 >
                   <RotateCcw
                     aria-hidden

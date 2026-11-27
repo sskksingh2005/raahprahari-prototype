@@ -112,6 +112,34 @@ describe("light theme visual rules", () => {
   });
 });
 
+describe("traveller and map surfaces follow the shared theme", () => {
+  const traveller = read("routes/traveller.tsx");
+  const travellerCss = read("routes/traveller.css");
+  const report = read("features/reports/report-step-page.tsx");
+  const mapCss = read("routes/map.css");
+
+  it("does not force dark mode on traveller or report screens", () => {
+    expect(traveller).not.toMatch(/traveller-(?:page|landing|results-page)\s+dark/);
+    expect(report).not.toMatch(/className="dark(?:\s|")/);
+  });
+
+  it("lets the traveller search column grow with its content", () => {
+    expect(travellerCss).not.toMatch(
+      /\.traveller-search-panel\s*\{[^}]*overflow-y:\s*auto/s,
+    );
+    expect(travellerCss).not.toMatch(
+      /\.traveller-landing\s*\{[^}]*?(?:^|[\s;])height:\s*calc\(/ms,
+    );
+  });
+
+  it("uses shared glass opacity and keeps every map legend entry visible", () => {
+    expect(mapCss).not.toMatch(/--glass-panel(?:-strong)?:/);
+    expect(mapCss).not.toMatch(
+      /\.rp-map-legend\.rp-lmap-legend li:has\([^}]*display:\s*none/s,
+    );
+  });
+});
+
 describe("app shell layout does not overlap or hide content", () => {
   const shell = [
     "app-shell",

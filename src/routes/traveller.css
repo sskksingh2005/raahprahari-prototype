@@ -5,7 +5,7 @@
   min-width: 0;
   overflow-x: clip;
   background: transparent;
-  color: var(--text-on-charcoal);
+  color: var(--foreground);
 }
 
 /* Desktop: form column and map column, both allowed to shrink (minmax(0, …)),
@@ -355,7 +355,7 @@
   left: 0.65rem;
   display: flex;
   gap: 0.15rem;
-  border-radius: 999px;
+  border-radius: 0.75rem;
   padding: 0.2rem;
 }
 
@@ -365,7 +365,7 @@
   align-items: center;
   gap: 0.35rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: 0.5rem;
   background: transparent;
   padding: 0.3rem 0.65rem;
   color: var(--tone-bed0d8);
@@ -377,6 +377,8 @@
 .traveller-map-toggle button[aria-pressed="true"] {
   background: var(--tone-087ccb);
   color: var(--tone-ffffff);
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 currentColor;
 }
 
 .traveller-map-toggle svg {
@@ -944,24 +946,9 @@
   font-size: 0.75rem;
 }
 
-/* Desktop with the rail: the landing fills exactly the screen below the app
-   shell's top bar. The map takes the remaining height; if the form column ever
-   needs more room than the screen has, it scrolls inside its own column
-   instead of the whole page. */
+/* Desktop with the rail: the page keeps at least one viewport of content and
+   grows naturally if the search or map needs more room. */
 @media (min-width: 1280px) {
-  .traveller-landing {
-    height: calc(100svh - var(--rp-top-h));
-    min-height: 0;
-  }
-
-  .traveller-search-panel {
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    align-items: safe center;
-    scrollbar-width: thin;
-  }
-
   .traveller-map-panel {
     min-height: 0;
     padding: 1rem;

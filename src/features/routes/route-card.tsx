@@ -148,7 +148,9 @@ export function RouteCard({
         <Metric
           label={t("results.latest")}
           value={
-            summary.latestObservationAt ? ago(summary.latestObservationAt) : "—"
+            summary.latestObservationAt
+              ? ago(summary.latestObservationAt)
+              : t("copy.noRecent")
           }
         />
         <Metric label={t("results.hazards")} value={summary.hazardCount} />
@@ -181,7 +183,7 @@ export function RouteCard({
       <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
         <Button
           variant="secondary"
-          className="h-auto min-h-11 rounded-xl py-2 whitespace-normal"
+          className="h-auto min-h-11 rounded-md py-2 whitespace-normal"
           onClick={onCompare}
         >
           <MapIcon />
@@ -189,7 +191,7 @@ export function RouteCard({
         </Button>
         <Button
           variant="secondary"
-          className="h-auto min-h-11 rounded-xl py-2 whitespace-normal"
+          className="h-auto min-h-11 rounded-md py-2 whitespace-normal"
           onClick={onDetails}
         >
           <List />
@@ -197,7 +199,7 @@ export function RouteCard({
         </Button>
         <Button
           variant="outline"
-          className="h-auto min-h-11 rounded-xl py-2 whitespace-normal"
+          className="h-auto min-h-11 rounded-md py-2 whitespace-normal"
           onClick={onToggleSave}
           aria-pressed={saved}
         >
@@ -211,7 +213,7 @@ export function RouteCard({
         <Button
           asChild
           variant="outline"
-          className="h-auto min-h-11 rounded-xl py-2 whitespace-normal"
+          className="h-auto min-h-11 rounded-md py-2 whitespace-normal"
         >
           <Link to="/report" search={{ segment: route.segments[0]?.id }}>
             <TriangleAlert />

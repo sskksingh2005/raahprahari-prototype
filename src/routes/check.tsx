@@ -198,7 +198,7 @@ function CheckPage() {
                     aria-pressed={sort === k}
                     onClick={() => setSort(k)}
                     className={cn(
-                      "glass-pill min-h-10 px-3.5 text-sm",
+                      "glass min-h-10 rounded-md px-3.5 text-sm",
                       sort === k
                         ? "border-foreground/60 font-medium"
                         : "text-muted-foreground hover:text-foreground",
@@ -226,7 +226,7 @@ function CheckPage() {
               <Button
                 asChild
                 variant="outline"
-                className="mt-5 h-11 rounded-xl"
+                className="mt-5 h-11 rounded-md"
               >
                 <Link to="/check" search={{ view: "list" }}>
                   {t("nav.advisories")}
@@ -280,7 +280,7 @@ function CheckPage() {
             <div
               role="group"
               aria-label={`${t("view.map")} / ${t("view.list")}`}
-              className="glass-pill inline-flex p-1"
+              className="glass inline-flex rounded-lg p-1"
             >
               {(["map", "list"] as const).map((v) => (
                 <button
@@ -289,7 +289,7 @@ function CheckPage() {
                   aria-pressed={view === v}
                   onClick={() => setView(v)}
                   className={cn(
-                    "inline-flex min-h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium",
+                    "inline-flex min-h-10 items-center gap-1.5 rounded-md px-4 text-sm font-medium",
                     view === v
                       ? "glass-accent text-foreground"
                       : "text-muted-foreground hover:text-foreground",
@@ -319,7 +319,7 @@ function CheckPage() {
                   aria-pressed={filter === f}
                   onClick={() => setFilter(f)}
                   className={cn(
-                    "glass-pill min-h-10 px-3.5 text-sm",
+                    "glass min-h-10 rounded-md px-3.5 text-sm",
                     filter === f
                       ? "border-foreground/60 font-medium"
                       : "text-muted-foreground hover:text-foreground",

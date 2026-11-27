@@ -20,7 +20,7 @@ export function prefersReducedMotion(): boolean {
   )
 }
 
-/** Elements that fade and rise in once, the first time they are scrolled into view. */
+/** Elements that fade in once, the first time they are scrolled into view. */
 export const REVEAL_SELECTOR = '[data-reveal], .rp-info-card, .help-reminder, .help-page-footer'
 
 /** Fades the main region in with a small upward motion on every route change. */
@@ -149,7 +149,7 @@ export function BackToTop() {
       data-visible={visible}
       // Below 1024px: bottom-left, 1.5rem above the shell's tab bar. From 1024px
       // the rail fills the left edge, so it moves to the right, above the ribbon.
-      className="rp-fab fixed bottom-[calc(var(--shell-tabs-height)+1.5rem+env(safe-area-inset-bottom))] left-3 z-(--z-bottom-nav) rounded-full border border-border shadow-lg lg:right-4 lg:bottom-12 lg:left-auto"
+      className="rp-fab fixed bottom-[calc(var(--shell-tabs-height)+1.5rem+env(safe-area-inset-bottom))] left-3 z-(--z-bottom-nav) rounded-md border border-border shadow-lg lg:right-4 lg:bottom-12 lg:left-auto"
       onClick={() => scrollContentToTop(prefersReducedMotion() ? 'auto' : 'smooth')}
     >
       <ArrowUp />
