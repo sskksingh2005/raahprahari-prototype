@@ -60,7 +60,8 @@ afterEach(async () => {
 });
 
 describe("AI suggestions while signed out", () => {
-  it("explains sign-in is required, sends nothing and keeps manual reporting", async () => {
+  it("allows guest suggestions and keeps manual reporting available", async () => {
+    invoke.mockResolvedValue(success);
     setAccountSession({ status: "signed_out", userId: null });
     const navigate = vi.fn();
     const user = userEvent.setup();
@@ -73,11 +74,26 @@ describe("AI suggestions while signed out", () => {
     );
 
     expect(
-      await screen.findByText(/Sign in to use AI suggestions\./),
-    ).toHaveTextContent("Your description is kept.");
-    expect(invoke).not.toHaveBeenCalled();
+      await screen.findByRole("heading", {
+        name: "AI suggestion — review and edit",
+      }),
+    ).toBeInTheDocument();
+    expect(invoke).toHaveBeenCalledWith(
+      "extract-hazard",
+      expect.objectContaining({
+        body: { description: "Rocks on the road" },
+        headers: {
+          "x-guest-id": expect.stringMatching(/^[0-9a-f-]{36}$/i),
+        },
+      }),
+    );
     expect(description).toHaveValue("Rocks on the road");
 
+    await user.click(screen.getByRole("button", { name: "Reject: Source" }));
+    await user.click(
+      screen.getByRole("button", { name: "Reject: Road affected" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Reject: Hazard" }));
     await user.click(screen.getByRole("button", { name: "Continue" }));
     expect(navigate).toHaveBeenCalledWith("/report/photo");
     await waitFor(() =>

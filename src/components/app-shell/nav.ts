@@ -134,10 +134,5 @@ export function sectionLabel(
   return null;
 }
 
-/** Routes with their own road search; the shell search is hidden there. */
-export function shellSearchHidden(pathname: string) {
-  return pathname === "/traveller" || pathname === "/map";
-}
-
 export const RAIL_COLLAPSED_KEY = "rp.rail.collapsed";
 export const BANNER_DISMISSED_KEY = "rp.shell.bannerDismissed";

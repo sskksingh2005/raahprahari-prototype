@@ -1,6 +1,28 @@
 import { applyAuthSession } from "@/lib/account-session";
 import { SupabaseConfigError, getSupabaseClient } from "@/lib/supabase";
 
+/** Normalize account identifiers consistently before sending them to Supabase. */
+export function normalizeAuthEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+/** Logs only provider message/code/status in development, never request data. */
+export function logAuthProviderError(
+  action: "sign-in" | "sign-up",
+  error: unknown,
+): void {
+  if (!import.meta.env.DEV) return;
+  const detail =
+    error && typeof error === "object"
+      ? (error as { message?: unknown; code?: unknown; status?: unknown })
+      : {};
+  console.error(`[auth] ${action} rejected`, {
+    message: typeof detail.message === "string" ? detail.message : undefined,
+    code: typeof detail.code === "string" ? detail.code : undefined,
+    status: typeof detail.status === "number" ? detail.status : undefined,
+  });
+}
+
 /**
  * Signup, password recovery and email-link handling on top of the shared
  * Supabase client. Every result reflects what Supabase actually returned.
@@ -77,7 +99,7 @@ export async function signUpWithEmail(
   password: string,
 ): Promise<SignUpResult> {
   const { data, error } = await getSupabaseClient().auth.signUp({
-    email,
+    email: normalizeAuthEmail(email),
     password,
     options: { emailRedirectTo: callbackUrl() },
   });

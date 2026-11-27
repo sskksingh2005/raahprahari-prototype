@@ -1,23 +1,35 @@
 # Environments
 
-RaahPrahari runs in three isolated environments. Each has its own Supabase project, keys and secrets.
+RaahPrahari has three isolated environments. Each environment must use its own
+Supabase project, public client config, and server secrets. Never point two
+environments at the same project or reuse credentials between them.
 
-| Environment | `APP_ENV` value | Purpose                             | Data                     |
-| ----------- | --------------- | ----------------------------------- | ------------------------ |
-| Development | `development`   | Local testing                       | Test data                |
-| Demo        | `demo`          | Judges, partners and demonstrations | Synthetic data only      |
-| Pilot       | `pilot`         | Authorized partner trial            | Real data after approval |
+| Environment | `APP_ENV` / `VITE_APP_ENV` | Purpose                              | Data and boundary                                                                                                                                           |
+| ----------- | -------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Development | `development`              | Local implementation and testing     | Dedicated development project; test/synthetic data only.                                                                                                    |
+| Demo        | `demo`                     | Judges, partners, and demonstrations | Separate demo project; synthetic data and isolated demo identities only.                                                                                    |
+| Pilot       | `pilot`                    | Authorized partner trial             | Separate pilot project. Inactive until partner authorization, staffed review, legal/privacy review, and release approval; real data only after those gates. |
+
+These are operational boundaries, not claims that separate remote projects
+have been provisioned. The pilot is preparation-only until its activation
+gates are met.
 
 ## Rules
 
-1. Each environment uses a separate Supabase project. Never point two environments at one project.
-2. Each environment uses its own keys and secrets. Never reuse a key across environments.
-3. Demo uses only synthetic data and isolated demo identities. Do not load real reports or real accounts.
-4. Pilot stays inactive until all of these are in place: authorized partners, staffed review, legal and privacy review, and release approval.
-5. `VITE_` variables are public. The build copies them into the browser bundle.
-6. The `service_role` key (and the newer `sb_secret_` key) is server-only. It never goes in a `VITE_` variable or in frontend code.
-7. Real `.env` files are never committed. Only the blank `.env.example` files are tracked.
-8. In connected mode, roles come from the backend. Do not switch roles on the client.
+1. Keep development, demo, and pilot Supabase projects, keys, and secrets
+   separate.
+2. Demo uses synthetic data and isolated identities only; never load real
+   reports or accounts into it.
+3. Keep pilot inactive until its approval gates are satisfied.
+4. `VITE_` variables are public: Vite can include them in browser bundles.
+   Only non-secret values belong there (for example `VITE_APP_ENV`, the
+   Supabase URL, and the anon/publishable key).
+5. `GEMINI_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `sb_secret_` keys are
+   server-only. Do not put them in a `VITE_` variable or frontend source.
+6. Only blank environment templates are committed. Real `.env` files remain
+   ignored.
+7. In connected mode, authorization comes from the backend; never grant or
+   switch roles on the client.
 
 ## Banner
 
@@ -37,22 +49,32 @@ Template: `.env.example`. Copy it to `.env.local` (or `.env.demo.local` / `.env.
 | `VITE_SUPABASE_URL`      | Project URL                                       |
 | `VITE_SUPABASE_ANON_KEY` | Anon / publishable key (public, protected by RLS) |
 
-`src/config/env.ts` validates these at startup. It fails with a clear error when a value is missing or invalid, when `VITE_APP_ENV` is not one of the three values, or when the anon key is a secret key. The error names the variable and never prints its value.
+`src/config/env.ts` validates the frontend config at runtime. The Vite config
+also checks the active mode's environment before starting the dev server or
+building: it rejects secret-like `VITE_` variable names and values that look
+like Supabase service-role/secret keys. Errors name variables, never values.
+This is a guardrail, not a way to make other `VITE_` values private.
 
 ## Server variables (Edge Functions)
 
 Template: `supabase/functions/.env.example`. Copy it to `supabase/functions/.env` for local runs.
 
-| Variable                    | Required | Source                                               |
-| --------------------------- | -------- | ---------------------------------------------------- |
-| `APP_ENV`                   | Yes      | You set it. Must match the frontend `VITE_APP_ENV`.  |
-| `SUPABASE_URL`              | Yes      | Provided automatically by the Supabase runtime.      |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes      | Provided automatically by the Supabase runtime.      |
-| `AI_API_KEY`                | No       | You set it. If absent, AI is treated as unavailable. |
+| Variable                    | Required | Source                                                          |
+| --------------------------- | -------- | --------------------------------------------------------------- |
+| `APP_ENV`                   | Yes      | You set it. Must match the frontend `VITE_APP_ENV`.             |
+| `SUPABASE_URL`              | Yes      | Provided automatically by the Supabase runtime.                 |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes      | Provided automatically by the Supabase runtime.                 |
+| `GEMINI_API_KEY`            | No       | `extract-hazard` provider key; set as a Supabase secret.        |
+| `GEMINI_MODEL`              | No       | Optional preferred model; stable defaults are used as fallback. |
 
 Do not declare `SUPABASE_*` variables in the example file. Custom secrets starting with `SUPABASE_` cannot be set.
 
-`supabase/functions/_shared/env.ts` exports `loadServerEnv()` and `safeEnvSummary()`. Call `loadServerEnv()` when a function starts. It throws one error that lists every problem by variable name. `safeEnvSummary()` returns only booleans and the environment name, so it is safe to log.
+`supabase/functions/_shared/env.ts` exports `loadServerEnv()` and
+`safeEnvSummary()`. The helper validates `APP_ENV`, the Supabase runtime URL
+and service-role key, and the optional `GEMINI_API_KEY`; diagnostics contain
+variable names only. `safeEnvSummary()` returns only booleans and the
+environment name. The current `extract-hazard` entrypoint reads its runtime
+variables directly; it is deliberately unchanged by BE1-03.
 
 ## Setup
 
@@ -61,33 +83,46 @@ Do not declare `SUPABASE_*` variables in the example file. Custom secrets starti
 1. `cp .env.example .env.local` (Windows: `copy .env.example .env.local`).
 2. Create a dedicated development Supabase project. Fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, and set `VITE_APP_ENV=development`.
 3. `cp supabase/functions/.env.example supabase/functions/.env` and set `APP_ENV=development`.
-4. Set secrets for the project: `supabase secrets set APP_ENV=development` (add `AI_API_KEY` if needed).
-5. `pnpm dev`. The development banner should appear.
+4. Set server secrets only on the dedicated development project:
+   `npx supabase secrets set APP_ENV=development GEMINI_API_KEY=...`.
+5. Apply the required migrations to that development project and deploy the
+   public-callable function:
+   `npx supabase db push` and `npx supabase functions deploy extract-hazard --no-verify-jwt`.
+6. `pnpm dev`. The development banner should appear.
 
 ### Demo
 
-1. Create a separate demo Supabase project with its own keys. Load synthetic data only.
-2. Create `.env.demo.local` with `VITE_APP_ENV=demo` and the demo project's URL and anon key.
-3. Set `APP_ENV=demo` as a secret on the demo project.
+1. Create a separate demo Supabase project with its own keys; load synthetic
+   data and create isolated demo identities only.
+2. Create `.env.demo.local` with `VITE_APP_ENV=demo` and the demo project's URL
+   and anon key.
+3. Set `APP_ENV=demo` and any required server secrets on the demo project only.
 4. `pnpm exec vite --mode demo`. The synthetic-data banner should appear.
 
 ### Pilot (preparation only)
 
-1. Do not create real credentials until rule 4 above is satisfied.
-2. Create a separate pilot Supabase project. Enable RLS and review policies before any real data is added.
-3. Prepare `.env.pilot.local` with `VITE_APP_ENV=pilot`, and set `APP_ENV=pilot` as a secret on the pilot project.
-4. Release approval is a manual step. The pilot build shows no banner, so confirm the environment before announcing it.
+1. Keep pilot inactive and do not create or use real credentials until all
+   activation gates above are satisfied.
+2. Create a separate pilot Supabase project; enable RLS and review policies
+   before any real data is added.
+3. Prepare `.env.pilot.local` with `VITE_APP_ENV=pilot`, and set `APP_ENV=pilot`
+   and required server secrets on the pilot project only.
+4. Release approval is a manual step. The pilot build shows no banner, so
+   independently confirm the environment before announcing it.
 
 ## Validation
 
 ```bash
-pnpm check:env      # example files are blank, no secret names, .gitignore rules are correct
-pnpm typecheck
-pnpm test
-pnpm build
+pnpm check:env      # example files are blank and .gitignore rules are correct
+pnpm dev            # Vite checks client-exposed variables before startup
+pnpm build          # Vite checks client-exposed variables before bundling
 ```
 
-`check:env` prints `check:env OK` on success. It fails if an example file has a value, a frontend variable lacks the `VITE_` prefix, a secret-like name appears, a server example declares `VITE_` or `SUPABASE_` variables, or `.gitignore` is missing a rule.
+`check:env` prints `check:env OK` on success. It fails if an example file has
+a value, a frontend example variable lacks the `VITE_` prefix, a secret-like
+name appears, a server example declares `VITE_` or `SUPABASE_` variables, or
+`.gitignore` is missing a rule. The Vite config independently blocks unsafe
+client-exposed names and service-role/secret key values before bundling.
 
 ## If a secret leaks
 

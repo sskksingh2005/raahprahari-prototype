@@ -214,9 +214,9 @@ describe("app shell: rail, top bar and bottom tabs", () => {
     expect(login).toHaveAccessibleName("Community login");
   }, 30_000);
 
-  it("the shell road search sends a query to /traveller", async () => {
+  it("the rail road search sends a query to /traveller", async () => {
     const router = await mountAt("/advisories");
-    const input = within(topBar()).getByLabelText("Search road or place");
+    const input = within(rail()).getByLabelText("Search road or place");
     fireEvent.change(input, { target: { value: "Rishikesh" } });
     fireEvent.submit(input.closest("form")!);
     await waitFor(() =>

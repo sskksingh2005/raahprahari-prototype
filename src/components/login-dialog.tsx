@@ -25,11 +25,16 @@ import { usePrefs } from "@/i18n/preferences";
 import type { TranslationKey } from "@/i18n/dictionary";
 import { applyAuthSession, useAccountSession } from "@/lib/account-session";
 import { SupabaseConfigError, getSupabaseClient } from "@/lib/supabase";
+import {
+  logAuthProviderError,
+  normalizeAuthEmail,
+} from "@/lib/auth-flows";
 import { ForgotPasswordForm, SignupForm } from "@/components/auth-forms";
 import { SignOutButton } from "@/components/sign-out-control";
 
 export type LoginErrorKind =
   | "invalid_credentials"
+  | "credentials_or_confirmation"
   | "network"
   | "not_configured"
   | "no_session"
@@ -37,6 +42,7 @@ export type LoginErrorKind =
 
 const ERROR_KEYS: Record<LoginErrorKind, TranslationKey> = {
   invalid_credentials: "login.invalidCredentials",
+  credentials_or_confirmation: "login.credentialsOrConfirmation",
   network: "login.networkError",
   not_configured: "login.notConfigured",
   no_session: "login.noSession",
@@ -50,6 +56,11 @@ export function classifyLoginError(error: unknown): LoginErrorKind {
     return "network";
   const e = (error ?? {}) as { name?: string; code?: string; status?: number };
   if (e.code === "invalid_credentials") return "invalid_credentials";
+  if (
+    e.code === "email_not_confirmed" ||
+    (e.name === "AuthApiError" && e.status === 422)
+  )
+    return "credentials_or_confirmation";
   if (e.name === "AuthApiError" && e.status === 400)
     return "invalid_credentials";
   if (
@@ -64,7 +75,7 @@ export function classifyLoginError(error: unknown): LoginErrorKind {
 /** Signs in with Supabase. Resolves only when Supabase returns a session. */
 export async function signInWithEmail(email: string, password: string) {
   const { data, error } = await getSupabaseClient().auth.signInWithPassword({
-    email,
+    email: normalizeAuthEmail(email),
     password,
   });
   if (error) throw error;
@@ -82,7 +93,10 @@ function LoginForm({ onSignedIn }: { onSignedIn: () => void }) {
   const schema = useMemo(
     () =>
       z.object({
-        email: z.email(t("login.emailInvalid")),
+        email: z
+          .string()
+          .transform(normalizeAuthEmail)
+          .pipe(z.email(t("login.emailInvalid"))),
         password: z.string().min(1, t("login.passwordRequired")),
       }),
     [t],
@@ -100,6 +114,7 @@ function LoginForm({ onSignedIn }: { onSignedIn: () => void }) {
       form.reset();
       onSignedIn();
     } catch (error) {
+      logAuthProviderError("sign-in", error);
       const kind =
         (error as { code?: string })?.code === "no_session"
           ? "no_session"

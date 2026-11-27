@@ -102,6 +102,34 @@ describe("Supabase account session bridge", () => {
     expect(getAccountSession().status).toBe("signed_out");
   });
 
+  it("does not let a stale session restore overwrite a newer auth event", async () => {
+    const fake = fakeAuth(null);
+    let resolveSession!: (
+      result: Awaited<ReturnType<SupabaseAuthLike["getSession"]>>,
+    ) => void;
+    const pendingSession = new Promise<
+      Awaited<ReturnType<SupabaseAuthLike["getSession"]>>
+    >((resolve) => {
+      resolveSession = resolve;
+    });
+    vi.mocked(fake.auth.getSession).mockReturnValue(pendingSession);
+
+    disconnect = connectSupabaseSession(fake.auth);
+    fake.emit("SIGNED_IN", {
+      access_token: "new-token",
+      expires_at: inOneHour(),
+      user: { id: "u2" },
+    });
+    resolveSession({ data: { session: null }, error: null });
+    await pendingSession;
+    await Promise.resolve();
+
+    expect(getAccountSession()).toMatchObject({
+      status: "authenticated",
+      userId: "u2",
+    });
+  });
+
   it("signs out through the provider and unsubscribes on disconnect", async () => {
     const fake = fakeAuth({
       access_token: "a",

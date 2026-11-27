@@ -3,6 +3,7 @@ import { useForm, type Control, type Path } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { CircleAlert } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,6 +19,8 @@ import type { TranslationKey } from "@/i18n/dictionary";
 import { usePrefs } from "@/i18n/preferences";
 import {
   classifyAuthFlowError,
+  logAuthProviderError,
+  normalizeAuthEmail,
   requestPasswordReset,
   signUpWithEmail,
   updatePassword,
@@ -123,7 +126,10 @@ export function SignupForm({ onSignedIn }: { onSignedIn: () => void }) {
     () =>
       z
         .object({
-          email: z.email(t("login.emailInvalid")),
+          email: z
+            .string()
+            .transform(normalizeAuthEmail)
+            .pipe(z.email(t("login.emailInvalid"))),
           ...passwordShape(t),
         })
         .refine(...passwordsMatch(t)),
@@ -139,15 +145,21 @@ export function SignupForm({ onSignedIn }: { onSignedIn: () => void }) {
   const submit = form.handleSubmit(async ({ email, password }) => {
     form.clearErrors("root");
     try {
-      const result = await signUpWithEmail(email.trim(), password);
+      const result = await signUpWithEmail(email, password);
       form.reset();
-      if (result.kind === "signed_in") onSignedIn();
-      else setCheckEmail(true);
+      if (result.kind === "signed_in") {
+        toast.success(t("signup.signedIn"));
+        onSignedIn();
+      } else setCheckEmail(true);
     } catch (error) {
+      logAuthProviderError("sign-up", error);
       form.setValue("password", "");
       form.setValue("confirm", "");
+      const kind = classifyAuthFlowError(error);
       form.setError("root", {
-        message: t(AUTH_ERROR_KEYS[classifyAuthFlowError(error)]),
+        message: t(
+          kind === "generic" ? "signup.error" : AUTH_ERROR_KEYS[kind],
+        ),
       });
     }
   });

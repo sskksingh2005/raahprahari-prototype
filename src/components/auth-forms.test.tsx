@@ -2,6 +2,7 @@ import { createRef } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { toast } from "sonner";
 import { LoginDialog } from "@/components/login-dialog";
 import {
   AuthCallbackPage,
@@ -12,6 +13,7 @@ import { getAccountSession, setAccountSession } from "@/lib/account-session";
 
 const auth = vi.hoisted(() => ({
   signUp: vi.fn(),
+  signInWithPassword: vi.fn(),
   resetPasswordForEmail: vi.fn(),
   updateUser: vi.fn(),
 }));
@@ -57,6 +59,7 @@ function openDialog() {
 }
 
 afterEach(() => {
+  vi.restoreAllMocks();
   for (const fn of Object.values(auth)) fn.mockReset();
   setAccountSession({ status: "signed_out", userId: null });
 });
@@ -91,21 +94,69 @@ describe("signup in the login dialog", () => {
     await user.click(
       screen.getByRole("button", { name: "New here? Create an account" }),
     );
-    await user.type(screen.getByLabelText("Email"), "a@example.com");
-    await user.type(screen.getByLabelText("Password"), "longpassword");
-    await user.type(screen.getByLabelText("Confirm password"), "longpassword");
+    await user.type(screen.getByLabelText("Email"), " A@Example.com ");
+    await user.type(screen.getByLabelText("Password"), " longpassword ");
+    await user.type(screen.getByLabelText("Confirm password"), " longpassword ");
     await user.click(screen.getByRole("button", { name: "Create account" }));
     expect(await screen.findByRole("status")).toHaveTextContent(
       "Check your email",
     );
     expect(onOpenChange).not.toHaveBeenCalled();
     expect(getAccountSession().status).toBe("signed_out");
+    expect(auth.signUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: "a@example.com",
+        password: " longpassword ",
+      }),
+    );
+    expect(auth.signInWithPassword).not.toHaveBeenCalled();
+  });
+
+  it("reports immediate signup success and uses signup instead of password sign-in", async () => {
+    auth.signUp.mockResolvedValue({
+      data: {
+        session: {
+          access_token: "signup-token",
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+          user: { id: "u1", email: "a@example.com" },
+        },
+        user: { id: "u1", email: "a@example.com" },
+      },
+      error: null,
+    });
+    const successToast = vi.spyOn(toast, "success");
+    const user = userEvent.setup();
+    const onOpenChange = openDialog();
+    await user.click(
+      screen.getByRole("button", { name: "New here? Create an account" }),
+    );
+    await user.type(screen.getByLabelText("Email"), " A@Example.com ");
+    await user.type(screen.getByLabelText("Password"), " longpassword ");
+    await user.type(screen.getByLabelText("Confirm password"), " longpassword ");
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
+    expect(auth.signUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: "a@example.com",
+        password: " longpassword ",
+      }),
+    );
+    expect(auth.signInWithPassword).not.toHaveBeenCalled();
+    expect(successToast).toHaveBeenCalledWith(
+      "Your account is ready and you are signed in.",
+    );
   });
 
   it("shows a translated provider error and clears the passwords", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
     auth.signUp.mockResolvedValue({
       data: { session: null, user: null },
-      error: { name: "AuthApiError", status: 422, code: "user_already_exists" },
+      error: {
+        name: "AuthApiError",
+        status: 422,
+        code: "user_already_exists",
+        message: "provider signup detail",
+      },
     });
     const user = userEvent.setup();
     openDialog();
@@ -119,6 +170,36 @@ describe("signup in the login dialog", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "An account with this email already exists.",
     );
+    expect(screen.getByLabelText("Password")).toHaveValue("");
+    expect(log).toHaveBeenCalledWith("[auth] sign-up rejected", {
+      message: "provider signup detail",
+      code: "user_already_exists",
+      status: 422,
+    });
+  });
+
+  it("shows a safe signup-specific error for unclassified provider failures", async () => {
+    auth.signUp.mockResolvedValue({
+      data: { session: null, user: null },
+      error: {
+        name: "AuthApiError",
+        status: 422,
+        code: "unexpected_provider_code",
+        message: "provider detail that should stay private",
+      },
+    });
+    const user = userEvent.setup();
+    openDialog();
+    await user.click(
+      screen.getByRole("button", { name: "New here? Create an account" }),
+    );
+    await user.type(screen.getByLabelText("Email"), "a@example.com");
+    await user.type(screen.getByLabelText("Password"), "longpassword");
+    await user.type(screen.getByLabelText("Confirm password"), "longpassword");
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Account creation failed");
+    expect(alert).not.toHaveTextContent("provider detail");
     expect(screen.getByLabelText("Password")).toHaveValue("");
   });
 });

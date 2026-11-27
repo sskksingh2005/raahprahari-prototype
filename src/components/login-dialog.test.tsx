@@ -49,6 +49,7 @@ async function submit(email = "traveller@example.com", password = "secret") {
 }
 
 afterEach(() => {
+  vi.restoreAllMocks();
   signInWithPassword.mockReset();
   getClient.mockReset();
   setAccountSession({ status: "signed_out", userId: null });
@@ -68,6 +69,32 @@ describe("login dialog", () => {
     );
     expect(onOpenChange).not.toHaveBeenCalled();
     expect(getAccountSession().status).toBe("signed_out");
+  });
+
+  it("explains 422 auth rejections without showing provider details", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    getClient.mockReturnValue({ auth: { signInWithPassword } });
+    signInWithPassword.mockResolvedValue({
+      data: { session: null, user: null },
+      error: {
+        name: "AuthApiError",
+        status: 422,
+        code: "email_not_confirmed",
+        message: "provider detail that should stay private",
+      },
+    });
+    mount();
+    await submit();
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(
+      "Check your email and password, and confirm your email address if needed.",
+    );
+    expect(alert).not.toHaveTextContent("provider detail");
+    expect(log).toHaveBeenCalledWith("[auth] sign-in rejected", {
+      message: "provider detail that should stay private",
+      code: "email_not_confirmed",
+      status: 422,
+    });
   });
 
   it("reports a network failure", async () => {
@@ -123,11 +150,11 @@ describe("login dialog", () => {
       error: null,
     });
     const onOpenChange = mount();
-    await submit();
+    await submit(" Traveller@Example.com ", " secret ");
     await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
     expect(signInWithPassword).toHaveBeenCalledWith({
       email: "traveller@example.com",
-      password: "secret",
+      password: " secret ",
     });
     expect(getAccountSession()).toMatchObject({
       status: "authenticated",
@@ -159,5 +186,12 @@ describe("classifyLoginError", () => {
     expect(classifyLoginError({ name: "AuthApiError", status: 500 })).toBe(
       "generic",
     );
+    expect(
+      classifyLoginError({
+        name: "AuthApiError",
+        status: 422,
+        code: "email_not_confirmed",
+      }),
+    ).toBe("credentials_or_confirmation");
   });
 });

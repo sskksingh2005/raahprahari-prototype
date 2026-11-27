@@ -1,10 +1,5 @@
-import {
-  useState,
-  type FormEvent,
-  type MouseEvent,
-  type RefObject,
-} from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { type MouseEvent } from "react";
+import { Link } from "@tanstack/react-router";
 import { ChevronDown, Search, TriangleAlert, UserRound } from "lucide-react";
 import { useScrolled } from "@/components/motion";
 import { Button } from "@/components/ui/button";
@@ -42,37 +37,10 @@ function ReportButton({ className }: { className?: string }) {
   );
 }
 
-/** Desktop top bar (56px): search, flexible space, status chip, report. */
-export function DesktopTopBar({
-  status,
-  showSearch,
-  searchRef,
-}: {
-  status: ShellStatus;
-  showSearch: boolean;
-  searchRef: RefObject<HTMLInputElement | null>;
-}) {
-  const { t } = usePrefs();
-  const navigate = useNavigate();
-  const [query, setQuery] = useState("");
+/** Desktop top bar (56px): flexible space, status chip, report. */
+export function DesktopTopBar({ status }: { status: ShellStatus }) {
   // Clear over the page at the top; frosted glass once content scrolls under it.
   const scrolled = useScrolled(4);
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    const value = query.trim();
-    // The existing road search lives at /traveller and reads ?q=.
-    void navigate({
-      to: "/traveller",
-      search: {
-        q: value || undefined,
-        from: undefined,
-        to: undefined,
-        view: undefined,
-        seg: undefined,
-      },
-    });
-  };
 
   return (
     <header
@@ -82,32 +50,6 @@ export function DesktopTopBar({
       data-scrolled={scrolled}
       className="rp-shell rp-topbar sticky top-0 z-(--z-header) flex h-14 shrink-0 items-center gap-3 border-b px-4 text-shell-text max-lg:hidden"
     >
-      {showSearch ? (
-        <form
-          role="search"
-          onSubmit={submit}
-          className="relative w-full max-w-xl"
-        >
-          <label htmlFor="shell-search" className="sr-only">
-            {t("shell.search")}
-          </label>
-          <Search
-            aria-hidden
-            // The glass input (backdrop-filter) paints its own layer, so the icon sits above it.
-            className="pointer-events-none absolute top-1/2 left-3 z-(--z-content) size-4 -translate-y-1/2 text-shell-muted"
-          />
-          <input
-            id="shell-search"
-            ref={searchRef}
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t("shell.search")}
-            aria-keyshortcuts="Control+K Meta+K"
-            className="glass h-11 w-full rounded-2xl pr-3 pl-9 text-sm text-shell-text placeholder:text-shell-muted"
-          />
-        </form>
-      ) : null}
       <div className="flex-1" />
       <StatusChip status={status} />
       <ReportButton />

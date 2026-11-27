@@ -25,17 +25,14 @@ export const VEHICLE_APPLICABILITY = [
 
 export const MAX_DESCRIPTION_LENGTH = 2000;
 /**
- * The only models used when GEMINI_MODEL is not set: a primary and one
- * fallback, both verified on this project (flash-lite-latest ~1.5 s,
- * 3.5-flash ~3.6 s). `gemini-2.5-flash` returns 404 "no longer available to
- * new users". There is no automatic model discovery: changing models is an
- * explicit code change or a GEMINI_MODEL secret.
- * Worst case per request: 2 models x (1 call + 1 retry) = 4 provider calls,
+ * The default/fallback model IDs are stable names in Google's current Gemini
+ * API. A GEMINI_MODEL override is tried first, then these defaults.
+ * Worst case per request: 3 models x (1 call + 1 retry) = 6 provider calls,
  * all inside the overall deadline.
  */
 export const MODEL_CHAIN = [
-  "gemini-flash-lite-latest",
-  "gemini-3.5-flash",
+  "gemini-3.5-flash-lite",
+  "gemini-3.8-flash",
 ] as const;
 export const DEFAULT_MODEL = MODEL_CHAIN[0];
 
@@ -64,22 +61,18 @@ function bearerToken(request: Request): string | null {
   return match?.[1].trim() || null;
 }
 
-/**
- * Calls public.consume_ai_quota through PostgREST with the service-role key
- * (server-side only; the RPC is not executable by anon or authenticated).
- * Any error or unexpected shape is reported as { ok: false } so the caller
- * fails closed.
- */
-export async function consumeQuotaViaRpc(
+/** Calls a server-only quota RPC and reports unavailable separately from denial. */
+async function callQuotaRpc(
   fetchFn: typeof fetch,
   supabaseUrl: string | undefined,
   serviceRoleKey: string | undefined,
-  userId: string,
+  functionName: "consume_ai_quota" | "consume_ai_guest_quota",
+  args: Record<string, string | number>,
 ): Promise<QuotaResult> {
   if (!supabaseUrl || !serviceRoleKey) return { ok: false };
   try {
     const res = await fetchFn(
-      `${supabaseUrl.replace(/\/+$/, "")}/rest/v1/rpc/consume_ai_quota`,
+      `${supabaseUrl.replace(/\/+$/, "")}/rest/v1/rpc/${functionName}`,
       {
         method: "POST",
         headers: {
@@ -87,11 +80,7 @@ export async function consumeQuotaViaRpc(
           apikey: serviceRoleKey,
           Authorization: `Bearer ${serviceRoleKey}`,
         },
-        body: JSON.stringify({
-          p_user_id: userId,
-          p_limit: AI_QUOTA_LIMIT,
-          p_window_seconds: AI_QUOTA_WINDOW_SECONDS,
-        }),
+        body: JSON.stringify(args),
         signal: AbortSignal.timeout(5_000),
       },
     );
@@ -109,6 +98,44 @@ export async function consumeQuotaViaRpc(
   } catch {
     return { ok: false };
   }
+}
+
+export function consumeQuotaViaRpc(
+  fetchFn: typeof fetch,
+  supabaseUrl: string | undefined,
+  serviceRoleKey: string | undefined,
+  userId: string,
+): Promise<QuotaResult> {
+  return callQuotaRpc(
+    fetchFn,
+    supabaseUrl,
+    serviceRoleKey,
+    "consume_ai_quota",
+    {
+      p_user_id: userId,
+      p_limit: AI_QUOTA_LIMIT,
+      p_window_seconds: AI_QUOTA_WINDOW_SECONDS,
+    },
+  );
+}
+
+export function consumeGuestQuotaViaRpc(
+  fetchFn: typeof fetch,
+  supabaseUrl: string | undefined,
+  serviceRoleKey: string | undefined,
+  guestKey: string,
+): Promise<QuotaResult> {
+  return callQuotaRpc(
+    fetchFn,
+    supabaseUrl,
+    serviceRoleKey,
+    "consume_ai_guest_quota",
+    {
+      p_guest_key: guestKey,
+      p_limit: AI_QUOTA_LIMIT,
+      p_window_seconds: AI_QUOTA_WINDOW_SECONDS,
+    },
+  );
 }
 
 /**
@@ -157,8 +184,12 @@ export const AI_QUOTA_WINDOW_SECONDS = 60;
 export interface HandlerDeps {
   /** Validates the caller's access token with Supabase Auth. Required. */
   verifyUser: (token: string) => Promise<VerifyResult>;
-  /** Durable per-user quota (Postgres RPC). Required; failures fail closed. */
+  /** Durable per-user quota (Postgres RPC). */
   consumeQuota: (userId: string) => Promise<QuotaResult>;
+  /** Derives an opaque guest key from trusted network metadata or browser ID. */
+  getGuestQuotaKey: (request: Request) => Promise<string | null>;
+  /** Durable guest quota (Postgres RPC). */
+  consumeGuestQuota: (guestKey: string) => Promise<QuotaResult>;
   apiKey: string | undefined;
   model?: string;
   fetch: typeof fetch;
@@ -172,7 +203,7 @@ export interface HandlerDeps {
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-guest-id",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   // Lets the browser read Retry-After on a 429.
   "Access-Control-Expose-Headers": "Retry-After",
@@ -215,7 +246,6 @@ const RESPONSE_SCHEMA = {
     vehicleApplicability: nullableEnum(VEHICLE_APPLICABILITY),
     source: nullableEnum(SOURCES),
   },
-  required: ["hazardType", "laneDirection", "vehicleApplicability", "source"],
 };
 
 export function buildPrompt(description: string) {
@@ -267,16 +297,37 @@ export async function handleExtract(
   }
   if (request.method !== "POST") return fail(405, "method_not_allowed");
 
-  // Signed-in users only, checked before anything reaches Gemini. The public
-  // anon key is a valid JWT for the gateway but has no user, so Supabase Auth
-  // rejects it here.
-  const token = bearerToken(request);
-  if (!token) return fail(401, "auth_required");
-  const verified = await deps.verifyUser(token);
-  if (!verified.ok) {
-    return verified.reason === "unavailable"
-      ? fail(503, "auth_unavailable")
-      : fail(401, "auth_required");
+  const log = deps.log ?? (() => undefined);
+
+  // The gateway allows public-key callers; real user tokens are still
+  // verified here. Invalid supplied tokens never fall back to guest access.
+  const authorization = request.headers.get("Authorization");
+  let consumeQuota: (() => Promise<QuotaResult>) | null = null;
+  if (authorization === null) {
+    const guestId = request.headers.get("x-guest-id") ?? "";
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        guestId,
+      )
+    )
+      return fail(400, "invalid_input");
+    let guestKey: string | null;
+    try {
+      guestKey = await deps.getGuestQuotaKey(request);
+    } catch {
+      guestKey = null;
+    }
+    if (guestKey) consumeQuota = () => deps.consumeGuestQuota(guestKey);
+  } else {
+    const token = bearerToken(request);
+    if (!token) return fail(401, "auth_required");
+    const verified = await deps.verifyUser(token);
+    if (!verified.ok) {
+      return verified.reason === "unavailable"
+        ? fail(503, "auth_unavailable")
+        : fail(401, "auth_required");
+    }
+    consumeQuota = () => deps.consumeQuota(verified.userId);
   }
 
   let description: unknown;
@@ -295,18 +346,18 @@ export async function handleExtract(
   }
   if (!deps.apiKey) return fail(503, "not_configured");
 
-  const log = deps.log ?? (() => undefined);
-
-  // One quota unit per extraction request, consumed after method, auth and
-  // input checks and before any Gemini call. Model fallbacks and retries below
-  // do not consume more, and provider failures do not refund it. The user id
-  // comes only from the verified Supabase Auth user, never from the request.
-  const quota = await deps.consumeQuota(verified.userId);
-  if (!quota.ok) {
-    log("quota service unavailable; refusing request");
-    return fail(503, "quota_unavailable");
+  // One quota unit per extraction request, consumed after method, identity
+  // and input checks and before any Gemini call. Retries do not consume more.
+  // Quota storage is best-effort; only an explicit denial blocks generation.
+  let quota: QuotaResult = { ok: false };
+  try {
+    if (consumeQuota) quota = await consumeQuota();
+  } catch {
+    quota = { ok: false };
   }
-  if (!quota.allowed) {
+  if (!quota.ok) {
+    log("quota service unavailable; proceeding without quota check");
+  } else if (!quota.allowed) {
     const retryAfter = Math.max(1, Math.ceil(quota.retryAfterSeconds));
     return json(
       429,
@@ -349,11 +400,15 @@ export async function handleExtract(
   const deadline = Date.now() + timeoutMs;
   const sleep =
     deps.sleep ?? ((ms: number) => new Promise((r) => setTimeout(r, ms)));
-  // A pinned GEMINI_MODEL is used alone. Otherwise try the last model that
-  // worked in this instance, then the fallback chain.
-  const chain = configured
-    ? [configured]
-    : [...new Set([...(workingModel ? [workingModel] : []), ...MODEL_CHAIN])];
+  // Try a configured override and last-known-good first, while retaining the
+  // stable defaults as fallbacks for retired or unavailable model IDs.
+  const chain = [
+    ...new Set([
+      ...(configured ? [configured] : []),
+      ...(workingModel ? [workingModel] : []),
+      ...MODEL_CHAIN,
+    ]),
+  ];
   let model = chain[0];
   let upstream!: Response;
   try {
@@ -372,7 +427,7 @@ export async function handleExtract(
         upstream = await call(model, deadline);
       }
       if (upstream.ok) {
-        workingModel = configured ? workingModel : model;
+        workingModel = model;
         break;
       }
       // 404: Google retired the name ("no longer available to new users").
@@ -393,20 +448,17 @@ export async function handleExtract(
   }
 
   if (!upstream.ok) {
-    // Google's error body names the reason (e.g. INVALID_ARGUMENT, NOT_FOUND).
-    // It never contains the key; log it so failures are diagnosable.
+    // Keep diagnostics to provider status/code; provider messages may echo input.
     let reason = "";
-    let message = "";
     try {
       const body = (await upstream.json()) as {
-        error?: { status?: string; message?: string };
+        error?: { status?: string };
       };
       reason = body.error?.status ?? "";
-      message = body.error?.message ?? "";
     } catch {
       // Non-JSON provider error.
     }
-    log(`gemini ${upstream.status} ${reason}: ${message.slice(0, 300)}`);
+    log(`gemini ${upstream.status} ${reason || "unknown"} on ${model}`);
     return fail(502, "upstream_error", {
       stage: "provider",
       providerStatus: upstream.status,
@@ -439,7 +491,9 @@ export async function handleExtract(
     });
   }
   try {
-    return json(200, { suggestions: normalizeSuggestions(JSON.parse(text)) });
+    return json(200, {
+      suggestions: normalizeSuggestions(parseJsonObject(text)),
+    });
   } catch {
     log("gemini text was not valid JSON");
     return fail(502, "upstream_error", { stage: "parse", model });
@@ -479,4 +533,27 @@ export function responseText(body: GeminiResponse): string {
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/, "")
     .trim();
+}
+
+/** Parses the first complete JSON object, including one wrapped in prose/fences. */
+export function parseJsonObject(text: string): unknown {
+  const start = text.indexOf("{");
+  if (start < 0) throw new SyntaxError("No JSON object in model response.");
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < text.length; index++) {
+    const char = text[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === "{") depth++;
+    else if (char === "}" && --depth === 0)
+      return JSON.parse(text.slice(start, index + 1));
+  }
+  throw new SyntaxError("Incomplete JSON object in model response.");
 }
