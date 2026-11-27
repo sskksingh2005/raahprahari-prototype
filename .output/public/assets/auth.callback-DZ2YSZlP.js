@@ -1,0 +1,1 @@
+import{r as e}from"./rolldown-runtime-pP25SEvz.js";import{t}from"./react-DXWzCIQQ.js";import{t as n}from"./jsx-runtime-dC67yryO.js";import{t as r}from"./useNavigate-B12D_bmu.js";import{t as i}from"./auth-pages-qvS-UbgK.js";var a=e(t()),o=n();function s(){let e=r(),t=(0,a.useCallback)(t=>void e({to:t,replace:!0}),[e]);return(0,o.jsx)(i,{onContinue:t})}export{s as component};
