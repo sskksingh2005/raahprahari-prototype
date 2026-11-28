@@ -24,19 +24,37 @@ export interface RoutingProvider {
 }
 
 const MAX_ROUTES = 3
+const MAX_CANDIDATE_PATHS = 50
 
 type Edge = { to: string; segment: Segment }
-const graph = new Map<string, Edge[]>()
-for (const s of SEGMENTS) {
-  graph.set(s.from, [...(graph.get(s.from) ?? []), { to: s.to, segment: s }])
-  graph.set(s.to, [...(graph.get(s.to) ?? []), { to: s.from, segment: s }])
+function buildGraph(segments: readonly Segment[]) {
+  const graph = new Map<string, Edge[]>()
+  for (const segment of segments) {
+    graph.set(segment.from, [
+      ...(graph.get(segment.from) ?? []),
+      { to: segment.to, segment },
+    ])
+    graph.set(segment.to, [
+      ...(graph.get(segment.to) ?? []),
+      { to: segment.from, segment },
+    ])
+  }
+  return graph
 }
 
-export function findSeededRoutes(fromId: string, toId: string): RouteOption[] {
+const seededGraph = buildGraph(SEGMENTS)
+
+export function findSeededRoutes(
+  fromId: string,
+  toId: string,
+  segments: readonly Segment[] = SEGMENTS,
+  maxRoutes = MAX_ROUTES,
+): RouteOption[] {
+  const graph = segments === SEGMENTS ? seededGraph : buildGraph(segments)
   if (fromId === toId || !graph.has(fromId) || !graph.has(toId)) return []
   const found: { nodes: string[]; segs: Segment[] }[] = []
   const visit = (node: string, nodes: string[], segs: Segment[]) => {
-    if (found.length > 50 || segs.length > 16) return
+    if (found.length >= MAX_CANDIDATE_PATHS || segs.length > 16) return
     if (node === toId) {
       found.push({ nodes, segs })
       return
@@ -58,7 +76,7 @@ export function findSeededRoutes(fromId: string, toId: string): RouteOption[] {
       corridorIds: [...new Set(segs.map((s) => s.corridorId))],
     }))
     .sort((a, b) => a.typicalMinutes - b.typicalMinutes)
-    .slice(0, MAX_ROUTES)
+    .slice(0, Math.max(0, Math.min(maxRoutes, MAX_CANDIDATE_PATHS)))
 }
 
 export const seededRoutingProvider: RoutingProvider = {

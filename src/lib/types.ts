@@ -53,6 +53,23 @@ export interface Segment {
   path: [number, number][]
 }
 
+export type NetworkQuality = 'strong' | 'moderate' | 'weak' | 'dead_zone'
+export type NetworkCarrier = 'jio' | 'airtel' | 'bsnl'
+export type NetworkCarrierFilter = 'all' | NetworkCarrier
+
+export interface NetworkCoverage {
+  segmentId: string
+  quality: NetworkQuality
+  carrierCoverage: Record<NetworkCarrier, NetworkQuality>
+  estimatedBandwidthTier: '4G/5G' | '3G-4G intermittent' | '2G-3G fallback' | 'No service'
+  estimatedLatencyTier: '<100 ms' | '100-300 ms' | '>300 ms' | 'unavailable'
+  deadZoneLengthKm: number
+  lastVerifiedAt: number
+  sampleCount: number
+  offlineSyncAdvice: { en: string; hi: string }
+  emergencyPointBeforeDeadZone: string
+}
+
 export type HazardType =
   | 'landslide'
   | 'rockfall'

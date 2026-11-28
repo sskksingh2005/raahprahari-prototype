@@ -2,7 +2,7 @@
 import { env } from "../config/env";
 
 export function EnvBanner() {
-  // Only demo shows a banner (synthetic-data warning). Development and pilot show none.
+  // Only demo shows a banner (synthetic-data warning); other environments show none.
   if (env.appEnv !== "demo") return null;
 
   const text =

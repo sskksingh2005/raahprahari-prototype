@@ -19,7 +19,17 @@ export function AuthSessionBridge() {
     if (!isSupabaseConfigured()) return;
     let disconnect: (() => void) | undefined;
     try {
-      disconnect = connectSupabaseSession(getSupabaseClient().auth);
+      const client = getSupabaseClient();
+      disconnect = connectSupabaseSession(client.auth, async (userId) => {
+        const { data, error } = await client
+          .from("profiles")
+          .select("role")
+          .eq("id", userId)
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error("Authenticated user has no profile row.");
+        return data.role;
+      });
     } catch (error) {
       // Only an unexpected failure gets here, so it is still reported.
       console.error(error instanceof Error ? error.message : error);

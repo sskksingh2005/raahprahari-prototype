@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PreferencesProvider } from '@/i18n/preferences'
 import { PLACES, SEGMENTS } from '@/data/fixtures'
 import { LeafletMapLegend, LeafletSegmentMap, TILE_FAILURE_THRESHOLD } from './leaflet-segment-map'
+import type { PlannedRoute } from '@/lib/route-planner'
 
 // jsdom has no layout. Give elements a size so Leaflet computes a viewport and requests tiles.
 beforeEach(() => {
@@ -50,7 +51,7 @@ describe('LeafletSegmentMap', () => {
     expect(lines(container)).toHaveLength(2)
     expect(container.querySelector('.leaflet-control-attribution')).toHaveTextContent('© OpenStreetMap contributors')
     expect(container.querySelector('.leaflet-tile-pane')).not.toBeNull()
-    expect(screen.getByText('Prototype mockup, synthetic data')).toBeInTheDocument()
+    expect(screen.queryByText('Prototype mockup, synthetic data')).not.toBeInTheDocument()
     expect(screen.getByText('Road lines: approximate, synthetic data')).toBeInTheDocument()
   })
 
@@ -104,6 +105,80 @@ describe('LeafletSegmentMap', () => {
     )
     await waitFor(() => expect(markerFor(container, 'nh7-03')).toHaveAttribute('aria-pressed', 'true'))
     expect(container.querySelectorAll('path.rp-lmap-line.is-selected')).toHaveLength(1)
+  })
+
+  it('draws the optional network layer and exposes carrier filtering controls', async () => {
+    const onNetworkHeatmapChange = vi.fn()
+    const onNetworkCarrierChange = vi.fn()
+    const { container } = renderMap({
+      networkHeatmap: true,
+      onNetworkHeatmapChange,
+      onNetworkCarrierChange,
+    })
+    await waitFor(() =>
+      expect(container.querySelectorAll('path.rp-lmap-network-line')).toHaveLength(nh7.length),
+    )
+    const topLeftOverlay = container.querySelector('.rp-lmap-top-left')!
+    expect(topLeftOverlay.children[0]).toHaveClass('rp-lmap-labels')
+    expect(topLeftOverlay.children[1]).toHaveClass('rp-lmap-network-control')
+    expect(container.querySelector('path.quality-dead_zone')).not.toBeNull()
+    expect(screen.getByRole('region', { name: 'Estimated signal coverage' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Network Heatmap' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Network carrier filter' }), {
+      target: { value: 'bsnl' },
+    })
+    expect(onNetworkCarrierChange).toHaveBeenCalledWith('bsnl')
+  })
+
+  it('draws selectable route alternatives without replacing hazard or network layers', async () => {
+    const makeRoute = (segmentId: string): PlannedRoute => {
+      const segment = SEGMENTS.find((item) => item.id === segmentId)!
+      return {
+        id: `route-${segmentId}`,
+        designations: ['alternative'],
+        steps: [{
+          segment,
+          fromId: segment.from,
+          toId: segment.to,
+          reversed: false,
+          advisory: undefined,
+          networkCoverage: undefined,
+        }],
+        via: [],
+        corridorIds: [segment.corridorId],
+        corridorNames: [],
+        distanceKm: segment.distanceKm,
+        etaMinutes: segment.typicalMinutes,
+        safetyScore: 80,
+        networkScore: 60,
+        hazardCount: 0,
+        restrictionCount: 0,
+        deadZoneKm: 0,
+        hasRoadClosure: false,
+      }
+    };
+    const routes = [makeRoute('nh7-01'), makeRoute('nh7-02')]
+    const onSelectRoute = vi.fn()
+    const { container } = renderMap({
+      routes,
+      activeRouteId: routes[0].id,
+      onSelectRoute,
+      networkHeatmap: true,
+    })
+
+    await waitFor(() => {
+      expect(container.querySelector('.rp-lmap-route.is-active')).not.toBeNull()
+      expect(container.querySelector('.rp-lmap-route.is-alternative')).not.toBeNull()
+    })
+    expect(container.querySelectorAll('path.rp-lmap-line')).toHaveLength(nh7.length)
+    expect(container.querySelectorAll('path.rp-lmap-network-line')).toHaveLength(nh7.length)
+    expect(container.querySelectorAll('.rp-lmap-route-point')).toHaveLength(2)
+    fireEvent.click(container.querySelector('.rp-lmap-route.is-alternative')!)
+    expect(onSelectRoute).toHaveBeenCalledWith(routes[1].id)
   })
 
   it('is keyboard operable: focusable map, zoom buttons and reset', async () => {

@@ -7,9 +7,14 @@ declare const Deno: {
   env: { get(name: string): string | undefined };
 };
 
-export type AppEnv = "development" | "demo" | "pilot";
+export type AppEnv = "development" | "demo" | "pilot" | "production";
 
-const APP_ENVS: readonly AppEnv[] = ["development", "demo", "pilot"];
+const APP_ENVS: readonly AppEnv[] = [
+  "development",
+  "demo",
+  "pilot",
+  "production",
+];
 
 export interface ServerEnv {
   appEnv: AppEnv;

@@ -1,6 +1,6 @@
 # Environments
 
-RaahPrahari has three isolated environments. Each environment must use its own
+RaahPrahari has four isolated environments. Each environment must use its own
 Supabase project, public client config, and server secrets. Never point two
 environments at the same project or reuse credentials between them.
 
@@ -9,15 +9,17 @@ environments at the same project or reuse credentials between them.
 | Development | `development`              | Local implementation and testing     | Dedicated development project; test/synthetic data only.                                                                                                    |
 | Demo        | `demo`                     | Judges, partners, and demonstrations | Separate demo project; synthetic data and isolated demo identities only.                                                                                    |
 | Pilot       | `pilot`                    | Authorized partner trial             | Separate pilot project. Inactive until partner authorization, staffed review, legal/privacy review, and release approval; real data only after those gates. |
+| Production  | `production`               | Vercel deployment for real users     | Dedicated production Supabase project and production-scoped Vercel variables. Never reuse development or demo credentials.                                  |
 
 These are operational boundaries, not claims that separate remote projects
 have been provisioned. The pilot is preparation-only until its activation
-gates are met.
+gates are met. Development and demo are classified as synthetic; pilot and
+production are not.
 
 ## Rules
 
-1. Keep development, demo, and pilot Supabase projects, keys, and secrets
-   separate.
+1. Keep development, demo, pilot, and production Supabase projects, keys, and
+   secrets separate.
 2. Demo uses synthetic data and isolated identities only; never load real
    reports or accounts into it.
 3. Keep pilot inactive until its approval gates are satisfied.
@@ -38,22 +40,53 @@ gates are met.
 - development: no banner
 - demo: synthetic-data warning
 - pilot: no banner
+- production: no banner
 
 ## Frontend variables
 
-Template: `.env.example`. Copy it to `.env.local` (or `.env.demo.local` / `.env.pilot.local` for the other modes) and fill in the values.
+Template: `.env.example`. Copy it to `.env.local` (or `.env.demo.local` /
+`.env.pilot.local` for the other modes) and fill in the values. `.env.local`
+and other real environment files are ignored by Git.
 
-| Variable                 | Meaning                                           |
-| ------------------------ | ------------------------------------------------- |
-| `VITE_APP_ENV`           | `development`, `demo` or `pilot`                  |
-| `VITE_SUPABASE_URL`      | Project URL                                       |
-| `VITE_SUPABASE_ANON_KEY` | Anon / publishable key (public, protected by RLS) |
+| Variable                 | Meaning                                                |
+| ------------------------ | ------------------------------------------------------ |
+| `VITE_APP_ENV`           | `development`, `demo`, `pilot` or `production`         |
+| `VITE_SUPABASE_URL`      | Project URL                                            |
+| `VITE_SUPABASE_ANON_KEY` | Anon JWT or publishable key (public, protected by RLS) |
 
 `src/config/env.ts` validates the frontend config at runtime. The Vite config
 also checks the active mode's environment before starting the dev server or
 building: it rejects secret-like `VITE_` variable names and values that look
 like Supabase service-role/secret keys. Errors name variables, never values.
 This is a guardrail, not a way to make other `VITE_` values private.
+
+### Vercel Production
+
+Vite uses Nitro's Vercel preset by default. Keep Vercel's framework detection
+enabled; if you need to choose a preset manually, select **Other**. Set the
+install command to `pnpm install --frozen-lockfile` and the build command to
+`pnpm build`. Leave Output Directory unset: Nitro generates `.vercel/output`
+with the serverless function, static files, and routing configuration. No
+`vercel.json` is required. The generated function currently targets Node.js
+26.x, selected from the Node engine range in `package.json`.
+
+In the Vercel project, open **Settings → Environment Variables** and add these
+three variables with the **Production** environment selected:
+
+```text
+VITE_APP_ENV=production
+VITE_SUPABASE_URL=https://<your-production-project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=<your-production-publishable-key>
+```
+
+Use the production Supabase project's URL and public publishable key (or its
+legacy anon JWT). Do not use a development/demo project key, an `sb_secret_`
+key, or the service-role key. Ensure Supabase RLS and authorization policies
+are configured for production; the browser key is public. Vite embeds `VITE_`
+values during the build, so add them before deploying and redeploy after any
+change. Preview deployments should have separately scoped values and a
+non-production `VITE_APP_ENV`; never copy production credentials into Preview
+unless that deployment is explicitly approved to access production data.
 
 ## Server variables (Edge Functions)
 

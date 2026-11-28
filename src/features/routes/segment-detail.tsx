@@ -118,12 +118,14 @@ export function SegmentDetail({
   onClose,
   className,
   variant = "default",
+  additionalContent,
 }: {
   segmentId?: string;
   segment?: Segment;
   onClose?: () => void;
   className?: string;
   variant?: "default" | "map" | "overview";
+  additionalContent?: React.ReactNode;
 }) {
   const { t, ago, stamp, place } = usePrefs();
   const { segments, corridors, advisories, advisoryCacheTimestamp } =
@@ -165,6 +167,7 @@ export function SegmentDetail({
         corridorName={corridor?.name}
         onClose={onClose}
         className={className}
+        additionalContent={additionalContent}
       />
     );
   }
@@ -466,12 +469,14 @@ export function MapSegmentDetail({
   corridorName,
   onClose,
   className,
+  additionalContent,
 }: {
   segment: Segment;
   advisory: SegmentAdvisory;
   corridorName?: string;
   onClose?: () => void;
   className?: string;
+  additionalContent?: React.ReactNode;
 }) {
   const { t, ago, stamp, place } = usePrefs();
   const { advisoryCacheTimestamp: cacheTimestamp } = useAppStore();
@@ -590,6 +595,8 @@ export function MapSegmentDetail({
           <p className="rp-map-no-official">No current official information</p>
         )}
       </div>
+
+      {additionalContent}
 
       <Link
         to="/advisories/$segmentId"

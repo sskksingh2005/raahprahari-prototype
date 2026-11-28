@@ -1,5 +1,6 @@
 node_modules
-# Local Netlify folder
+# Local deployment output
+.vercel/
 .netlify
 dist/
 playwright-report/

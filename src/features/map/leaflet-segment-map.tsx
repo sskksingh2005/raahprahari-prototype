@@ -7,13 +7,26 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Crosshair, LocateFixed, Minus, Plus } from "lucide-react";
-import { PrototypeRibbon } from "@/components/prototype-ribbon";
+import { Crosshair, LocateFixed, Minus, Plus, Signal } from "lucide-react";
 import { SEGMENT_GEOMETRY_NOTE } from "@/data/fixtures";
+import type { TranslationKey } from "@/i18n/dictionary";
+import {
+  getNetworkCoverage,
+  getNetworkQuality,
+  NETWORK_QUALITY_COLORS,
+} from "@/data/network-coverage";
 import { usePrefs } from "@/i18n/preferences";
 import { useAppStore } from "@/lib/app-store";
 import { getCurrentPosition, inCoverage } from "@/lib/geo";
-import type { Segment } from "@/lib/types";
+import type {
+  NetworkCarrierFilter,
+  NetworkQuality,
+  Segment,
+} from "@/lib/types";
+import type {
+  PlannedRoute,
+  RouteDesignation,
+} from "@/lib/route-planner";
 import { cn } from "@/lib/utils";
 import {
   MARKER_GLYPH,
@@ -34,6 +47,18 @@ export const TILE_FAILURE_THRESHOLD = 4;
 const UTTARAKHAND_CENTER: [number, number] = [30.07, 79.2];
 
 type Lib = typeof Leaflet;
+const NETWORK_QUALITY_LABELS: Record<NetworkQuality, TranslationKey> = {
+  strong: "network.strong",
+  moderate: "network.moderate",
+  weak: "network.weak",
+  dead_zone: "network.deadZone",
+};
+const ROUTE_DESIGNATION_LABELS: Record<RouteDesignation, TranslationKey> = {
+  safest: "planner.safest",
+  fastest: "planner.fastest",
+  best_network: "planner.bestNetwork",
+  alternative: "planner.alternative",
+};
 
 /** Separated so tests and callers share one loader. */
 export const loadLeaflet = (): Promise<Lib> =>
@@ -53,7 +78,13 @@ export function LeafletSegmentMap({
   onUnavailable,
   label,
   className,
-  showRibbon = true,
+  networkHeatmap = false,
+  onNetworkHeatmapChange,
+  networkCarrier = "all",
+  onNetworkCarrierChange,
+  routes = [],
+  activeRouteId,
+  onSelectRoute,
 }: {
   /** Segments to draw. Official closures from the store are always drawn too. */
   segments: Segment[];
@@ -67,8 +98,13 @@ export function LeafletSegmentMap({
   /** Accessible name for the map. */
   label: string;
   className?: string;
-  /** Set false when the page already shows the shared PrototypeRibbon itself. */
-  showRibbon?: boolean;
+  networkHeatmap?: boolean;
+  onNetworkHeatmapChange?: (active: boolean) => void;
+  networkCarrier?: NetworkCarrierFilter;
+  onNetworkCarrierChange?: (carrier: NetworkCarrierFilter) => void;
+  routes?: PlannedRoute[];
+  activeRouteId?: string;
+  onSelectRoute?: (id: string) => void;
 }) {
   const { t, place } = usePrefs();
   const { segments: allSegments, advisories, now } = useAppStore();
@@ -78,6 +114,8 @@ export function LeafletSegmentMap({
     L: Lib;
     map: Leaflet.Map;
     layers: Leaflet.LayerGroup;
+    networkLayers: Leaflet.LayerGroup;
+    routeLayers: Leaflet.LayerGroup;
     you?: Leaflet.CircleMarker;
   } | null>(null);
   const [ready, setReady] = useState(false);
@@ -87,9 +125,11 @@ export function LeafletSegmentMap({
 
   // Latest callbacks without re-creating the map.
   const onSelectRef = useRef(onSelectSegment);
+  const onSelectRouteRef = useRef(onSelectRoute);
   const onUnavailableRef = useRef(onUnavailable);
   useEffect(() => {
     onSelectRef.current = onSelectSegment;
+    onSelectRouteRef.current = onSelectRoute;
     onUnavailableRef.current = onUnavailable;
   });
 
@@ -187,8 +227,10 @@ export function LeafletSegmentMap({
           })
           .addTo(map);
 
+        const networkLayers = L.layerGroup().addTo(map);
         const layers = L.layerGroup().addTo(map);
-        mapRef.current = { L, map, layers };
+        const routeLayers = L.layerGroup().addTo(map);
+        mapRef.current = { L, map, layers, networkLayers, routeLayers };
 
         const announceZoom = () => setZoomStatus(`Zoom level ${map.getZoom()}`);
         map.on("zoomend", announceZoom);
@@ -231,9 +273,37 @@ export function LeafletSegmentMap({
   useEffect(() => {
     const current = mapRef.current;
     if (!ready || !current) return;
-    const { L, layers } = current;
+    const { L, layers, networkLayers } = current;
+    networkLayers.clearLayers();
     layers.clearLayers();
     const highlightSet = new Set(highlight ?? []);
+
+    if (networkHeatmap) {
+      for (const segment of drawn) {
+        const coverage = getNetworkCoverage(segment.id);
+        if (!coverage) continue;
+        const quality = getNetworkQuality(coverage, networkCarrier);
+        const color = NETWORK_QUALITY_COLORS[quality];
+        L.polyline(segment.path, {
+          className: "rp-lmap-network-glow",
+          color,
+          opacity: 0.26,
+          weight: 15,
+          lineCap: "round",
+          interactive: false,
+        }).addTo(networkLayers);
+        L.polyline(segment.path, {
+          className: `rp-lmap-network-line quality-${quality}`,
+          color,
+          opacity: 0.9,
+          weight: 7,
+          lineCap: "round",
+          interactive: false,
+        })
+          .bindTooltip(t(NETWORK_QUALITY_LABELS[quality]), { sticky: true })
+          .addTo(networkLayers);
+      }
+    }
 
     const ordered = [...drawn].sort((a, b) => {
       // Closures and the selection on top.
@@ -324,11 +394,95 @@ export function LeafletSegmentMap({
     drawnKey,
     highlightKey,
     selectedSegmentId,
+    networkHeatmap,
+    networkCarrier,
     advisories,
     now,
     segmentName,
     t,
   ]);
+
+  const routeKey = routes.map((route) => route.id).join("|");
+  useEffect(() => {
+    const current = mapRef.current;
+    if (!ready || !current) return;
+    const { L, routeLayers } = current;
+    routeLayers.clearLayers();
+    const activeRoute = routes.find((route) => route.id === activeRouteId);
+    if (!activeRoute) return;
+
+    const routePoints = (route: PlannedRoute): [number, number][] => {
+      const points: [number, number][] = [];
+      for (const step of route.steps) {
+        const path = step.reversed ? [...step.segment.path].reverse() : step.segment.path;
+        points.push(...(points.length ? path.slice(1) : path));
+      }
+      return points;
+    };
+    const routeLabel = (route: PlannedRoute) =>
+      route.designations.map((designation) =>
+        t(ROUTE_DESIGNATION_LABELS[designation]),
+      ).join(" · ");
+
+    for (const route of routes) {
+      if (route.id === activeRouteId) continue;
+      const points = routePoints(route);
+      if (points.length < 2) continue;
+      L.polyline(points, {
+        className: "rp-lmap-route is-alternative",
+        color: "var(--route-alternative)",
+        opacity: 0.78,
+        weight: 5,
+        dashArray: "9 9",
+        lineCap: "round",
+        interactive: !!onSelectRouteRef.current,
+        bubblingMouseEvents: false,
+      })
+        .bindTooltip(routeLabel(route), { sticky: true })
+        .on("click", () => onSelectRouteRef.current?.(route.id))
+        .addTo(routeLayers);
+    }
+
+    const activePoints = routePoints(activeRoute);
+    if (activePoints.length < 2) return;
+    L.polyline(activePoints, {
+      className: "rp-lmap-route is-active",
+      color: "var(--route-active)",
+      opacity: 0.98,
+      weight: 8,
+      lineCap: "round",
+      interactive: !!onSelectRouteRef.current,
+      bubblingMouseEvents: false,
+    })
+      .bindTooltip(routeLabel(activeRoute), { sticky: true })
+      .on("click", () => onSelectRouteRef.current?.(activeRoute.id))
+      .addTo(routeLayers);
+    L.circleMarker(activePoints[0], {
+      className: "rp-lmap-route-point is-start",
+      radius: 8,
+      color: "var(--network-strong-foreground)",
+      weight: 3,
+      fillColor: "var(--network-strong)",
+      fillOpacity: 1,
+      interactive: false,
+    }).addTo(routeLayers);
+    L.circleMarker(activePoints[activePoints.length - 1], {
+      className: "rp-lmap-route-point is-end",
+      radius: 8,
+      color: "var(--network-dead-zone-foreground)",
+      weight: 3,
+      fillColor: "var(--network-dead-zone)",
+      fillOpacity: 1,
+      interactive: false,
+    }).addTo(routeLayers);
+    const mapSize = current.map.getSize();
+    if (mapSize.x && mapSize.y) {
+      current.map.fitBounds(L.latLngBounds(activePoints), {
+        padding: [36, 36],
+        maxZoom: 11,
+      });
+    }
+  }, [activeRouteId, ready, routeKey, routes, t]);
 
   // Bring an outside selection (list, search, URL) into view.
   const lastSelected = useRef<string | undefined>(undefined);
@@ -412,6 +566,89 @@ export function LeafletSegmentMap({
         to zoom. Press Tab to move between markers and Enter to select a road
         section.
       </p>
+      <div className="rp-lmap-top-left">
+        <div className="rp-lmap-labels">
+          <span className="rp-lmap-note glass-strong">
+            {SEGMENT_GEOMETRY_NOTE}
+          </span>
+        </div>
+        {onNetworkHeatmapChange && (
+          <div
+            className="rp-lmap-network-control glass-strong"
+            role="group"
+            aria-label={t("map.networkLayer")}
+          >
+            <button
+              type="button"
+              className="rp-lmap-network-toggle"
+              aria-pressed={networkHeatmap}
+              onClick={() => onNetworkHeatmapChange(!networkHeatmap)}
+            >
+              <Signal aria-hidden />
+              {t("map.networkHeatmap")}
+            </button>
+            {networkHeatmap && (
+              <>
+                <label>
+                  <span className="sr-only">
+                    {t("map.networkCarrierFilter")}
+                  </span>
+                  <select
+                    value={networkCarrier}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      if (
+                        value === "all" ||
+                        value === "jio" ||
+                        value === "airtel" ||
+                        value === "bsnl"
+                      ) {
+                        onNetworkCarrierChange?.(value);
+                      }
+                    }}
+                    aria-label={t("map.networkCarrierFilter")}
+                  >
+                    <option value="all">{t("map.allNetworks")}</option>
+                    <option value="jio">{t("network.jio")}</option>
+                    <option value="airtel">{t("network.airtel")}</option>
+                    <option value="bsnl">{t("network.bsnl")}</option>
+                  </select>
+                </label>
+                <section
+                  className="rp-lmap-network-legend"
+                  aria-label={t("map.networkLegend")}
+                >
+                  <h2>{t("map.networkLegend")}</h2>
+                  <ul>
+                    {(
+                      [
+                        ["strong", "map.networkStrong"],
+                        ["moderate", "map.networkModerate"],
+                        ["weak", "map.networkWeak"],
+                        ["dead_zone", "map.networkDeadZone"],
+                      ] as const
+                    ).map(([quality, labelKey]) => (
+                      <li key={quality}>
+                        <span
+                          className={`rp-lmap-network-swatch quality-${quality}`}
+                          aria-hidden
+                        />
+                        {t(labelKey)}
+                      </li>
+                    ))}
+                  </ul>
+                  <p>{t("network.synthetic")}</p>
+                </section>
+              </>
+            )}
+          </div>
+        )}
+        {locateStatus && (
+          <p className="rp-lmap-status glass-strong" role="status">
+            {locateStatus}
+          </p>
+        )}
+      </div>
       <div className="rp-lmap-tools" role="group" aria-label="Map controls">
         <button
           type="button"
@@ -453,17 +690,6 @@ export function LeafletSegmentMap({
       <p className="sr-only" aria-live="polite">
         {zoomStatus}
       </p>
-      {locateStatus && (
-        <p className="rp-lmap-status glass-strong" role="status">
-          {locateStatus}
-        </p>
-      )}
-      <div className="rp-lmap-labels">
-        {showRibbon && <PrototypeRibbon />}
-        <span className="rp-lmap-note glass-strong">
-          {SEGMENT_GEOMETRY_NOTE}
-        </span>
-      </div>
     </div>
   );
 }

@@ -1,7 +1,12 @@
 // src/config/env.ts
-export type AppEnv = "development" | "demo" | "pilot";
+export type AppEnv = "development" | "demo" | "pilot" | "production";
 
-const APP_ENVS: readonly AppEnv[] = ["development", "demo", "pilot"];
+const APP_ENVS: readonly AppEnv[] = [
+  "development",
+  "demo",
+  "pilot",
+  "production",
+];
 
 // JWT ka payload padh ke "role" nikalta hai (kisi library ke bina)
 function jwtRole(token: string): string | null {
@@ -25,9 +30,14 @@ function isSecretKey(value: string): boolean {
 function loadEnv() {
   const errors: string[] = [];
 
-  const appEnv = import.meta.env.VITE_APP_ENV as string | undefined;
-  const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+  const appEnv = import.meta.env.VITE_APP_ENV?.trim() as string | undefined;
+  const url = import.meta.env.VITE_SUPABASE_URL?.trim() as string | undefined;
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() as
+    string | undefined;
+
+  if (import.meta.env.SSR) {
+    console.info("[RaahPrahari] VITE_APP_ENV:", appEnv ?? "<missing>");
+  }
 
   if (!appEnv || !APP_ENVS.includes(appEnv as AppEnv)) {
     errors.push(
@@ -38,7 +48,12 @@ function loadEnv() {
     errors.push("VITE_SUPABASE_URL missing.");
   } else {
     try {
-      new URL(url);
+      const parsedUrl = new URL(url);
+      if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+        errors.push("VITE_SUPABASE_URL must use HTTP or HTTPS.");
+      } else if (appEnv === "production" && parsedUrl.protocol !== "https:") {
+        errors.push("VITE_SUPABASE_URL must use HTTPS in production.");
+      }
     } catch {
       errors.push("VITE_SUPABASE_URL valid URL nahi hai.");
     }
@@ -50,6 +65,15 @@ function loadEnv() {
     errors.push(
       "VITE_SUPABASE_ANON_KEY me SECRET (service_role) key mili. Browser me secret key kabhi nahi jati. Use turant hatao aur Supabase dashboard se rotate karo.",
     );
+  } else if (
+    !anonKey.startsWith("sb_publishable_") ||
+    anonKey.length === "sb_publishable_".length
+  ) {
+    if (jwtRole(anonKey) !== "anon") {
+      errors.push(
+        "VITE_SUPABASE_ANON_KEY must be a Supabase publishable key or legacy anon JWT.",
+      );
+    }
   }
 
   // Koi bhi VITE_ variable ka naam secret jaisa to nahi?
@@ -72,7 +96,7 @@ function loadEnv() {
     appEnv: appEnv as AppEnv,
     supabaseUrl: url as string,
     supabaseAnonKey: anonKey as string,
-    isSynthetic: appEnv !== "pilot",
+    isSynthetic: appEnv === "development" || appEnv === "demo",
   };
 }
 

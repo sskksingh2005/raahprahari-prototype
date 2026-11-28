@@ -835,7 +835,6 @@ function TravellerMap({
             }}
             label="Interactive map of matching road sections"
             className="traveller-leaflet"
-            showRibbon={false}
           />
         ) : (
           <>

@@ -32,4 +32,4 @@ jobs:
         env:
           VITE_APP_ENV: development
           VITE_SUPABASE_URL: http://localhost:54321
-          VITE_SUPABASE_ANON_KEY: ci-non-secret-placeholder
+          VITE_SUPABASE_ANON_KEY: sb_publishable_ci-placeholder

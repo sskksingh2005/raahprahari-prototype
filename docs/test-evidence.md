@@ -9,7 +9,7 @@ The project previously used Vitest + jsdom + fake-indexeddb for unit and interac
 Before running the browser suite, install Chromium locally:
 
 ```bash
-npx playwright install chromium
+pnpm exec playwright install chromium
 ```
 
 ## Verification run
@@ -17,10 +17,10 @@ npx playwright install chromium
 The current implementation was verified with:
 
 ```bash
-npm run typecheck
-npm test
-npm run lint
-npm run build
+pnpm typecheck
+pnpm test
+pnpm lint
+pnpm build
 ```
 
 These checks passed successfully during the final validation run.
