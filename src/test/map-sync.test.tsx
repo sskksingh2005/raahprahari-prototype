@@ -79,14 +79,14 @@ describe('/map selection sync', () => {
     expect(await screen.findByRole('heading', { name: 'Devprayag – Srinagar (Garhwal)' })).toBeVisible()
   }, TIMEOUT)
 
-  it('shows the OpenStreetMap attribution, legend and prototype label', async () => {
+  it('shows the OpenStreetMap attribution, legend and geometry caption without a prototype badge', async () => {
     const { container } = await mountAt('/map')
     await waitFor(() => expect(container.querySelector('.leaflet-control-attribution')).toHaveTextContent('© OpenStreetMap contributors'))
     const legend = within(screen.getByRole('region', { name: 'Map legend' }))
     expect(legend.getByText('Reported hazard')).toBeVisible()
     expect(legend.getByText('Official restriction')).toBeVisible()
     expect(legend.getByText('Unknown information')).toBeVisible()
-    expect(screen.getAllByText('Prototype mockup, synthetic data').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Prototype mockup, synthetic data')).not.toBeInTheDocument()
   }, TIMEOUT)
 })
 

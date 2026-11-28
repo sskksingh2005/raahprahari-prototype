@@ -147,6 +147,16 @@ code {
   --status-avoid: #a43c0a;
   --status-dnt: #b01e3a;
   --status-official: var(--orange-on-light);
+  --network-strong: #16a34a;
+  --network-strong-foreground: #ffffff;
+  --network-moderate: #eab308;
+  --network-moderate-foreground: #211900;
+  --network-weak: #f97316;
+  --network-weak-foreground: #241100;
+  --network-dead-zone: #dc2626;
+  --network-dead-zone-foreground: #ffffff;
+  --route-active: #0284c7;
+  --route-alternative: #a78bfa;
 
   --chart-1: var(--status-clear);
   --chart-2: var(--status-caution);

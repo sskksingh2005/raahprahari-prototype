@@ -21,7 +21,11 @@ describe('map pages render on the server without Leaflet', () => {
 
       // The map frame, its labels and the legend are server-rendered...
       expect(html).toContain('data-testid="leaflet-map"')
-      expect(html).toContain('Prototype mockup, synthetic data')
+      if (path === '/map') {
+        expect(html).not.toContain('Prototype mockup, synthetic data')
+      } else {
+        expect(html).toContain('Prototype mockup, synthetic data')
+      }
       expect(html).toContain('Road lines: approximate, synthetic data')
       // ...but no Leaflet DOM, which only exists after the client loads it.
       expect(html).not.toContain('leaflet-container')

@@ -574,8 +574,6 @@ function TerrainPanel({
               setView("list");
             }}
             label={`Interactive map of ${place(segment.from)} – ${place(segment.to)}`}
-            // The page-level ribbon from the root layout is always shown here.
-            showRibbon={false}
             className="rp-lmap-fill"
           />
         ) : (
@@ -863,7 +861,6 @@ function ReportLocationMap({ segment }: { segment: Segment }) {
             onUnavailable={() => setUnavailable(true)}
             label={`Map of the reported road section, ${place(segment.from)} – ${place(segment.to)}`}
             className="rp-lmap-fill"
-            showRibbon={false}
           />
         )}
       </div>

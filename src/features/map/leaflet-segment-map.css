@@ -70,6 +70,44 @@
   stroke-opacity: 1;
 }
 
+/* Coverage is a separate, lower Leaflet pane; hazard and closure lines stay visible above it. */
+.rp-lmap-network-glow,
+.rp-lmap-network-line {
+  fill: none;
+  pointer-events: none;
+  stroke-linecap: round;
+  transition: opacity 0.15s;
+}
+
+.rp-lmap-network-glow {
+  filter: blur(3px);
+}
+
+.rp-lmap-network-line {
+  filter: drop-shadow(0 0 2px var(--tone-07151f));
+}
+
+.rp-lmap-route {
+  fill: none;
+  cursor: pointer;
+  filter: drop-shadow(0 0 2px var(--tone-07151f));
+  transition:
+    stroke-opacity 0.15s,
+    stroke-width 0.15s;
+}
+
+.rp-lmap-route.is-alternative {
+  stroke-opacity: 0.78;
+}
+
+.rp-lmap-route.is-active {
+  stroke-opacity: 1;
+}
+
+.rp-lmap-route-point {
+  filter: drop-shadow(0 1px 3px color-mix(in srgb, var(--tone-shadow) 60%, transparent));
+}
+
 /* Markers */
 .rp-lmap-marker-wrap {
   background: none;
@@ -165,12 +203,125 @@
   height: 18px;
 }
 
+.rp-lmap-network-control {
+  position: relative;
+  width: 100%;
+  padding: 6px;
+  border: 1px solid color-mix(in srgb, var(--tone-7ea0b2) 32%, transparent);
+  border-radius: 10px;
+  color: var(--tone-e6e4dc);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--tone-shadow) 30%, transparent);
+  pointer-events: auto;
+}
+
+.rp-lmap-network-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: 7px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rp-lmap-network-toggle:hover {
+  background: color-mix(in srgb, var(--tone-ffffff) 10%, transparent);
+}
+
+.rp-lmap-network-toggle:focus-visible,
+.rp-lmap-network-control select:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 1px;
+}
+
+.rp-lmap-network-toggle svg {
+  width: 17px;
+  height: 17px;
+  color: var(--network-strong);
+}
+
+.rp-lmap-network-control select {
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--tone-7ea0b2) 35%, transparent);
+  border-radius: 7px;
+  color: var(--tone-e6e4dc);
+  background: var(--tone-102731);
+  font: inherit;
+  font-size: 12px;
+}
+
+.rp-lmap-network-control option {
+  color: var(--tone-e6e4dc);
+  background: var(--tone-102731);
+}
+
+.rp-lmap-network-legend {
+  margin-top: 6px;
+  padding: 8px 7px 4px;
+  border-top: 1px solid color-mix(in srgb, var(--tone-7ea0b2) 24%, transparent);
+}
+
+.rp-lmap-network-legend h2 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rp-lmap-network-legend ul {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-lmap-network-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.rp-lmap-network-swatch {
+  width: 20px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+.rp-lmap-network-swatch.quality-strong {
+  background: var(--network-strong);
+}
+.rp-lmap-network-swatch.quality-moderate {
+  background: var(--network-moderate);
+}
+.rp-lmap-network-swatch.quality-weak {
+  background: var(--network-weak);
+}
+.rp-lmap-network-swatch.quality-dead_zone {
+  background: var(--network-dead-zone);
+}
+
+.rp-lmap-network-legend p {
+  margin: 7px 0 0;
+  color: var(--tone-b7c8d2);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .rp-lmap-status {
-  position: absolute;
-  z-index: var(--z-map-controls);
-  bottom: 28px;
-  left: 8px;
-  max-width: min(22rem, calc(100% - 80px));
+  max-width: 100%;
   margin: 0;
   padding: 6px 10px;
   border-radius: 8px;
@@ -178,25 +329,32 @@
   font-size: 12px;
 }
 
-/* Below the top-left Map/List toggle that most pages place over the map. */
-.rp-lmap-labels {
+.rp-lmap-top-left {
   position: absolute;
   z-index: var(--z-map-controls);
-  top: 3.4rem;
-  left: 8px;
-  display: flex;
-  max-width: calc(100% - 16px);
-  flex-wrap: wrap;
-  align-items: center;
+  top: 10px;
+  left: 10px;
+  display: grid;
+  width: min(250px, calc(100% - 78px));
   gap: 6px;
   pointer-events: none;
 }
 
+.rp-lmap-labels {
+  display: flex;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  pointer-events: none;
+}
+
 .rp-lmap-note {
-  padding: 2px 8px;
-  border-radius: 999px;
+  padding: 3px 9px;
+  border-radius: 6px;
   color: var(--tone-e6e4dc);
-  font-size: 12px;
+  font-size: 0.6875rem;
+  line-height: 1.25;
 }
 
 /* Leaflet chrome on the dark theme */
@@ -275,7 +433,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rp-lmap-line {
+  .rp-lmap-line,
+  .rp-lmap-network-glow,
+  .rp-lmap-network-line,
+  .rp-lmap-route {
     transition: none;
   }
 }
