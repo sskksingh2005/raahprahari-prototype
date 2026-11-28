@@ -35,6 +35,10 @@ function loadEnv() {
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() as
     string | undefined;
 
+  if (import.meta.env.SSR) {
+    console.info("[RaahPrahari] VITE_APP_ENV:", appEnv ?? "<missing>");
+  }
+
   if (!appEnv || !APP_ENVS.includes(appEnv as AppEnv)) {
     errors.push(
       `VITE_APP_ENV galat ya missing. Allowed: ${APP_ENVS.join(" | ")}`,
